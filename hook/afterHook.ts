@@ -6,6 +6,10 @@ import { SetupChecklistRegistry } from "../libs/SetupChecklistRegistry";
 import { SalesChannelRegistry } from "../libs/SalesChannelRegistry";
 import { NotificationService } from "../libs/NotificationService";
 import { registerCoreMcpTools } from "./mcp";
+import { CoreOtpAdapter } from "../adapters/auth/core/CoreOtpAdapter";
+import { registerAuthSetupCheckups } from "../libs/authSetupCheckups";
+import { isPrimaryWorker, workerIndex } from "../libs/cluster";
+import AuthService from "../libs/AuthService";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -60,41 +64,36 @@ export default async function () {
      * environment variables (.env)
      *  */
 
-    /**
-     * @setting CORE_LOGIN_FIELD User login field source (ex: "phone", "email" ...) [read-only by default]
-     */
-    await Settings.set("CORE_LOGIN_FIELD", { key: "CORE_LOGIN_FIELD", value: "phone", readOnly: true });
-
-    /**
-     * @setting CORE_LOGIN_OTP_REQUIRED check OTP on a login process
-     */
-    await Settings.set("CORE_LOGIN_OTP_REQUIRED", { key: "CORE_LOGIN_OTP_REQUIRED", value: true });
-
-    /**
-     * @setting CORE_SET_LAST_OTP_AS_PASSWORD setting last OTP as password
-     */
-    await Settings.set("CORE_SET_LAST_OTP_AS_PASSWORD", { key: "CORE_SET_LAST_OTP_AS_PASSWORD", value: true });
-
-    /**
-     * @setting CORE_PASSWORD_REQUIRED Check password (Login only by OTP if false)
-     */
-    await Settings.set("CORE_PASSWORD_REQUIRED", { key: "CORE_PASSWORD_REQUIRED", value: true });
-
+    // CORE_SET_LAST_OTP_AS_PASSWORD and CORE_PASSWORD_REQUIRED used to be seeded here, and the
+    // password they governed has since gone entirely (.ai-notes/auth/remove-password.md): there
+    // is no way in but a proven AuthMethod. Their rows, together with PASSWORD_POLICY / REGEX /
+    // MIN_LENGTH / SALT, go with the deferred settings cleanup in the auth-v2 migration.
 
     /**
      * @setting VISIBLE_BY_DEFAULT_ON_SYNC Set visible: true for new dishes and groups from RMS sync
      */
     await Settings.set("VISIBLE_BY_DEFAULT_ON_SYNC", { key: "VISIBLE_BY_DEFAULT_ON_SYNC", value: true });
 
-    // Auth providers layer settings (see .ai-notes/auth.md) are declared + seeded
-    // from their manifests by Settings.loadSettingsManifests() above:
-    //   DEFAULT_ENABLE_AUTH_PROVIDERS, ALLOW_USER_WITHOUT_PHONE, AUTH_CALLBACK_BASE_URL
+    // Auth settings (see .ai-notes/auth/design2.md, .ai-notes/auth/extend_user_account.md) are
+    // declared + seeded from their manifests by Settings.loadSettingsManifests() above.
 
-    // Periodic cleanup of expired auth-login attempts.
+    // The core's own phone_proof capability. It self-registers into AuthMethod exactly like a
+    // module would, so the baseline "send a 6-digit code" is a registry row competing on
+    // sortOrder with smsc/sms — not a fallback branch inside AuthService (design2 §4.1).
     try {
-      setInterval(() => { AuthState.cleanupExpired().catch(() => {}); }, 5 * 60 * 1000);
+      await new CoreOtpAdapter().wait();
     } catch (e) {
-      sails.log.warn("RestoCore > AuthState cleanup loop skipped", e);
+      sails.log.error("RestoCore > core auth method registration failed", e);
+    }
+
+    // Periodic cleanup of expired auth attempts (releasing what they still hold at their
+    // providers first — a leased dial-in number, design2 §10.5), and of the send ledger behind
+    // the antiflood (kept a week — longer than the widest per-target window a cap can ask about).
+    try {
+      setInterval(() => { AuthService.sweepExpired().catch(() => {}); }, 5 * 60 * 1000);
+      setInterval(() => { AuthSendLog.cleanup().catch(() => {}); }, 60 * 60 * 1000);
+    } catch (e) {
+      sails.log.warn("RestoCore > AuthAttempt cleanup loop skipped", e);
     }
 
     try {
@@ -117,6 +116,10 @@ export default async function () {
     // Settings.loadSettingsManifests(). SETUP_CHECKLIST_CHECK_TIMEOUT_MS has no
     // manifest (read from env/config on demand), so it is only declared here.
     SetupChecklistRegistry.registerCoreDefaults();
+    // The way in: a sign-in method, and somewhere for the login code to go. Registered here
+    // rather than in registerCoreDefaults because the checks read the auth registry and the
+    // notification catalog loaded just above (review2 §1.1).
+    registerAuthSetupCheckups();
     try {
       Settings.setDeclaredSetting("SETUP_CHECKLIST_CHECK_TIMEOUT_MS");
     } catch (e) {
@@ -155,11 +158,9 @@ export default async function () {
     }
 
     // Background notification loops are NOT cluster-safe (no cross-process claim
-    // coordination): in PM2 cluster mode run them only in the first worker.
-    // NODE_APP_INSTANCE is set by PM2 (0-based); absent in fork/plain node = run.
-    const pm2Instance = Number(process.env.NODE_APP_INSTANCE ?? 0);
-    if (Number.isFinite(pm2Instance) && pm2Instance > 0) {
-      sails.log.info(`RestoCore > notification loops skipped on PM2 worker ${pm2Instance} (loops run only on worker 0)`);
+    // coordination): in PM2 cluster mode run them only in the primary worker (libs/cluster).
+    if (!isPrimaryWorker()) {
+      sails.log.info(`RestoCore > notification loops skipped on PM2 worker ${workerIndex()} (loops run only on worker 0)`);
     } else {
       // Notification delivery: retry pending + escalate unread sent
       const deliveryInterval = (await Settings.get("NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS")) ?? 60;

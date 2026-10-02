@@ -145,12 +145,12 @@ let Model = {
       }
 
       if(!user || !bonusProgram){
-        throw `User or BonusProgram not found: user: [${user.login}] bonusProgram: [${bonusProgram}]`
+        throw `User or BonusProgram not found: user: [${user.id}] bonusProgram: [${bonusProgram}]`
       }
 
       const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
       if(!userBonusProgram){
-        throw `UserBonusProgram not found: user: [${user.login}] bonusProgram: [${bonusProgram}]`
+        throw `UserBonusProgram not found: user: [${user.id}] bonusProgram: [${bonusProgram}]`
       }
 
       if (!user || !bonusProgram || !userBonusProgram) {
@@ -159,7 +159,7 @@ let Model = {
 
       const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
       let extBalance =  parseFloat(new Decimal(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
-      sails.log.debug(`Start full sync UserBonusProgram for user ${user.login}`);
+      sails.log.debug(`Start full sync UserBonusProgram for user ${user.id}`);
 
       await UserBonusProgram.update({id: userBonusProgram.id}, {balance: extBalance}).fetch()
 
@@ -183,7 +183,7 @@ let Model = {
       }
 
       if(!user || !bonusProgram){
-        throw `User or BonusProgram not found: user: ${user.login} bonusProgram: ${bonusProgram}`
+        throw `User or BonusProgram not found: user: ${user.id} bonusProgram: ${bonusProgram}`
       }
 
       const bonusProgramAdapterExist = await BonusProgram.isAlive(bonusProgram.adapter);
@@ -194,7 +194,7 @@ let Model = {
 
       const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
       if(!userBonusProgram) {
-        throw `UserBonusProgram not found: user: ${user.login} bonusProgram: ${bonusProgram}`
+        throw `UserBonusProgram not found: user: ${user.id} bonusProgram: ${bonusProgram}`
       }
 
 
@@ -216,7 +216,7 @@ let Model = {
          * Stop bonus program when balance not matched
          */
       } else if(!userBalance.equals(externalBalance) && (await Settings.get("DISABLE_USER_BONUS_PROGRAM_ON_FAIL")) === true) {
-        sails.log.error(`User [${user.login}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] `)
+        sails.log.error(`User [${user.id}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] `)
         await UserBonusProgram.update({id: userBonusProgram.id }, {isActive: false}).fetch();
         return false
 
@@ -226,7 +226,7 @@ let Model = {
       } else if(externalBalance.greaterThanOrEqualTo(amount) && (await Settings.get("ONLY_EXTERNAL_BONUS_SPEND_CHECK")) === true){
         return true
       } else if(externalBalance.greaterThanOrEqualTo(amount) && userBalance.greaterThanOrEqualTo(amount) ) {
-        sails.log.error(`User [${user.login}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] but greater than ${amount} politic: "ONLY_EXTERNAL_BONUS_SPEND_CHECK"`)
+        sails.log.error(`User [${user.id}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] but greater than ${amount} politic: "ONLY_EXTERNAL_BONUS_SPEND_CHECK"`)
         return true
       }
       return false

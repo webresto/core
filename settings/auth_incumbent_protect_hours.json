@@ -1,0 +1,9 @@
+{
+  "key": "AUTH_INCUMBENT_PROTECT_HOURS",
+  "type": "number",
+  "name": "Auth: incumbent protection window (hours)",
+  "description": "A freshly linked sign-in method cannot unlink the others or move the primary number for this long, so the security notice has time to be read. 0 = off.",
+  "defaultValue": 24,
+  "readOnly": false,
+  "isRequired": false
+}

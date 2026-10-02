@@ -110,6 +110,8 @@ declare global {
         ALLOW_USER_WITHOUT_PHONE: boolean;
         /** Public base URL used to build OAuth redirect_uri and post-login redirect */
         AUTH_CALLBACK_BASE_URL: string;
+        /** Extra origins `authStart(redirectBack:)` may return the browser to (review1 §1.4) */
+        AUTH_REDIRECT_ALLOWED_ORIGINS: string[];
     }
 }
 interface SettingsSetInputBase<K extends string, F> {

@@ -85,6 +85,14 @@ function getSharedChannelsRegistry(): Channel[] {
 }
 
 export abstract class Channel {
+  /**
+   * The kind of transport, not the vendor: "sms", "email", "fcm-mobile". Rules
+   * (`fixedChannels`/`defaultChannels`), templates (`templates.channels`) and the setup
+   * checklist bind to this string, so an SMS gateway module registers its channel as
+   * `type = "sms"` and the core's own rules (`user_otp_sms`) work with whichever module the
+   * installation runs. A vendor-specific id is only for transports that really differ
+   * (`fcm-mobile` vs `fcm-web`).
+   */
   public abstract type: ChannelType;
 
   /**
@@ -418,7 +426,17 @@ export class NotificationManager {
     let populatedUser;
 
     if(typeof user === "string") {
-      const populatedUsers = await User.find({ where: { or: [{ id: user }, { login: user }] }}).populate('devices');
+      // Used to be `or: [{id}, {login}]`. `login` is gone (extend_user_account §11), and it was
+      // never a stable handle anyway — it held whatever contact the account was created with.
+      // A string here is a User id, or a phone, which resolves through its identity.
+      let populatedUsers = await User.find({ where: { id: user } }).populate('devices');
+      if (!populatedUsers.length) {
+        const identity = await AuthIdentity.findByExternal("phone", user.replace(/\D/g, ""));
+        if (identity?.user) {
+          const ownerId = typeof identity.user === "string" ? identity.user : identity.user.id;
+          populatedUsers = await User.find({ where: { id: ownerId } }).populate('devices');
+        }
+      }
       if (populatedUsers.length === 1) {
         populatedUser = populatedUsers[0];
       } else {

@@ -1,0 +1,9 @@
+{
+  "key": "AUTH_PHONE_CHANGE_KEEP_OLD",
+  "type": "boolean",
+  "name": "Auth: keep the old number after a change",
+  "description": "Keep the replaced number as an additional sign-in method instead of deleting it. Only meaningful when more than one phone is allowed.",
+  "defaultValue": false,
+  "readOnly": false,
+  "isRequired": false
+}

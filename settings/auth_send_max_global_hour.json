@@ -1,0 +1,8 @@
+{
+  "key": "AUTH_SEND_MAX_GLOBAL_HOUR",
+  "type": "number",
+  "name": "Auth: max deliveries in total per hour",
+  "description": "Hard cap on ALL codes/calls the server sends within an hour, over every login, device and method. The per-login caps bound what one number receives; this one bounds the bill when the numbers are all different and the senders come from a proxy pool. Calibrate before enabling on production: take the busiest hour in the send ledger over a week and multiply by three — too low a value means nobody can sign in at peak. 0 = unlimited.",
+  "defaultValue": 300,
+  "isRequired": true
+}

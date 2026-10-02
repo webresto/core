@@ -1,97 +1,106 @@
-/**
- * AuthCallbackController
- *
- * HTTP entry points for auth providers that can't finish over GraphQL:
- *   - GET  /auth/:provider/callback   OAuth2/OIDC redirect (?code&state) from the provider
- *   - POST /auth/:provider/webhook    bot webhook (Telegram / MAX "share contact" updates)
- *
- * Both funnel a verified NormalizedProfile through the same core AuthService.resolveFromProfile,
- * then flip the AuthState to `done` so the SPA (polling authStatus) can exchange for a JWT.
- * The browser is redirected back to redirectBack — the token is never put in the URL.
- *
- * Lives in core (bound as raw express routes by hook/bindAuthRoutes.ts) so the whole auth-provider
- * layer ships with the module — the host app no longer needs a copy under api/controllers.
- */
-
-import { Adapter } from "../adapters";
 import AuthService from "./AuthService";
+import { resolveRedirectBack } from "./authRedirect";
+import { AuthCompleteInput } from "../adapters/auth/AuthAdapter";
 
-async function resolveAndFinish(providerSlug: string, state: any, completeInput: any) {
-  const adapter = await Adapter.getAuthAdapter(providerSlug);
-  const profile = await adapter.complete(completeInput);
-
-  const providerConfig = await AuthProvider.getBySlug(providerSlug);
-  const ctx = { deviceId: state.deviceId, userAgent: "", IP: "0.0.0.0" };
-
-  if (await AuthService.needsPhoneConfirmation(profile, providerConfig, ctx)) {
-    await AuthState.updateOne({ id: state.id }, { status: "awaiting_phone", pendingProfile: profile } as any);
-    return { status: "awaiting_phone" };
+/**
+ * HTTP entry points every external party uses to finish an attempt:
+ *
+ *   GET  /auth/:adapter/callback   the browser coming back from an OAuth2/OIDC redirect
+ *   POST /auth/:adapter/webhook    a provider's bot/telephony server pushing an update
+ *
+ * Both are mounted as raw express routes (see hook/bindAuthRoutes.ts), outside the Sails router
+ * and its CSRF guard — neither an OAuth redirect nor a bot server can carry a CSRF token.
+ * Authentication happens inside the adapter instead (state/nonce/PKCE, HMAC signatures), which
+ * is why `complete()` and `handleWebhook()` are specified as "throws on a bad signature".
+ *
+ * The controller itself decides nothing: it verifies nothing, links nothing, and issues no
+ * session. It hands the adapter's output to AuthService and reports the resulting status.
+ */
+/** customData comes back from Waterline as a string despite being declared "json". */
+function customDataOf(attempt: any): Record<string, any> {
+  const raw = attempt?.customData;
+  if (typeof raw === "string") {
+    try { return JSON.parse(raw || "{}"); } catch { return {}; }
   }
+  return raw ?? {};
+}
 
-  const outcome = await AuthService.resolveFromProfile(profile, ctx);
-  await AuthState.updateOne({ id: state.id }, { status: "done", resolvedUser: outcome.user.id } as any);
-  return { status: "done", user: outcome.user };
+/**
+ * End the callback. The SPA owns the outcome and reads it from authStatus, so every exit — done,
+ * expired, refused, thrown — has to put the browser back in front of it. A plain-text status on
+ * the API host is where a user used to be stranded when anything went wrong (review2 §3); it is
+ * kept only for the case where the operator named no landing at all.
+ */
+function leave(res: any, landing: string | null, status: number, text: string) {
+  if (landing) return res.redirect(landing);
+  return res.status(status).send(text);
 }
 
 export default {
-  /** OAuth2/OIDC redirect target. */
-  callback: async function (req: any, res: any) {
-    const providerSlug = req.params.provider;
-    const query = req.query || {};
+  /** OAuth2 / OIDC redirect target. Ends on the frontend, which is polling authStatus. */
+  async callback(req: any, res: any) {
+    const adapterSlug = String(req.params.adapter || "");
+    // Resolved before anything can fail, so that a failure still has somewhere to send the
+    // browser. redirectBack is client-supplied, so it is a destination only after the allowlist
+    // agrees (review1 §1.4) — otherwise this route is an open redirect on a trusted domain. A
+    // refused or absent value degrades to AUTH_CALLBACK_BASE_URL.
+    let landing: string | null = null;
     try {
-      const stateId = query.state;
-      if (!stateId) return res.status(400).send("Missing state");
+      const attemptId = String(req.query.state || req.query.attemptId || "");
+      const attempt = await AuthAttempt.load(attemptId, { liveOnly: true });
+      landing = await resolveRedirectBack(attempt ? customDataOf(attempt).redirectBack : undefined);
+      if (!attempt) return leave(res, landing, 410, "Auth attempt expired or not found");
 
-      const state = await AuthState.getActive(stateId);
-      if (!state) return res.status(400).send("Auth state expired or not found");
-      if (state.provider !== providerSlug) return res.status(400).send("Provider mismatch");
+      const adapter = AuthMethod.getAdapter(attempt.methodAdapter as string, attempt.methodOffer as string);
+      if (!adapter || typeof adapter.complete !== "function") return leave(res, landing, 404, "Unknown auth adapter");
+      const offer = adapter.offers.find((o) => o.offer === attempt.methodOffer);
+      if (!offer) return leave(res, landing, 404, "Unknown auth offer");
 
-      const result = await resolveAndFinish(providerSlug, state, { query, state });
+      const input: AuthCompleteInput = { query: req.query, body: req.body, attempt };
+      const profile = await adapter.complete(input, offer);
+      await AuthService.acceptProfile(attempt, profile, {
+        deviceId: attempt.deviceId,
+        userAgent: req.headers?.["user-agent"] ?? "",
+        IP: req.ip ?? "",
+      });
 
-      // Bounce the browser back to the SPA, which polls authStatus(stateId) → JWT.
-      const back = state.redirectBack || (await Settings.get("AUTH_CALLBACK_BASE_URL")) || "/";
-      const sep = back.includes("?") ? "&" : "?";
-      const url = `${back}${sep}authState=${encodeURIComponent(stateId)}&status=${encodeURIComponent(result.status)}`;
-      return res.redirect(url);
+      // Whether the login is finished or now wants a code is read from authStatus, not from
+      // this redirect.
+      return leave(res, landing, 200, "You can close this window and return to the application");
     } catch (e) {
-      sails.log.error(`AuthCallbackController.callback [${providerSlug}]`, e);
-      return res.status(500).send("Auth callback failed");
+      sails.log.error(`AuthCallbackController.callback [${adapterSlug}]`, e);
+      return leave(res, landing, 400, "Authorization failed");
     }
   },
 
-  /** Bot webhook (Telegram / MAX). The adapter matches the update to an AuthState via the start param. */
-  webhook: async function (req: any, res: any) {
-    const providerSlug = req.params.provider;
+  /**
+   * Provider webhook. The adapter parses and authenticates the raw update itself and returns a
+   * Signal, or null to ignore it — bots receive far more updates than the ones we care about.
+   *
+   * Duplicate and late signals come back as the attempt's current status, never as an error: a
+   * repeat is absorbed by the CAS inside AuthService (И15, signal-idempotency.md), and a non-200
+   * would only make the provider retry the thing it has already delivered.
+   */
+  async webhook(req: any, res: any) {
+    const adapterSlug = String(req.params.adapter || "");
     try {
-      const adapter = await Adapter.getAuthAdapter(providerSlug);
-
-      // The adapter parses the update, finds the pending AuthState (by its `start` param),
-      // and returns { stateId, profile } — or null if this update isn't a login.
-      if (typeof adapter.handleWebhook !== "function") {
-        return res.status(200).json({ ok: true, ignored: true });
-      }
-      const parsed = await adapter.handleWebhook(req.body || {}, { headers: req.headers || {} });
-      if (!parsed || !parsed.stateId) {
-        return res.status(200).json({ ok: true, ignored: true });
+      const adapter = AuthMethod.getAdapterBySlug(adapterSlug);
+      if (!adapter || typeof adapter.handleWebhook !== "function") {
+        return res.status(404).json({ ok: false, error: "Unknown auth adapter" });
       }
 
-      const state = await AuthState.getActive(parsed.stateId);
-      if (!state) return res.status(200).json({ ok: true, expired: true });
+      const signal = await adapter.handleWebhook(req.body ?? {}, { headers: req.headers });
+      // Providers retry; an update we do not recognise must still be a 200 or they retry forever.
+      if (!signal) return res.status(200).json({ ok: true, ignored: true });
 
-      const providerConfig = await AuthProvider.getBySlug(providerSlug);
-      const ctx = { deviceId: state.deviceId, userAgent: "", IP: "0.0.0.0" };
-
-      if (await AuthService.needsPhoneConfirmation(parsed.profile, providerConfig, ctx)) {
-        await AuthState.updateOne({ id: state.id }, { status: "awaiting_phone", pendingProfile: parsed.profile } as any);
-        return res.status(200).json({ ok: true, status: "awaiting_phone" });
-      }
-
-      const outcome = await AuthService.resolveFromProfile(parsed.profile, ctx);
-      await AuthState.updateOne({ id: state.id }, { status: "done", resolvedUser: outcome.user.id } as any);
-      return res.status(200).json({ ok: true, status: "done" });
+      const attempt = await AuthService.handleSignal(signal, {
+        userAgent: req.headers?.["user-agent"] ?? "",
+        IP: req.ip ?? "",
+      });
+      return res.status(200).json({ ok: true, status: attempt?.status ?? "ignored" });
     } catch (e) {
-      sails.log.error(`AuthCallbackController.webhook [${providerSlug}]`, e);
-      return res.status(200).json({ ok: false });
+      sails.log.error(`AuthCallbackController.webhook [${adapterSlug}]`, e);
+      return res.status(400).json({ ok: false });
     }
   },
 };

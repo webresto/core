@@ -15,6 +15,14 @@ let attributes = {
     user: {
         model: 'user'
     },
+    /**
+     * Which identity this session was opened through — set by User.authDevice() from the
+     * completed AuthAttempt. Lets the cabinet show "signed in via Telegram" and lets unlinking
+     * that identity revoke sessions opened through it (extend_user_account §3.4, И15).
+     */
+    identity: {
+        model: 'authidentity',
+    },
     lastIP: "string",
     loginTime: { type: "number" },
     lastActivity: { type: "number" },

@@ -33,7 +33,6 @@ function getAuditActor(req) {
             : (req === null || req === void 0 ? void 0 : req.ip) || (req === null || req === void 0 ? void 0 : req.socket.remoteAddress) || null;
     return {
         id: user === null || user === void 0 ? void 0 : user.id,
-        login: (user === null || user === void 0 ? void 0 : user.login) || null,
         phone: (user === null || user === void 0 ? void 0 : user.phone) || null,
         name: [(user === null || user === void 0 ? void 0 : user.firstName), (user === null || user === void 0 ? void 0 : user.lastName)].filter(Boolean).join(" ") || null,
         ip,

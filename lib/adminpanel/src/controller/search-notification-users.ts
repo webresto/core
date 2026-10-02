@@ -21,8 +21,7 @@ function mapUser(user: any, deviceId?: string) {
   return {
     kind: "user",
     id: user?.id,
-    login: user?.login || "",
-    name: user?.name || user?.firstName || user?.email || user?.login || user?.id || "",
+    name: user?.name || user?.firstName || user?.email || user?.id || "",
     phone,
     email: user?.email || "",
     ...(deviceId ? { deviceId, foundByDeviceId: true } : {}),
@@ -72,13 +71,24 @@ export default async function SearchNotificationUsersController(req: any, res: a
     const textMatches: any[] = await User.find({
       where: {
         or: [
-          { login: { contains: raw } },
           { firstName: { contains: raw } },
           { lastName: { contains: raw } },
           { email: { contains: raw } },
         ],
       },
     }).limit(50);
+
+    // The account has no `login` column to search any more; every way in is an AuthIdentity, so
+    // a raw handle (phone digits, an email, a telegram id) is looked up there and resolved back
+    // to its owner (extend_user_account §11).
+    const identityMatches: any[] = [];
+    const identities = await AuthIdentity.find({ where: { externalId: { contains: raw } } }).limit(50);
+    const ownerIds = identities
+      .map((identity: any) => (typeof identity.user === "string" ? identity.user : identity.user?.id))
+      .filter(Boolean);
+    if (ownerIds.length) {
+      identityMatches.push(...(await User.find({ where: { id: ownerIds } })));
+    }
 
     // Phone is stored as JSON and cannot be queried with `contains`, so for the
     // phone case we scan users and match the concatenated phone string.
@@ -97,7 +107,7 @@ export default async function SearchNotificationUsersController(req: any, res: a
     // Merge and de-duplicate by id, preserving order (text matches first).
     const seen = new Set<any>();
     const results: any[] = [];
-    for (const user of [...textMatches, ...phoneMatches]) {
+    for (const user of [...textMatches, ...identityMatches, ...phoneMatches]) {
       if (user && !seen.has(user.id)) {
         seen.add(user.id);
         results.push(mapUser(user));

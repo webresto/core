@@ -10,7 +10,7 @@ This module provides a flexible notification system that allows messages to be s
    - `Channel` abstract class serves as a blueprint for different notification channels. It defines properties and methods that must be implemented by specific channels.
 
    - **Properties:**
-     - `type`: Indicates the type of the channel.
+     - `type`: The kind of transport, not the vendor — `sms`, `email`, `fcm-mobile`. Rules (`fixedChannels`/`defaultChannels`), templates (`templates.channels`), `sendMessageToUser(..., channelType)` and the setup checklist bind to this string. **An SMS gateway module registers its channel as `type = "sms"`**, so the core's own rules (`user_otp_sms`, the login code) work with whichever module the installation runs. Use a vendor-specific id only where transports really differ (`fcm-mobile` vs `fcm-web`).
      - `forceSend`: If set to `true`, the message will be sent regardless of any conditions.
      - `forGroupTo`: Array of message group identifiers specifying the target recipients for this channel.
      - `sortOrder`: Priority level for this channel in the delivery queue.

@@ -12,20 +12,24 @@ export type Phone = {
     additionalNumber?: string;
 };
 declare let attributes: {
-    /** User model ID */
+    /** User model ID — the account key. Nothing else identifies a user (extend_user_account §3.1):
+     *  every way in is a row in AuthIdentity, found by (provider, externalId). */
     id: string;
-    login: string;
     firstName: string;
     lastName: string;
     sex: number;
+    /**
+     * A contact address, and nothing more: never a way in, never proven by the core (review3 §1.2).
+     * Nullable so it can actually be cleared — `User.delete` wipes it, and Waterline refuses `null`
+     * for a string attribute without `allowNull`.
+     */
     email: string;
     /**
-     * It is a basic login field
-     *  type Phone {
-          code: string
-          number: string
-          additionalNumber?: string
-        }
+     * @deprecated Not a login field any more, and not where the user's number lives: a read-only
+     * copy of the primary phone-identity (`primaryPhone` → AuthIdentity, provider "phone"), kept
+     * only for readers that still expect `user.phone` — bonus/RMS adapters, notifications, the
+     * admin panel. Written by AuthService alone (`syncUserProjections`, И13); never set it from
+     * anywhere else, and read the number through `primaryPhone` in new code.
      */
     phone: Phone;
     birthday: string;
@@ -38,18 +42,20 @@ declare let attributes: {
      *  Has success verification Phone
      */
     verified: boolean;
-    /**
-     *  Has a verified email (email-link login or a social provider that returned a verified email)
-     */
-    emailVerified: boolean;
-    /** External auth accounts linked to this user (telegram / max / vk / …) */
+    /** External auth accounts linked to this user (telegram / max / vk / phone / …) */
     identities: import("./AuthIdentity").AuthIdentityRecord[];
+    /**
+     * Which phone-identity is the primary one — a reference, not a flag on AuthIdentity
+     * (extend_user_account §3.3): with no transactions in this project, "exactly one row flagged
+     * primary" cannot be kept as an invariant across several writes, while a nullable FK on User
+     * cannot desync by construction. This is what external bonus/RMS adapters see as `User.phone`,
+     * and where security notices about the identity set (§6) are sent.
+     */
+    primaryPhone: import("./AuthIdentity").AuthIdentityRecord | string | null;
     /**
      * Indicate filled all required custom fields
      */
     allRequiredCustomFieldsAreFilled: boolean;
-    passwordHash: string;
-    lastPasswordChange: number;
     /** Its temporary code for authorization */
     temporaryCode: string;
     /**
@@ -75,11 +81,6 @@ declare let attributes: {
     } | string;
 };
 type attributes = typeof attributes;
-/**
- * @deprecated use `UserRecord` instead
- */
-interface User extends OptionalAll<attributes>, ORM {
-}
 export interface UserRecord extends OptionalAll<attributes>, ORM {
 }
 declare let Model: {
@@ -91,7 +92,12 @@ declare let Model: {
      * @param dishId
      */
     handleFavoriteDish(userId: string, dishId: string): Promise<void>;
-    delete(userId: string, OTP: string, force?: boolean): Promise<void>;
+    /**
+     * @param ticket one-time result of a `purpose: "verify:delete_account"` AuthAttempt
+     *   (design2 §10.3 — "one code, every door" is closed: a code minted for login no longer
+     *   opens account deletion).
+     */
+    delete(userId: string, ticket: string, force?: boolean): Promise<void>;
     /**
      * Returns phone string by user criteria
      * Additional number will be added separated by commas (+19990000000,1234)
@@ -101,22 +107,13 @@ declare let Model: {
      */
     getPhoneString(phone: Phone, target?: "login" | "print" | "string"): Promise<string>;
     /**
-     * Update user password
-     *
-     * @param userId User id
-     * @param newPassword New password
-     * @param oldPassword Old Password
-     * @param force Skip check old password
-     * @param temporaryCode
-     * @setting PasswordSalt - Password salt (default: number42)
-     * @setting PasswordRegex - Checking password by regex (default: no check)
-     * @setting PasswordMinLength - Checks minimum length password (default: no check)
-     *
-     * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
+     * Bind (or rebind) a device to `userId` and open a fresh session. The SAME mechanism every
+     * login path ends at — phone, social, ticket exchange — so session issuance is single-sourced
+     * (design2 §0). `identityId`, when known, records which identity this session was opened
+     * through (extend_user_account §3.4): needed so unlinking that identity can revoke sessions
+     * opened via it.
      */
-    setPassword(userId: string, newPassword: string, oldPassword: string, force?: boolean, temporaryCode?: string): Promise<User>;
-    login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDeviceRecord>;
-    authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string): Promise<UserDeviceRecord>;
+    authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string, identityId?: string): Promise<UserDeviceRecord>;
     /**
       check all active bonus programs for user
     */

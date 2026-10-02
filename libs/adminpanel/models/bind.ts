@@ -73,7 +73,6 @@ export const models = {
     list: {
       fields: {
         id: true,
-        login: true,
         firstName: true,
         lastName: true,
         email: true,
@@ -92,17 +91,16 @@ export const models = {
     edit: {
       fields: {
         id: false,
-        login: true,
         firstName: true,
         lastName: true,
         sex: true,
         email: true,
         phone: true,
         birthday: true,
-        verified: true,
+        verified: { title: 'Phone verified', disabled: true },
+        primaryPhone: false,
+        identities: false,
         allRequiredCustomFieldsAreFilled: true,
-        passwordHash: false,
-        lastPasswordChange: false,
         temporaryCode: false,
         orderCount: true,
         isDeleted: true,
@@ -120,17 +118,16 @@ export const models = {
     add: {
       fields: {
         id: false,
-        login: true,
         firstName: true,
         lastName: true,
         sex: true,
         email: true,
         phone: true,
         birthday: true,
-        verified: true,
+        verified: { title: 'Phone verified', disabled: true },
+        primaryPhone: false,
+        identities: false,
         allRequiredCustomFieldsAreFilled: true,
-        passwordHash: false,
-        lastPasswordChange: false,
         temporaryCode: false,
         orderCount: false,
         isDeleted: true,
@@ -363,6 +360,73 @@ export const models = {
     list: NotificationConfig.list(),
     edit: NotificationConfig.edit(),
     remove: false,
+  },
+  AuthMethod: {
+    model: "authmethod",
+    title: "Sign-in methods",
+    icon: "key",
+    // Rows are created by the modules themselves (AuthMethod.alive on boot), never by hand: a
+    // row without a live adapter behind it is a button that cannot do anything.
+    add: false,
+    remove: false,
+    list: {
+      fields: {
+        adapter: true,
+        offer: true,
+        kind: true,
+        enable: true,
+        sortOrder: true,
+        healthStatus: true,
+        cost: true,
+        requirePhoneVerification: true,
+      },
+    },
+    edit: {
+      fields: {
+        // ── declared by the adapter's code; shown so the operator can see what a row IS,
+        //    read-only because it is a property of the protocol, not a business decision (И4).
+        //    `canVerifyPhone` in particular: as an editable checkbox it would let an operator
+        //    silently open account takeover by ticking it on a provider that proves nothing —
+        //    which is exactly what the old `trustProviderPhone` did (design2 §4.1).
+        adapter: { title: 'Adapter', disabled: true },
+        offer: { title: 'Offer', disabled: true },
+        kind: { title: 'Kind', disabled: true },
+        flow: { title: 'Flow', disabled: true },
+        mode: { title: 'Mode', disabled: true },
+        secretOrigin: { title: 'Secret origin', disabled: true },
+        codeLength: { title: 'Code length', disabled: true },
+        canVerifyPhone: { title: 'Provider verifies the phone', disabled: true },
+        providerModule: { title: 'Module', disabled: true },
+        healthStatus: { title: 'Health', disabled: true },
+
+        // ── business decisions: the operator owns these
+        enable: true,
+        sortOrder: true,
+        titleKey: true,
+        hintKey: true,
+        iconUrl: true,
+        buttonColor: true,
+        buttonTextColor: true,
+        purposes: true,
+        countries: true,
+        salesChannels: true,
+        // Both are per-row overrides of the global OTP settings; empty/0 = inherit
+        // (AuthService.resendIntervalSec / applyMethod).
+        ttlSec: { title: 'Code TTL, sec (0 — global default)' },
+        resendAfterSec: { title: 'Pause between sends, sec (0 — global default)' },
+        cost: true,
+        requirePhoneVerification: true,
+        maxPerUser: true,
+
+        // `config` holds client secrets and bot tokens. The generic model CRUD prints every
+        // column as-is, so it is never rendered here — same reasoning as the `settings` model
+        // below.
+        config: false,
+        customData: false,
+        createdAt: false,
+        updatedAt: false,
+      },
+    },
   },
   // The `settings` model is deliberately NOT bound here. Settings are edited through
   // the dedicated Settings Manager page (hook/bindAdminpanel.ts → /settings-manager),

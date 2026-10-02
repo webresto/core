@@ -1,0 +1,9 @@
+{
+  "key": "AUTH_DEMO_PHONES",
+  "type": "string",
+  "name": "Auth: DEMO_MODE phone allowlist",
+  "description": "Comma-separated phone digits (no '+', e.g. '79990000000,79990000001') allowed to receive the fixed DEMO_MODE code (e.g. for Apple App Review demo sign-in). Every other number always gets a real CSPRNG code, even with DEMO_MODE=true — this is what keeps one env var on a live box from being 'log in as anyone' (review1 §2).",
+  "defaultValue": "",
+  "readOnly": false,
+  "isRequired": false
+}

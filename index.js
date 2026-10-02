@@ -21,7 +21,10 @@ __exportStar(require("./models/Group"), exports);
 __exportStar(require("./models/Maintenance"), exports);
 __exportStar(require("./models/MediaFile"), exports);
 __exportStar(require("./models/Notification"), exports);
-__exportStar(require("./models/OneTimePassword"), exports);
+__exportStar(require("./models/AuthAttempt"), exports);
+__exportStar(require("./models/AuthIdentity"), exports);
+__exportStar(require("./models/AuthMethod"), exports);
+__exportStar(require("./models/AuthSendLog"), exports);
 __exportStar(require("./models/Order"), exports);
 __exportStar(require("./models/OrderDish"), exports);
 __exportStar(require("./models/PaymentDocument"), exports);
@@ -42,6 +45,8 @@ __exportStar(require("./libs/helpers/OrderHelper"), exports);
 __exportStar(require("./libs/NotificationDispatcher"), exports);
 __exportStar(require("./libs/SetupChecklistRegistry"), exports);
 __exportStar(require("./libs/SetupChecklistService"), exports);
+__exportStar(require("./libs/AuthService"), exports);
+__exportStar(require("./adapters/auth/AuthAdapter"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),

@@ -63,12 +63,7 @@ declare global {
     type ResType = sails.Response;
     interface SettingList {
         RESTOCORE_TIME_SYNC_PAYMENTS: number;
-        CORE_LOGIN_FIELD: string;
-        CORE_LOGIN_OTP_REQUIRED: boolean;
-        CORE_SET_LAST_OTP_AS_PASSWORD: boolean;
-        CORE_PASSWORD_REQUIRED: boolean;
         DEFAULT_CAPTCHA_ADAPTER: string;
-        DEFAULT_OTP_ADAPTER: string;
         DEFAULT_BONUS_ADAPTER: string;
         RMS_ADAPTER: string;
         DEFAULT_MEDIAFILE_ADAPTER: string;
@@ -114,10 +109,29 @@ declare global {
         PROMOTION_ENABLE_BY_DEFAULT: boolean;
         PASSWORD_REGEX: string;
         PASSWORD_MIN_LENGTH: number;
-        PASSWORD_POLICY: "required" | "from_otp" | "disabled";
+        PASSWORD_POLICY: "required" | "disabled";
         PASSWORD_SALT: number;
-        LOGIN_OTP_REQUIRED: boolean;
-        CREATE_USER_IF_NOT_EXIST: boolean;
+        OTP_MAX_ATTEMPTS: number;
+        OTP_RESEND_INTERVAL_SECONDS: number;
+        OTP_TTL_SECONDS: number;
+        AUTH_STATE_TTL_SECONDS: number;
+        AUTH_OTP_MAX_RESENDS: number;
+        AUTH_MAX_SWITCHES: number;
+        AUTH_SEND_MAX_PER_TARGET_HOUR: number;
+        AUTH_SEND_MAX_PER_TARGET_DAY: number;
+        AUTH_SEND_MAX_GLOBAL_HOUR: number;
+        AUTH_SEND_ALLOWED_COUNTRIES: string[];
+        AUTH_MAX_LIVE_ATTEMPTS_PER_DEVICE: number;
+        ALLOW_USER_WITHOUT_PHONE: boolean;
+        DEFAULT_ENABLE_AUTH_PROVIDERS: boolean;
+        AUTH_CALLBACK_BASE_URL: string;
+        AUTH_REDIRECT_ALLOWED_ORIGINS: string[];
+        AUTH_MAX_PHONE_IDENTITIES: number;
+        AUTH_MAX_IDENTITIES_PER_ADAPTER: number;
+        AUTH_ALLOW_PHONE_CHANGE: boolean;
+        AUTH_PHONE_CHANGE_KEEP_OLD: boolean;
+        AUTH_LINK_NOTICE_POLICY: "off" | "notify" | "confirm";
+        AUTH_INCUMBENT_PROTECT_HOURS: number;
         TIME_TO_SYNC_BONUSES_IN_MINUTES: number;
         SYNC_BONUSTRANSACTION_AFTER_TIME: number;
         DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean;
@@ -140,6 +154,11 @@ declare global {
         FIRSTNAME_REQUIRED: boolean;
         WORK_TIME: WorkTime[];
         FIELDS_FOR_ORDER_INITIALIZATION: ("address" | "selfService" | "pickupPoint" | "date" | "personsCount" | "comment" | "customer" | "promotionCode" | "paymentMethod" | "concept")[];
+        /**
+         * No anonymous cart: only an authenticated user may create one and put dishes in it.
+         * Off = today's behaviour (guest cart keyed by deviceId).
+         */
+        REQUIRE_AUTH_FOR_CART: boolean;
         projectName: string;
         test: any;
         test_123Test: boolean;

@@ -222,7 +222,6 @@ export default async function GetNotificationsController(req: any, res: any) {
         user?.id,
         user?.name,
         user?.email,
-        user?.login,
         phone,
         recipient?.name,
         recipient?.phone,

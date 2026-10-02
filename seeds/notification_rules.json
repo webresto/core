@@ -94,9 +94,9 @@
   {
     "key": "user_otp_sms",
     "name": "User OTP — SMS",
-    "description": "One-time password delivered to the user. Fixed to SMS only.",
+    "description": "One-time password delivered to the user. Fixed to the `sms` channel type — whichever SMS gateway module the installation runs registers its channel as type \"sms\". Enabled by default: this is the only way a login code goes out — without it (or without an SMS channel) sign-in fails with send_failed.",
     "eventKey": "user_otp_requested",
-    "enabled": false,
+    "enabled": true,
     "priority": "high",
     "sendDelaySec": 0,
     "important": true,
@@ -109,6 +109,69 @@
     "templates": {
       "default": { "title": "Confirmation code", "body": "Your code: {{otp.code}}" },
       "locales": {},
+      "channels": {}
+    }
+  },
+  {
+    "key": "user_identity_linked_sms",
+    "name": "Sign-in method added \u2014 SMS",
+    "description": "The owner is told a new way into the account was added. Fixed to the `sms` channel type and marked important on purpose: SMS is the only channel tied to the SIM rather than to a session, and a session is what an attacker already has. The message names no detail of the change and carries no link \u2014 a \"this wasn't me\" link would be a new unauthenticated entry point on the very channel this notice defends. Sent to the number on record BEFORE the change. Turning this rule off removes the alarm; AUTH_LINK_NOTICE_POLICY=off turns all of them off at once.",
+    "eventKey": "user_identity_linked",
+    "enabled": true,
+    "priority": "high",
+    "sendDelaySec": 0,
+    "important": true,
+    "maxDeliveryCost": null,
+    "useGlobalFallback": true,
+    "channelsMode": "fixed",
+    "escalateBy": "read",
+    "fixedChannels": ["sms"],
+    "defaultChannels": [],
+    "templates": {
+      "default": { "title": "Account security", "body": "Your account sign-in methods have changed. If this was not you, contact support." },
+      "locales": { "ru": { "title": "Безопасность аккаунта", "body": "Изменился набор способов входа в ваш аккаунт. Если это были не вы — обратитесь в поддержку." } },
+      "channels": {}
+    }
+  },
+  {
+    "key": "user_identity_unlinked_sms",
+    "name": "Sign-in method removed \u2014 SMS",
+    "description": "The owner is told a way into the account was removed, by them or by an operator. Fixed to the `sms` channel type and marked important on purpose: SMS is the only channel tied to the SIM rather than to a session, and a session is what an attacker already has. The message names no detail of the change and carries no link \u2014 a \"this wasn't me\" link would be a new unauthenticated entry point on the very channel this notice defends. Sent to the number on record BEFORE the change. Turning this rule off removes the alarm; AUTH_LINK_NOTICE_POLICY=off turns all of them off at once.",
+    "eventKey": "user_identity_unlinked",
+    "enabled": true,
+    "priority": "high",
+    "sendDelaySec": 0,
+    "important": true,
+    "maxDeliveryCost": null,
+    "useGlobalFallback": true,
+    "channelsMode": "fixed",
+    "escalateBy": "read",
+    "fixedChannels": ["sms"],
+    "defaultChannels": [],
+    "templates": {
+      "default": { "title": "Account security", "body": "Your account sign-in methods have changed. If this was not you, contact support." },
+      "locales": { "ru": { "title": "Безопасность аккаунта", "body": "Изменился набор способов входа в ваш аккаунт. Если это были не вы — обратитесь в поддержку." } },
+      "channels": {}
+    }
+  },
+  {
+    "key": "user_primary_phone_changed_sms",
+    "name": "Primary phone changed \u2014 SMS",
+    "description": "The owner is told the main number on the account is changing; emitted before the switch, so it reaches the old number. Fixed to the `sms` channel type and marked important on purpose: SMS is the only channel tied to the SIM rather than to a session, and a session is what an attacker already has. The message names no detail of the change and carries no link \u2014 a \"this wasn't me\" link would be a new unauthenticated entry point on the very channel this notice defends. Sent to the number on record BEFORE the change. Turning this rule off removes the alarm; AUTH_LINK_NOTICE_POLICY=off turns all of them off at once.",
+    "eventKey": "user_primary_phone_changed",
+    "enabled": true,
+    "priority": "high",
+    "sendDelaySec": 0,
+    "important": true,
+    "maxDeliveryCost": null,
+    "useGlobalFallback": true,
+    "channelsMode": "fixed",
+    "escalateBy": "read",
+    "fixedChannels": ["sms"],
+    "defaultChannels": [],
+    "templates": {
+      "default": { "title": "Account security", "body": "Your account sign-in methods have changed. If this was not you, contact support." },
+      "locales": { "ru": { "title": "Безопасность аккаунта", "body": "Изменился набор способов входа в ваш аккаунт. Если это были не вы — обратитесь в поддержку." } },
       "channels": {}
     }
   }

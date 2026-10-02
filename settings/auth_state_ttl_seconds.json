@@ -1,0 +1,8 @@
+{
+  "key": "AUTH_STATE_TTL_SECONDS",
+  "type": "number",
+  "name": "Auth: login attempt lifetime (seconds)",
+  "description": "How long an AuthAttempt stays alive. Extended (up to 3x) whenever a code is actually sent for it, because the user leaves for their SMS app and comes back.",
+  "defaultValue": 600,
+  "isRequired": true
+}

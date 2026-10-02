@@ -1,0 +1,9 @@
+{
+  "key": "AUTH_ALLOW_PHONE_CHANGE",
+  "type": "boolean",
+  "name": "Auth: allow changing the phone number",
+  "description": "Off until every connected bonus/RMS adapter has been checked: those systems key the customer by phone, and changing it here does not change it there — the customer would lose their balance or inherit somebody else's.",
+  "defaultValue": false,
+  "readOnly": false,
+  "isRequired": false
+}

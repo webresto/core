@@ -1,9 +1,7 @@
 import RMSAdapter, { ConfigRMSAdapter } from "./rms/RMSAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
-import { DefaultOTP } from "./otp/default/defaultOTP";
 import LocalMediaFileAdapter from "./mediafile/default/local";
-import OTPAdapter from "./otp/OneTimePasswordAdapter";
 import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
@@ -12,7 +10,6 @@ import { Config } from "../interfaces/Config";
 import DeliveryAdapter from "./delivery/DeliveryAdapter";
 import { DefaultDeliveryAdapter } from "./delivery/default/defaultDelivery";
 import { PromotionAdapter } from "./promotion/default/promotionAdapter";
-import AuthProviderAdapter from "./auth/AuthProviderAdapter";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -43,20 +40,6 @@ export class Captcha {
     }
   }
 }
-
-/**
- * returns OTP-adapter
- */
-export class OTP {
-  /**
-   * @deprecated use Adapter.getOTPAdapter instead
-   * @param adapterName
-   */
-  public static async getAdapter(adapterName?: string): Promise<OTPAdapter> {
-    return Adapter.getOTPAdapter(adapterName);
-  }
-}
-
 
 export class Delivery {
   public static instanceDeliveryAdapter: DeliveryAdapter;
@@ -111,28 +94,6 @@ export class Adapter {
   private static instanceMF: MediaFileAdapter;
 
   public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
-
-  public static async getOTPAdapter(adapterName?: string): Promise<OTPAdapter> {
-    if (!adapterName) {
-      adapterName = await Settings.get("DEFAULT_OTP_ADAPTER");
-    }
-
-    // Use default adapter POW (crypto-puzzle)
-    if (!adapterName || adapterName === "default") {
-      return new DefaultOTP();
-    }
-
-    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-otp-adapter";
-
-    try {
-      const adapter = require(adapterLocation);
-      return new adapter.OTPAdapter[adapterName]() as OTPAdapter;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter OTP > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
 
   public static getPromotionAdapter(adapter?: string | PromotionAdapter, initParams?: {[key: string]:string | number | boolean}): PromotionAdapter {
 
@@ -352,33 +313,10 @@ export class Adapter {
   }
 
   /**
-   * returns a live Auth-provider adapter by its slug.
-   * First checks providers that already self-registered into AuthProvider.alive() (modules
-   * loaded as sails hooks, e.g. ru_auth_providers — AuthProvider is a sails global, same as
-   * Settings above, so no import/circular-dependency concern here), then falls back to
-   * requiring an `@webresto/<slug>-auth-adapter` npm module — mirroring getPaymentAdapter.
+   * Auth adapters are NOT resolved here. A module self-registers every offer it declares into
+   * the AuthMethod registry from its constructor, and `AuthMethod.getAdapter(adapter, offer)`
+   * hands back the live instance. A second resolution path next to that registry could only
+   * ever disagree with it about which module owns a slug — which is exactly the defect the
+   * registry's conflict check exists to kill (design2 §4.1, Д1).
    */
-  public static async getAuthAdapter(adapterName: string): Promise<AuthProviderAdapter> {
-    if (!adapterName) throw "AuthProviderAdapter name is required";
-
-    const alive = AuthProvider.getAdapter(adapterName);
-    if (alive) {
-      return alive;
-    }
-
-    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-auth-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-auth-adapter";
-
-    try {
-      const adapterModule = require(adapterLocation);
-      const instance = new adapterModule.AuthProviderAdapter() as AuthProviderAdapter;
-      // Constructing the adapter self-registers it into AuthProvider.alive(), which is the
-      // single cache getAuthAdapter reads from — no separate bookkeeping needed here.
-      await instance.wait();
-      return instance;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Auth > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
 }

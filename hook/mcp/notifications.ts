@@ -114,7 +114,7 @@ export function registerNotificationTools() {
                     const notifOrderId = n.data && typeof n.data === 'object' ? String(n.data.orderId || '') : '';
                     const haystack = [
                         n.id, n.title, n.body,
-                        user?.id, user?.name, user?.email, user?.login, phone, notifOrderId,
+                        user?.id, user?.name, user?.email, phone, notifOrderId,
                     ].map((v) => String(v || '').toLowerCase()).join(' ');
                     return haystack.includes(lq);
                 });

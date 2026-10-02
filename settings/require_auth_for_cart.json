@@ -1,0 +1,9 @@
+{
+  "key": "REQUIRE_AUTH_FOR_CART",
+  "type": "boolean",
+  "name": "Require login to start a cart",
+  "description": "Only an authenticated user can create a cart and add dishes to it. Ignored while no sign-in method is enabled and healthy (see the setup checklist): a cart that demands a login nobody can pass is a closed shop, not a protected one.",
+  "readOnly": false,
+  "defaultValue": false,
+  "isRequired": false
+}

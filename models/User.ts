@@ -5,11 +5,11 @@ import { UserOrderHistoryRecord } from "./UserOrderHistory";
 import { UserDeviceRecord } from "./UserDevice";
 import { UserLocationRecord } from "./UserLocation";
 import { Country } from "../interfaces/Country";
-import * as bcryptjs from "bcryptjs";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { UserBonusProgramRecord } from "./UserBonusProgram";
 import { DishRecord } from "./Dish";
 const Countries: Country[] = require("../libs/dictionaries/countries.json")
+import AuthService from "../libs/AuthService";
 export type Phone = {
   code: string
   number: string
@@ -18,18 +18,12 @@ export type Phone = {
 
 let attributes = {
 
-  /** User model ID */
+  /** User model ID — the account key. Nothing else identifies a user (extend_user_account §3.1):
+   *  every way in is a row in AuthIdentity, found by (provider, externalId). */
   id: {
     type: "string",
     isNotEmptyString: true,
     unique: true
-  } as unknown as string,
-
-  login: {
-    type: 'string',
-    required: true,
-    unique: true,
-    isNotEmptyString: true
   } as unknown as string,
 
   firstName: {
@@ -49,23 +43,31 @@ let attributes = {
     allowNull: true,
   } as unknown as number,
 
+  /**
+   * A contact address, and nothing more: never a way in, never proven by the core (review3 §1.2).
+   * Nullable so it can actually be cleared — `User.delete` wipes it, and Waterline refuses `null`
+   * for a string attribute without `allowNull`.
+   */
   email: {
     type: 'string',
+    allowNull: true,
     isEmail: true
   } as unknown as string,
 
-    /**
-     * It is a basic login field
-     *  type Phone {
-          code: string
-          number: string
-          additionalNumber?: string
-        }
-     */
+  /**
+   * @deprecated Not a login field any more, and not where the user's number lives: a read-only
+   * copy of the primary phone-identity (`primaryPhone` → AuthIdentity, provider "phone"), kept
+   * only for readers that still expect `user.phone` — bonus/RMS adapters, notifications, the
+   * admin panel. Written by AuthService alone (`syncUserProjections`, И13); never set it from
+   * anywhere else, and read the number through `primaryPhone` in new code.
+   */
   phone: {
     type: 'json',
     // required: true,
     custom: function(phone: Phone) {
+      // `phone` is a projection of the primary phone-identity now, and an account can legitimately
+      // have none — the validator has to accept the empty state it is asked to store (И13).
+      if (phone === null || phone === undefined) return true;
       if (!phone.code || !phone.number) throw `Code or Number of phone not passed`;
 
       // Check dictionary
@@ -120,18 +122,22 @@ let attributes = {
     type: 'boolean'
   } as unknown as boolean,
 
-  /**
-   *  Has a verified email (email-link login or a social provider that returned a verified email)
-   */
-  emailVerified: {
-    type: 'boolean'
-  } as unknown as boolean,
-
-  /** External auth accounts linked to this user (telegram / max / vk / …) */
+  /** External auth accounts linked to this user (telegram / max / vk / phone / …) */
   identities: {
     collection: 'authidentity',
     via: 'user'
   } as unknown as import("./AuthIdentity").AuthIdentityRecord[],
+
+  /**
+   * Which phone-identity is the primary one — a reference, not a flag on AuthIdentity
+   * (extend_user_account §3.3): with no transactions in this project, "exactly one row flagged
+   * primary" cannot be kept as an invariant across several writes, while a nullable FK on User
+   * cannot desync by construction. This is what external bonus/RMS adapters see as `User.phone`,
+   * and where security notices about the identity set (§6) are sent.
+   */
+  primaryPhone: {
+    model: 'authidentity',
+  } as unknown as import("./AuthIdentity").AuthIdentityRecord | string | null,
 
   /**
    * Indicate filled all required custom fields
@@ -139,14 +145,6 @@ let attributes = {
   allRequiredCustomFieldsAreFilled: {
     type: 'boolean'
   } as unknown as boolean,
-
-  passwordHash: {
-    type: 'string',
-    allowNull: true,
-    isNotEmptyString: true
-  } as unknown as string,
-
-  lastPasswordChange:  { type: "number"} as unknown as number,
 
   /** Its temporary code for authorization */
   temporaryCode: {
@@ -208,16 +206,16 @@ let Model = {
 
     if (!userInit.isDeleted) userInit.isDeleted = false;
     userInit.orderCount = 0;
-    // Phone required — unless a social/email-first login mode is enabled (ALLOW_USER_WITHOUT_PHONE).
-    // In that mode social providers may create a user with a synthetic login and no phone yet;
-    // the user attaches (and thus verifies) a phone later via confirmAuthPhone.
-    const loginField = await Settings.get("CORE_LOGIN_FIELD");
+    // Phone required — unless a social-first login mode is enabled (ALLOW_USER_WITHOUT_PHONE).
+    // In that mode AuthService.materializeUser may create a user off a provider identity alone;
+    // the phone is attached (and thus verified) later via a "verify:phone" AuthAttempt.
     const allowWithoutPhone = (await Settings.get("ALLOW_USER_WITHOUT_PHONE")) ?? false;
-    if ((loginField === undefined || loginField === "phone") && !allowWithoutPhone) {
-      if (!userInit.phone) {
-        sails.log.error(`User with login: ${userInit.login} should has phone on creation`);
-        throw `User phone is required`;
-      }
+    if (!allowWithoutPhone && !userInit.phone) {
+      sails.log.error(`User should have a phone on creation (id: ${userInit.id})`);
+      // Refused THROUGH the callback, not by throwing past it: waterline never settles the
+      // query when a lifecycle callback throws, so `User.create().fetch()` used to hang for
+      // ever instead of rejecting — the same failure mode review2 §4.1 found in afterCreate.
+      return cb(`User phone is required`);
     }
 
     return cb();
@@ -251,23 +249,30 @@ let Model = {
     }
   },
 
-  async delete(userId:string, OTP: string, force: boolean = false): Promise<void> {
-    if (!force){
-      if (!OTP) {
-        throw `OTP required for deleting user`;
+  /**
+   * @param ticket one-time result of a `purpose: "verify:delete_account"` AuthAttempt
+   *   (design2 §10.3 — "one code, every door" is closed: a code minted for login no longer
+   *   opens account deletion).
+   */
+  async delete(userId: string, ticket: string, force: boolean = false): Promise<void> {
+    if (!force) {
+      if (!ticket) {
+        throw `Ticket required for deleting user`;
       }
-
-      let user = await User.findOne({id: userId})
-      if(!user) {
-        throw `OTP required for deleting user`;
-      }
-
-      if(await OneTimePassword.check(user.login, OTP)) {
-        throw `OTP checks failed`
+      const resolved = await AuthService.consumeTicket(ticket, "verify:delete_account");
+      if (!resolved || resolved.userId !== userId) {
+        throw `Ticket check failed`;
       }
     }
+    // Soft delete, in the order the crash windows want: the flag first, so that from here on no
+    // JWT verifies and every identity already reads as an orphan; then the sessions; then the
+    // identities themselves — the keys go with the account, or "deleted" would be a state the
+    // next login walks straight back into (review2 §3). Orders keep pointing at the account.
+    // The address goes with the flag: `phone` is cleared by the projection sync below once the
+    // identities are gone, and nothing else would ever clear `email`.
+    await User.updateOne({ id: userId }, { isDeleted: true, email: null });
     await UserDevice.update({ user: userId }, { isLoggedIn: false }).fetch();
-    User.update({id: userId}, {isDeleted: true}).fetch();
+    await AuthService.forgetAccountIdentities(userId);
   },
 
   /**
@@ -289,158 +294,18 @@ let Model = {
   },
 
   /**
-   * Update user password
-   *
-   * @param userId User id
-   * @param newPassword New password
-   * @param oldPassword Old Password
-   * @param force Skip check old password
-   * @param temporaryCode
-   * @setting PasswordSalt - Password salt (default: number42)
-   * @setting PasswordRegex - Checking password by regex (default: no check)
-   * @setting PasswordMinLength - Checks minimum length password (default: no check)
-   *
-   * Note: node -e "console.log(require('bcryptjs').hashSync(process.argv[1], "number42"));" your-password-here
+   * Bind (or rebind) a device to `userId` and open a fresh session. The SAME mechanism every
+   * login path ends at — phone, social, ticket exchange — so session issuance is single-sourced
+   * (design2 §0). `identityId`, when known, records which identity this session was opened
+   * through (extend_user_account §3.4): needed so unlinking that identity can revoke sessions
+   * opened via it.
    */
-  async setPassword(userId: string, newPassword: string, oldPassword: string, force: boolean = false, temporaryCode?: string): Promise<User> {
-    if (!userId || !newPassword) throw "UserId and newPassword is required";
-
-    if (!(await Settings.get("CORE_SET_LAST_OTP_AS_PASSWORD"))) {
-      let passwordRegex = await Settings.get("PASSWORD_REGEX");
-      let passwordMinLength = await Settings.get("PASSWORD_MIN_LENGTH");
-
-      let passwordPolicy = await Settings.get("PASSWORD_POLICY");
-      if (!passwordPolicy) passwordPolicy = "from_otp";
-      if (passwordPolicy === "required") {
-        if (Number(passwordMinLength) && newPassword.length < Number(passwordMinLength)) throw `Password less than minimum length`;
-        if (passwordRegex && !newPassword.match(passwordRegex)) throw `Password not match with regex`;
-      }
-    }
-
-    // salt
-    let salt = await Settings.get("PASSWORD_SALT");
-    if (!salt) salt = 8;
-
-    let user = await User.findOne({ id: userId });
-
-    /**
-     * If not force, it should check new/old passwords
-     * If user does not have oldPassword
-     */
-    if (!force) {
-      if (user.passwordHash) {
-        if (!oldPassword) throw "oldPassword is required";
-        if (!(await bcryptjs.compare(oldPassword, user.passwordHash))) {
-          throw `Old password is not accepted`;
-        }
-      } else if (temporaryCode) {
-        let login = await User.getPhoneString(user.phone);
-
-        if (!(await OneTimePassword.check(login, temporaryCode))) {
-          throw `Temporary code not match`;
-        }
-      }
-    }
-
-    let passwordHash = bcryptjs.hashSync(newPassword, salt);
-    return await User.updateOne({ id: user.id }, { passwordHash: passwordHash, lastPasswordChange: Date.now() });
-  },
-
-  async login(login: string, phone: Phone, deviceId: string, deviceName: string, password: string, OTP: string, userAgent: string, IP: string): Promise<UserDeviceRecord> {
-
-    // Stop login when password or OTP not passed
-    if (!(password || OTP)) {
-      throw `Password or OTP required`;
-    }
-
-    // Stop login without deviceName
-    if (!deviceName && !deviceId) {
-      throw `deviceName && deviceId required`;
-    }
-
-    // Define password policy
-    let passwordPolicy = await Settings.get("PASSWORD_POLICY");
-    if (!passwordPolicy) passwordPolicy = "from_otp";
-
-    // Check password
-    if (!password && passwordPolicy === "required") {
-      throw `Password required`;
-    }
-
-    let user = await User.findOne({ login: login });
-
-    // Check OTP
-    let checkOTPResult = false;
-    if (Boolean(OTP) && typeof OTP === "string" && OTP.length > 0) {
-      checkOTPResult = await OneTimePassword.check(login, OTP)
-    }
-
-    // When password required and LOGIN_OTP_REQUIRED you should pass both
-    if (await Settings.get("LOGIN_OTP_REQUIRED") && !checkOTPResult) throw `login OTP check failed`
-
-    // When password is disabled Login possibly only by OTP
-    if (passwordPolicy === "disabled"  && !checkOTPResult) throw `Password policy [disabled] (OTP check failed)`
-
-    // Create user if not exist and only with verified OTP
-    let CREATE_USER_IF_NOT_EXIST = await Settings.get("CREATE_USER_IF_NOT_EXIST") || true;
-    if (!user && CREATE_USER_IF_NOT_EXIST && checkOTPResult) {
-      let loginFiled = await Settings.get("CORE_LOGIN_FIELD") || "phone"
-      if (loginFiled === "phone") {
-        if (!phone) {
-          throw `Phone is required for CORE_LOGIN_FIELD: phone`
-        }
-      }
-
-      user = await User.create({
-        login: login,
-        verified: true,
-        ...(loginFiled === "phone" || phone !== undefined) && {phone: phone}
-      }).fetch()
-
-      if (passwordPolicy === "required")  {
-        user = await User.setPassword(user.id, password, null, true);
-      }
-
-      if (passwordPolicy === "from_otp")  {
-        user = await User.setPassword(user.id, OTP, null, true);
-      }
-    }
-
-    if (!user) {
-      throw `User not found`
-    }
-
-    // check password if passed or required
-    if (password || passwordPolicy === "required") {
-      if (!(await bcryptjs.compare(password, user.passwordHash))) {
-        throw `Password not match`;
-      }
-    }
-
-    // Set last checked OTP as password
-    if (OTP && passwordPolicy === "from_otp") {
-      await User.setPassword(user.id, OTP, null, true);
-    }
-
-    try {
-      User.checkRegisteredInBonusPrograms(user.id);
-
-    } catch (error) {
-      sails.log.error(error)
-    }
-
-    return await User.authDevice(user.id, deviceId, deviceName, userAgent, IP);
-
-    // TODO: getBalance BonusProgram
-  },
-
-
-  async authDevice(userId: string, deviceId: string,  deviceName: string, userAgent: string, IP: string): Promise<UserDeviceRecord> {
+  async authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string, identityId?: string): Promise<UserDeviceRecord> {
     let userDevice = await UserDevice.findOne({ id: deviceId });
 
     if (!userDevice) {
       // Brand new device — create it already bound to the user that logs in
-      userDevice = await UserDevice.create({ id: deviceId, user: userId, name: deviceName }).fetch();
+      userDevice = await UserDevice.create({ id: deviceId, user: userId, name: deviceName, lastIP: IP }).fetch();
     } else if (userDevice.user !== userId) {
       // Device is unclaimed, or was claimed by a different user (e.g. shared/test device, or a
       // previous owner who logged out). A physical device always belongs to whoever is CURRENTLY
@@ -453,7 +318,14 @@ let Model = {
     }
 
     // Refresh the session for the current login (sessionId guards against parallel logins with one name)
-    return await UserDevice.updateOne({ id: deviceId }, { loginTime: Date.now(), isLoggedIn: true, lastIP: IP, userAgent: userAgent, sessionId: uuid() });
+    return await UserDevice.updateOne({ id: deviceId }, {
+      loginTime: Date.now(),
+      isLoggedIn: true,
+      lastIP: IP,
+      userAgent: userAgent,
+      sessionId: uuid(),
+      ...(identityId ? { identity: identityId } : {}),
+    });
   },
 
   /**
@@ -492,7 +364,7 @@ let Model = {
 
       // if not need register
       } else {
-        sails.log.debug(`User should register manual: user[${user.login}], bonusProgram: [${bp.name}]`)
+        sails.log.debug(`User should register manual: user[${user.id}], bonusProgram: [${bp.name}]`)
       }
     }
   },

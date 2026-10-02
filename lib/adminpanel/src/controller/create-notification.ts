@@ -80,14 +80,10 @@ export default async function CreateNotificationController(req: any, res: any) {
         return res.status(400).json({ error: t("User is required for user notifications") });
       }
 
-      user = await User.findOne({
-        where: {
-          or: [
-            { id: normalizedUserId },
-            { login: normalizedUserId },
-          ],
-        },
-      });
+      // `userId` always comes from the search-users autocomplete (notifications-manager.jsx
+      // sends `selectedUser.id`), so a plain id lookup is enough — the account has no `login`
+      // column any more (extend_user_account §11; same fix as search-notification-users.ts).
+      user = await User.findOne({ id: normalizedUserId });
 
       if (!user) {
         return res.status(404).json({ error: t("User not found") });

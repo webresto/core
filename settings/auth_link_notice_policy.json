@@ -1,0 +1,9 @@
+{
+  "key": "AUTH_LINK_NOTICE_POLICY",
+  "type": "string",
+  "name": "Auth: policy for sign-in method change notices",
+  "description": "off | notify | confirm. 'notify' (default): the link goes through and the current owner is told afterwards. 'confirm': the link does not complete until the current owner confirms it on their own number. 'off' disables the alarm and is for closed test stands only.",
+  "defaultValue": "notify",
+  "readOnly": false,
+  "isRequired": false
+}

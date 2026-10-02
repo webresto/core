@@ -191,6 +191,20 @@ export class NotificationEventRegistry {
    * Defaults per design notes §2: registered but not enabled for sending.
    */
   static registerCoreDefaults(): void {
+    // Three keys rather than one with a `kind` field: an operator writes different text and
+    // picks different channels for "a new way into your account" and "your number was changed",
+    // and a template that branches internally is programming inside an admin textarea
+    // (extend_user_account §6.3). Every one of them is emitted from AuthService and nowhere else.
+    const IDENTITY_SCHEMA = {
+      type: "object" as const,
+      description: "The sign-in method that was added or removed.",
+      fields: {
+        provider: { type: "string" as const, description: "phone | telegram | max | vk", example: "telegram" },
+        title: { type: "string" as const, description: "Human-readable provider name.", example: "Telegram" },
+        maskedTarget: { type: "string" as const, description: "Masked identifier — never the full number.", example: "+7 ••• 42-88" },
+      },
+    };
+
     NotificationEventRegistry.registerEvent({
       key: "order_accepted",
       name: "Order accepted",
@@ -227,6 +241,39 @@ export class NotificationEventRegistry {
             ttlSec: { type: "number", description: "Seconds until the code expires.", example: 300 },
           },
         },
+      },
+    });
+    NotificationEventRegistry.registerEvent({
+      key: "user_identity_linked",
+      name: "Sign-in method added",
+      description:
+        "Fires when a way into the account is added. Goes to the CURRENT owner — the number on " +
+        "record before the change — never to the channel being added (extend_user_account §6.2, И11).",
+      sourceModule: "core",
+      contextSchema: {
+        user: CORE_USER_SCHEMA,
+        identity: IDENTITY_SCHEMA,
+        isFirst: { type: "boolean", description: "First account of this provider on the profile.", example: false },
+      },
+    });
+    NotificationEventRegistry.registerEvent({
+      key: "user_identity_unlinked",
+      name: "Sign-in method removed",
+      description: "Fires when a way into the account is removed, by the user or by an operator.",
+      sourceModule: "core",
+      contextSchema: { user: CORE_USER_SCHEMA, identity: IDENTITY_SCHEMA },
+    });
+    NotificationEventRegistry.registerEvent({
+      key: "user_primary_phone_changed",
+      name: "Primary phone changed",
+      description:
+        "Fires when the primary number changes. Emitted BEFORE the switch and addressed to the " +
+        "OLD number: sent afterwards it would reach whoever just initiated the change.",
+      sourceModule: "core",
+      contextSchema: {
+        user: CORE_USER_SCHEMA,
+        from: IDENTITY_SCHEMA,
+        to: IDENTITY_SCHEMA,
       },
     });
   }

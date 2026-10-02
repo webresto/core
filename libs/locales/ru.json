@@ -4,5 +4,8 @@
   "Cancel pending payment?": "Отменить ожидающую оплату?",
   "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "По этому заказу есть активная ссылка на оплату. Изменение корзины отменит эту оплату. Продолжить?",
   "Cancel payment and edit basket": "Отменить оплату и изменить корзину",
-  "Keep payment": "Оставить оплату"
+  "Keep payment": "Оставить оплату",
+  "Sent a confirmation code by SMS to": "Отправили код подтверждения по SMS на",
+  "Enter it on the site to finish signing in — no need to type it here.": "Введите его на сайте, чтобы завершить вход — здесь код вводить не нужно.",
+  "Please enter the code on the site, in the sign-in confirmation window. I cannot accept it here.": "Код нужно ввести на сайте, в окне подтверждения входа. Здесь я его не приму."
 }

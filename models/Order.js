@@ -8,6 +8,7 @@ const decimal_js_1 = __importDefault(require("decimal.js"));
 const worktime_1 = require("@webresto/worktime");
 const phoneValidByMask_1 = require("../libs/phoneValidByMask");
 const OrderHelper_1 = require("../libs/helpers/OrderHelper");
+const AuthService_1 = __importDefault(require("../libs/AuthService"));
 const cancelPaymentDialog_1 = require("../libs/dialogs/cancelPaymentDialog");
 const isValue_1 = require("../utils/isValue");
 const ProductModifier_1 = require("../libs/ProductModifier");
@@ -408,8 +409,25 @@ let Model = {
         }
         let order = await Order.findOne(criteria).populate("dishes");
         await Order.log({ id: order.id }, "info", "core", `addDish: ${dishObj.name}`, { dishId: dishObj.id, amount, addedBy, modifiersCount: modifiers?.length || 0 });
+        /**
+         * @setting: REQUIRE_AUTH_FOR_CART - Only an authenticated user may put dishes in a cart
+         *
+         * Checked here rather than only in the API layer: core is the one layer every integration
+         * goes through, and `order.user` is already at hand — no JWT needed.
+         *
+         * Only `addedBy: "user"` is blocked. The same function places promotion items and
+         * ORDER_INIT_PRODUCT_ID (`addedBy: "core"`, see afterCreate above); those are the server
+         * filling its own cart and must keep working.
+         *
+         * Read through `AuthService.cartRequiresAuth()`, not the raw setting: the flag only applies
+         * while somebody can actually sign in (require-auth-for-cart.md §3.5).
+         */
+        if (addedBy === "user" && !order.user && await AuthService_1.default.cartRequiresAuth()) {
+            await Order.log({ id: order.id }, "warn", "core", `addDish: rejected, authorization required`, { dishId: dishObj.id });
+            throw { body: `Authorization required to add dish`, code: 1 };
+        }
         if (order.state === "NEW") {
-            order = await Order.doCart({ id: order.id });
+            order = await Order.doCart({ id: order.id }, { addedBy });
         }
         if (order.dishes && Array.isArray(order.dishes) && order.dishes.length > 99)
             throw "99 max dishes amount";
@@ -651,6 +669,26 @@ let Model = {
                 throw {
                     code: 13,
                     error: "order is empty",
+                };
+            }
+            /**
+             * @setting: REQUIRE_AUTH_FOR_CART - and a cart that requires an account cannot be ordered
+             * without one either.
+             *
+             * addDish/doCart guard the way IN; without this one the invariant only holds for carts
+             * assembled after the flag went on. A basket filled before it, or by a promotion, or by an
+             * integration, or left anonymous on another device, still reached checkout and became an
+             * order with no account behind it (review2 §4.2). `userId` is the caller's session,
+             * `order.user` the cart's own owner — either one satisfies it.
+             *
+             * Code 20 rather than the 3 review2 proposed: 0–19 are taken, and 3 is already
+             * "customer.name is invalid", thrown from checkCustomerInfo a few lines below.
+             */
+            if (!userId && !order.user && await AuthService_1.default.cartRequiresAuth()) {
+                await Order.log({ id: order.id }, "warn", "core", "check: rejected, authorization required", {});
+                throw {
+                    code: 20,
+                    error: "authorization required",
                 };
             }
             if (await Maintenance.getActiveMaintenance() !== undefined)
@@ -1741,29 +1779,50 @@ let Model = {
         let user = null;
         let isNewUser = false;
         if (state === "DONE" && !order.user) {
-            let loginFiled = await Settings.get("CORE_LOGIN_FIELD") || "phone";
-            const phone = order.customer.phone.code + order.customer.phone.number + order.customer.phone.additionalNumber;
-            const login = loginFiled === "phone" ? phone.replace(/\D/g, "") : `${phone}@localhost`;
-            user = await User.findOne({ login });
-            if (!user) {
-                user = await User.create({
-                    firstName: order.customer.name,
-                    phone: order.customer.phone,
-                    login,
-                    verified: true
-                }).fetch();
-                isNewUser = true;
-            }
+            // A guest order goes through the one and only User factory (design2 Д6). No `login`, no
+            // synthetic `<phone>@localhost`: the account is keyed by its id and reachable through an
+            // AuthIdentity(provider:"phone").
+            //
+            // That identity is deliberately created WITHOUT a proof: the number was typed into a
+            // checkout form, nobody proved anything. It holds the unique key — so the guest's next
+            // order lands in the same profile instead of forking a duplicate — but it grants no way in
+            // until its real owner passes an OTP and adopts it (extend §5.2). `verified` is a
+            // projection of that proof now, which is why nothing here sets it (design2 Д7).
+            const before = await AuthIdentity.findByExternal("phone", AuthService_1.default.normalizePhone(order.customer.phone));
+            const materialized = await AuthService_1.default.materializeUser({
+                firstName: order.customer.name,
+                phone: order.customer.phone,
+            });
+            user = materialized.user;
+            isNewUser = !before;
             await Order.update({ id: order.id }, { user: user.id }).fetch();
         }
         await Order.next(criteriaOne, state);
         Order.emitAndLogDetached({ id: order.id }, "core:order-after-done", order, user, { isNewUser });
     },
-    async doCart(criteriaOne) {
+    async doCart(criteriaOne, opts = {}) {
         let order = await Order.findOne(criteriaOne);
         if (order.state !== 'NEW') {
             sails.log.debug(`Order > doCart: Check order ${order.id} state is ${order.state}`);
             throw `Do order state the 'CART' failed: state error`;
+        }
+        /**
+         * @setting: REQUIRE_AUTH_FOR_CART - Only an authenticated user may start a cart
+         *
+         * NEW -> CART is literally "starting a cart", so the barrier sits on the transition itself
+         * and not only on addDish: any other route into CART is closed by the same condition.
+         * Same effective flag as addDish (ignored while nobody can sign in).
+         *
+         * `addedBy` is who is starting it, and it obeys exactly the rule addDish obeys: only the
+         * customer is blocked, the server filling its own cart is not. Without it this gate fired
+         * on ORDER_INIT_PRODUCT_ID — afterCreate → addDish(…, "core") → doCart on a NEW order — and
+         * because afterCreate throws before its callback, `Order.create().fetch()` never settled at
+         * all: not an error the caller could see, a hang, on any non-GraphQL creation of an
+         * anonymous order (review2 §4.1).
+         */
+        const startedBy = opts.addedBy ?? "user";
+        if (startedBy === "user" && !order.user && await AuthService_1.default.cartRequiresAuth()) {
+            throw { body: `Authorization required to start a cart`, code: 1 };
         }
         let FIELDS_FOR_ORDER_INITIALIZATION = await Settings.get("FIELDS_FOR_ORDER_INITIALIZATION") ?? [];
         for (let field of FIELDS_FOR_ORDER_INITIALIZATION) {

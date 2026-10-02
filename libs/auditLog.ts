@@ -33,7 +33,8 @@ export function getAuditActor(req: any) {
 
   return {
     id: user?.id ?? null,
-    login: user?.login ?? null,
+    // `login` used to live here. An audit entry has to stay pinned to one account forever, and a
+    // phone number does not — operators resell them (extend_user_account §11).
     phone: user?.phone ?? null,
     name: [user?.firstName, user?.lastName].filter(Boolean).join(" ") || null,
     ip,
