@@ -13,6 +13,8 @@ import DeliveryAdapter from "./delivery/DeliveryAdapter";
 import { DefaultDeliveryAdapter } from "./delivery/default/defaultDelivery";
 import { PromotionAdapter } from "./promotion/default/promotionAdapter";
 import AuthProviderAdapter from "./auth/AuthProviderAdapter";
+export { default as SalesChannelAdapter } from "./sales-channel/SalesChannelAdapter";
+export type { SalesChannelStatusResult, SalesChannelReadiness, InitSalesChannelAdapter } from "./sales-channel/SalesChannelAdapter";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 

@@ -170,5 +170,9 @@ already-localized text.
 - **`dismissible`** defaults to `false` for `required` and `true` otherwise. Required checkups
   can never be dismissed/snoozed.
 - **The checklist blocks nothing** — it is purely informational/navigational.
+- **Sales channel providers do not need their own checkup.** Core's `has_sales_channel` counts
+  active channels and asks the providers' `getStatus()` (it may store a changed channel status,
+  the one deliberate side effect). Channel provider modules have no `installSteps/` either:
+  see `docs/SalesChannels.md`.
 
 See also the design notes in `ai-notes/setup-checklist.md`.

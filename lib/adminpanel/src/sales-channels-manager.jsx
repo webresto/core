@@ -23,7 +23,7 @@ const STATUS_COLORS = {
 
 function statusLabel(status, t) {
   const map = {
-    ready: 'Ready',
+    ready: 'Working',
     needs_setup: 'Needs setup',
     draft: 'Draft',
     disabled: 'Disabled',
@@ -53,6 +53,55 @@ function MaterialIcon({ name, size = 20, style }) {
 function openSelf(url) {
   if (!url) return;
   window.location.href = url;
+}
+
+function getBaseAdminPath() {
+  if (typeof window !== 'undefined' && typeof window.routePrefix === 'string' && window.routePrefix.trim()) {
+    return window.routePrefix.replace(/\/$/, '');
+  }
+  const parts = (window.location.pathname || '').split('/');
+  return '/' + (parts[1] || 'admin');
+}
+
+// Module manager catalog: one exact module, or every module carrying a marketplace tag.
+// Provider modules tag themselves "sales-channel" and "sales-channel:<type>" (package.json keywords).
+function providerInstallUrl(appId) {
+  return `${getBaseAdminPath()}/modules/catalog?appId=${encodeURIComponent(appId)}`;
+}
+
+function marketplaceTagUrl(tag) {
+  return `${getBaseAdminPath()}/modules/catalog?tags=${encodeURIComponent(tag)}`;
+}
+
+function managerUrl(view) {
+  return `${getBaseAdminPath()}/sales-channels-manager${view ? `?view=${view}` : ''}`;
+}
+
+function currentView() {
+  if (typeof window === 'undefined') return 'main';
+  return new URLSearchParams(window.location.search || '').get('view') === 'custom' ? 'custom' : 'main';
+}
+
+// A channel without a live provider never works: explain why and offer the install.
+function ProviderMissingNotice({ channel, typeDef, canInstallProviders, t }) {
+  const comingSoon = channel ? channel.typeComingSoon : !typeDef?.available;
+  const appId = channel ? channel.marketplaceAppId : typeDef?.marketplaceAppId;
+  const installed = channel ? channel.providerInstalled !== false : typeDef?.installed;
+  let text;
+  if (comingSoon) text = t('Channel type is coming soon');
+  else if (!installed) text = `${t('Not working: provider is not installed')}${appId ? ` (${appId})` : ''}`;
+  else text = t('Provider did not load: restart the server to finish installing it');
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 12px', borderRadius: 10, border: '1px dashed var(--border)' }}>
+      <span style={{ ...styles.help, color: comingSoon ? 'var(--muted-foreground)' : '#dc2626' }}>{text}</span>
+      {!comingSoon && !installed && <span style={styles.help}>{t('Install the provider module to make this channel work.')}</span>}
+      {!comingSoon && !installed && appId && canInstallProviders && (
+        <div><Button variant="outline" size="sm" onClick={() => openSelf(providerInstallUrl(appId))}>
+          <MaterialIcon name="download" size={16} style={{ marginRight: 4 }} />{t('Install provider')}
+        </Button></div>
+      )}
+    </div>
+  );
 }
 
 // ─────────────────────────────── editor panel ───────────────────────────────
@@ -96,7 +145,7 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
     <section style={styles.panel}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <h2 style={styles.subsectionTitle}>{isNew ? t('New sales channel') : t('Edit sales channel')}</h2>
-        <StatusBadge status={draft.enabled ? (draft.status || 'ready') : 'disabled'} t={t} />
+        {!isNew && <StatusBadge status={draft.status || 'needs_setup'} t={t} />}
       </div>
 
       {error && (
@@ -130,7 +179,8 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
 
         <div style={styles.field}>
           <Label style={styles.fieldLabel}>{t('Type')}</Label>
-          <Select value={draft.type} onValueChange={(v) => setField('type', v)}>
+          {/* The type picks the provider: fixed once the channel exists. */}
+          <Select value={draft.type} onValueChange={(v) => setField('type', v)} disabled={!isNew}>
             <SelectTrigger><SelectValue placeholder={t('Select type')} /></SelectTrigger>
             <SelectContent>
               {typeOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
@@ -188,10 +238,14 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
         </label>
       </div>
 
-      <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Switch checked={draft.enabled} onCheckedChange={(v) => setField('enabled', Boolean(v))} />
-        <span style={styles.fieldLabel}>{t('Enabled (valid order source)')}</span>
-      </label>
+      {isNew ? (
+        <span style={styles.help}>{t('The channel is created switched off. Set it up with its provider, then enable it.')}</span>
+      ) : (
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Switch checked={draft.enabled} onCheckedChange={(v) => setField('enabled', Boolean(v))} />
+          <span style={styles.fieldLabel}>{t('Enabled (valid order source)')}</span>
+        </label>
+      )}
 
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
         <Button variant="outline" onClick={onCancel} disabled={saving}>{t('Cancel')}</Button>
@@ -202,7 +256,7 @@ function ChannelEditor({ draft, setDraft, types, concepts, onSave, onCancel, sav
 }
 
 // ─────────────────────────────── channel card ───────────────────────────────
-function ChannelCard({ channel, onEdit, onToggle, onDelete, canManage, isMobile, t }) {
+function ChannelCard({ channel, onEdit, onToggle, onDelete, refusal, canManage, canInstallProviders, isMobile, t }) {
   // On mobile let the action buttons grow to fill the row so they don't overflow the card.
   const cardActionsStyle = isMobile ? { width: '100%' } : {};
   const cardActionButtonStyle = isMobile ? { flex: '1 1 auto', minWidth: 0 } : undefined;
@@ -216,8 +270,18 @@ function ChannelCard({ channel, onEdit, onToggle, onDelete, canManage, isMobile,
             <div style={{ ...styles.help, ...styles.code }}>{channel.key} · {channel.typeTitle}</div>
           </div>
         </div>
-        <StatusBadge status={channel.enabled ? (channel.status || 'ready') : 'disabled'} t={t} />
+        {/* Readiness (from the provider) and the switch (operator) are independent. */}
+        <StatusBadge status={channel.status || 'draft'} t={t} />
       </div>
+
+      {channel.statusMessage && channel.providerAlive && <span style={styles.help}>{channel.statusMessage}</span>}
+      {!channel.providerAlive && <ProviderMissingNotice channel={channel} canInstallProviders={canInstallProviders} t={t} />}
+      {refusal && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 12px', borderRadius: 10, border: '1px solid #d97706' }}>
+          <span style={{ ...styles.help, color: '#d97706', fontWeight: 600 }}>{refusal.error}</span>
+          {refusal.message && <span style={styles.help}>{refusal.message}</span>}
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {channel.concepts.length === 0
@@ -229,44 +293,95 @@ function ChannelCard({ channel, onEdit, onToggle, onDelete, canManage, isMobile,
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between', flexWrap: 'wrap', rowGap: 12 }}>
         {canManage ? (
+          // No live provider: shown off and locked, the stored flag is left as is.
           <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Switch checked={channel.enabled} onCheckedChange={(v) => onToggle(channel, Boolean(v))} />
-            <span style={styles.help}>{channel.enabled ? t('Enabled') : t('Disabled')}</span>
+            <Switch
+              checked={channel.providerAlive ? channel.enabled : false}
+              disabled={!channel.providerAlive}
+              onCheckedChange={(v) => onToggle(channel, Boolean(v))}
+            />
+            <span style={styles.help}>{channel.providerAlive && channel.enabled ? t('Enabled') : t('Disabled')}</span>
           </label>
         ) : (
           <span style={styles.help}>{channel.enabled ? t('Enabled') : t('Disabled')}</span>
         )}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, minWidth: 0, ...cardActionsStyle }}>
-          {canManage && channel.settingsUrl && <Button variant="outline" size="sm" style={cardActionButtonStyle} onClick={() => openSelf(channel.settingsUrl)}>{t('Settings')}</Button>}
+          {canManage && channel.settingsUrl && channel.status !== 'ready' && (
+            <Button size="sm" style={cardActionButtonStyle} onClick={() => openSelf(channel.settingsUrl)}>{t('Set up')}</Button>
+          )}
+          {canManage && channel.settingsUrl && channel.status === 'ready' && (
+            <Button variant="outline" size="sm" style={cardActionButtonStyle} onClick={() => openSelf(channel.settingsUrl)}>{t('Settings')}</Button>
+          )}
           {channel.url && <Button variant="outline" size="sm" style={cardActionButtonStyle} onClick={() => window.open(channel.url, '_blank', 'noopener')}>{t('Open')}</Button>}
           {canManage && <Button variant="outline" size="sm" style={cardActionButtonStyle} onClick={() => onEdit(channel)}>{t('Edit')}</Button>}
-          {canManage && <Button variant="ghost" size="sm" style={cardActionButtonStyle} onClick={() => onDelete(channel)}>{t('Delete')}</Button>}
+          {/* A provider's channel is only switched off while its module is installed. */}
+          {canManage && channel.canDelete && <Button variant="ghost" size="sm" style={cardActionButtonStyle} onClick={() => onDelete(channel)}>{t('Delete')}</Button>}
         </div>
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────── recommended card ───────────────────────────────
-function RecommendedCard({ typeDef, onAdd, canManage, t }) {
+// ─────────────────────────────── recommended / type card ───────────────────────────────
+// What can be done with a channel type right now. Channels come from provider modules, so
+// the main action is installing the provider from the marketplace; `onCreate` is passed only
+// on the "Custom channel" screen.
+function TypeActions({ typeDef, channelsOfType, onCreate, canManage, canInstallProviders, t }) {
+  if (!canManage) return null;
+  if (!typeDef.available) {
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <Badge variant="secondary">{t('Coming soon')}</Badge>
+        {typeDef.type !== 'custom' && typeDef.marketplaceTag && (
+          <Button variant="outline" size="sm" onClick={() => openSelf(marketplaceTagUrl(typeDef.marketplaceTag))}>
+            <MaterialIcon name="search" size={16} style={{ marginRight: 4 }} />{t('Search the marketplace')}
+          </Button>
+        )}
+      </div>
+    );
+  }
+  if (!typeDef.installed) {
+    return canInstallProviders && typeDef.marketplaceAppId ? (
+      <Button variant="outline" size="sm" onClick={() => openSelf(providerInstallUrl(typeDef.marketplaceAppId))}>
+        <MaterialIcon name="download" size={16} style={{ marginRight: 4 }} />{t('Install from marketplace')}
+      </Button>
+    ) : <span style={styles.help}>{t('Provider not installed')}</span>;
+  }
+  if (!typeDef.alive) {
+    return <span style={styles.help}>{t('Provider did not load: restart the server to finish installing it')}</span>;
+  }
+  if (onCreate) {
+    if (typeDef.supportsMultipleInstances === false && channelsOfType > 0) {
+      return <span style={styles.help}>{t('Only one channel of this type is allowed')}</span>;
+    }
+    return (
+      <Button variant="outline" size="sm" onClick={() => onCreate(typeDef)}>
+        <MaterialIcon name="add" size={16} style={{ marginRight: 4 }} />{t('Create channel')}
+      </Button>
+    );
+  }
+  return typeDef.settingsUrl ? (
+    <Button variant="outline" size="sm" onClick={() => openSelf(typeDef.settingsUrl)}>
+      <MaterialIcon name="settings" size={16} style={{ marginRight: 4 }} />{t('Settings')}
+    </Button>
+  ) : null;
+}
+
+function TypeCard({ typeDef, channelsOfType = 0, onCreate, canManage, canInstallProviders, t }) {
+  const state = !typeDef.available ? null : !typeDef.installed ? t('Provider not installed') : t('Provider installed');
   return (
     <div style={{ ...styles.subsection, gap: 10 }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <MaterialIcon name={typeDef.icon || 'storefront'} size={26} style={{ color: 'var(--muted-foreground)' }} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 700 }}>{typeDef.title}</div>
-          <div style={styles.help}>{typeDef.installed ? t('Provider installed') : t('Provider not installed')}</div>
+          {state && <div style={styles.help}>{state}</div>}
         </div>
       </div>
-      {canManage && typeDef.installed && typeDef.settingsUrl ? (
-        <Button variant="outline" size="sm" onClick={() => openSelf(typeDef.settingsUrl)}>
-          <MaterialIcon name="settings" size={16} style={{ marginRight: 4 }} />{t('Settings')}
-        </Button>
-      ) : canManage ? (
-        <Button variant="outline" size="sm" onClick={() => onAdd(typeDef)}>
-          <MaterialIcon name="add" size={16} style={{ marginRight: 4 }} />{t('Add channel')}
-        </Button>
-      ) : null}
+      <TypeActions
+        typeDef={typeDef} channelsOfType={channelsOfType} onCreate={onCreate}
+        canManage={canManage} canInstallProviders={canInstallProviders} t={t}
+      />
     </div>
   );
 }
@@ -274,6 +389,9 @@ function RecommendedCard({ typeDef, onAdd, canManage, t }) {
 // ─────────────────────────────── main content ───────────────────────────────
 function SalesChannelsManagerContent({ permissions = { canView: true, canManage: false } }) {
   const canManage = permissions.canManage === true;
+  const canInstallProviders = permissions.canInstallProviders === true;
+  // "Custom channel" lives on its own screen (?view=custom), away from the main one.
+  const view = currentView();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
@@ -287,6 +405,8 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
   // Toasts need a mounted <Toaster/>; a rejected save has to stay visible in the form either way.
   const [saveError, setSaveError] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
+  // A refused switch-on ("Finish setup first") stays on its card until the next toggle.
+  const [toggleRefusal, setToggleRefusal] = useState(null);
 
   const loadChannels = useCallback(async () => {
     const res = await api('/core/sales-channels');
@@ -315,14 +435,14 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
   }, []);
 
   const startCreate = (typeDef) => {
-    if (!canManage) return;
+    if (!canManage || !typeDef) return;
     setSaveError(null);
     setDraft({
       ...EMPTY_DRAFT,
-      type: typeDef?.type || 'custom',
-      title: typeDef ? typeDef.title : '',
-      key: typeDef ? slugifyClient(typeDef.title) : '',
-      providerModule: typeDef?.providerModule || null,
+      type: typeDef.type,
+      title: typeDef.title,
+      key: slugifyClient(typeDef.title),
+      providerModule: typeDef.providerModule || null,
       countries: recommendations.country || '',
     });
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -371,6 +491,11 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
     setSaving(false);
     if (res.ok) {
       toast('success', t('Sales channel saved'));
+      // A channel created on the "Custom channel" screen is managed from the main one.
+      if (!draft.id && view === 'custom') {
+        openSelf(managerUrl());
+        return;
+      }
       setDraft(null);
       await loadChannels();
     } else {
@@ -382,9 +507,13 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
 
   const toggleChannel = async (channel, enabled) => {
     if (!canManage) return;
+    setToggleRefusal(null);
     const res = await api('/core/sales-channel-toggle', { method: 'POST', body: JSON.stringify({ id: channel.id, enabled }) });
     if (res.ok) {
       setChannels((prev) => prev.map((c) => (c.id === channel.id ? res.payload.result : c)));
+    } else if (res.status === 409) {
+      // Not ready yet: the switch stays off, the card says why and offers "Set up".
+      setToggleRefusal({ id: channel.id, error: res.payload?.error || t('Finish setup first'), message: res.payload?.message || null });
     } else {
       toast('error', res.payload?.error || t('Failed to update channel'));
     }
@@ -408,27 +537,49 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
     return (recommendations.results || []).filter((ty) => !existingTypes.has(ty.type));
   }, [recommendations, channels]);
 
+  const channelsPerType = useMemo(() => {
+    const counts = {};
+    for (const c of channels) counts[c.type] = (counts[c.type] || 0) + 1;
+    return counts;
+  }, [channels]);
+
+  // Only types a channel can be created for right now feed the editor's type list.
+  const creatableTypes = useMemo(
+    () => types.filter((ty) => ty.available && ty.alive && !(ty.supportsMultipleInstances === false && channelsPerType[ty.type] > 0)),
+    [types, channelsPerType]
+  );
+
   const cardGrid = { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 };
 
   return (
     <div style={styles.pageShell}>
       <header style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ fontSize: 24, lineHeight: '32px', fontWeight: 700, margin: 0 }}>{t('Sales Channels')}</h1>
+          <h1 style={{ fontSize: 24, lineHeight: '32px', fontWeight: 700, margin: 0 }}>
+            {view === 'custom' ? t('Custom channel') : t('Sales Channels')}
+          </h1>
           <p style={{ margin: '6px 0 0', color: 'var(--muted-foreground)', fontSize: 14, maxWidth: 720 }}>
-            {t('Manage the entry points that can create orders — websites, bots, kiosks and more.')}
+            {view === 'custom'
+              ? t('Create another channel of a type whose provider module is installed, e.g. a second bot for another concept or a test bot. The provider sets each channel up separately.')
+              : t('Manage the entry points that can create orders — websites, bots, kiosks and more.')}
           </p>
         </div>
-        {canManage && !draft && (
-          <Button onClick={() => startCreate(null)}>
-            <MaterialIcon name="add" size={18} style={{ marginRight: 6 }} />{t('Add custom channel')}
+        {view === 'custom' ? (
+          <Button variant="outline" onClick={() => openSelf(managerUrl())}>
+            <MaterialIcon name="arrow_back" size={18} style={{ marginRight: 6 }} />{t('Back to sales channels')}
+          </Button>
+        ) : canManage && canInstallProviders && (
+          <Button variant="outline" onClick={() => openSelf(marketplaceTagUrl('sales-channel'))}>
+            <MaterialIcon name="storefront" size={18} style={{ marginRight: 6 }} />{t('All sales channels in marketplace')}
           </Button>
         )}
       </header>
 
       {draft && (
         <ChannelEditor
-          draft={draft} setDraft={setDraft} types={types} concepts={concepts}
+          draft={draft} setDraft={setDraft}
+          types={draft.id ? types.filter((ty) => ty.type === draft.type) : creatableTypes}
+          concepts={concepts}
           onSave={saveDraft} onCancel={() => { setSaveError(null); setDraft(null); }}
           saving={saving} error={saveError} t={t}
         />
@@ -436,6 +587,21 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
 
       {loading ? (
         <div style={styles.help}>{t('Loading…')}</div>
+      ) : view === 'custom' ? (
+        <section style={styles.panel}>
+          <div>
+            <h2 style={styles.sectionTitle}>{t('Channel types')}</h2>
+            <p style={styles.sectionDescription}>{t('A channel can be created only for a type whose provider module is installed and running.')}</p>
+          </div>
+          <div style={cardGrid}>
+            {types.map((ty) => (
+              <TypeCard
+                key={ty.type} typeDef={ty} channelsOfType={channelsPerType[ty.type] || 0} onCreate={startCreate}
+                canManage={canManage} canInstallProviders={canInstallProviders} t={t}
+              />
+            ))}
+          </div>
+        </section>
       ) : (
         <>
           <section style={styles.panel}>
@@ -447,12 +613,16 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
               <div style={{ ...styles.subsection, alignItems: 'center', textAlign: 'center', padding: 32 }}>
                 <MaterialIcon name="storefront" size={40} style={{ color: 'var(--muted-foreground)' }} />
                 <div style={{ fontWeight: 700, fontSize: 16 }}>{t('No sales channels yet')}</div>
-                <p style={styles.help}>{t('Create your first channel, or pick a recommended one below.')}</p>
+                <p style={styles.help}>{t('Channels appear when you install their provider module from the marketplace — pick a recommended one below.')}</p>
               </div>
             ) : (
               <div style={cardGrid}>
                 {channels.map((c) => (
-                  <ChannelCard key={c.id} channel={c} onEdit={startEdit} onToggle={toggleChannel} onDelete={setPendingDelete} canManage={canManage} isMobile={isMobile} t={t} />
+                  <ChannelCard
+                    key={c.id} channel={c} onEdit={startEdit} onToggle={toggleChannel} onDelete={setPendingDelete}
+                    refusal={toggleRefusal && toggleRefusal.id === c.id ? toggleRefusal : null}
+                    canManage={canManage} canInstallProviders={canInstallProviders} isMobile={isMobile} t={t}
+                  />
                 ))}
               </div>
             )}
@@ -469,9 +639,17 @@ function SalesChannelsManagerContent({ permissions = { canView: true, canManage:
                 <p style={styles.sectionDescription}>{t('Suggestions based on your project country. These are hints — you can install any channel.')}</p>
               </div>
               <div style={cardGrid}>
-                {recommendedToShow.map((ty) => <RecommendedCard key={ty.type} typeDef={ty} onAdd={startCreate} canManage={canManage} t={t} />)}
+                {recommendedToShow.map((ty) => (
+                  <TypeCard key={ty.type} typeDef={ty} canManage={canManage} canInstallProviders={canInstallProviders} t={t} />
+                ))}
               </div>
             </section>
+          )}
+
+          {canManage && (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <Button variant="ghost" size="sm" onClick={() => openSelf(managerUrl('custom'))}>{t('Custom channel')}</Button>
+            </div>
           )}
         </>
       )}

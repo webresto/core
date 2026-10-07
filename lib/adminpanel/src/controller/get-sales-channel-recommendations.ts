@@ -1,21 +1,7 @@
 import { getSalesChannelPermissions, hasAccess } from "./sales-channels-helpers";
 import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
-
-async function getInstalledAppIds(): Promise<Set<string>> {
-  const installedAppIds = new Set<string>();
-  try {
-    const ModuleModel: any = (sails as any).models?.module;
-    if (ModuleModel?.find) {
-      const modules = await ModuleModel.find({});
-      for (const m of modules as any[]) {
-        if (m?.appId) installedAppIds.add(String(m.appId));
-      }
-    }
-  } catch (e) {
-    sails.log.debug("Sales channel recommendations: module lookup skipped", e);
-  }
-  return installedAppIds;
-}
+import { getInstalledProviderAppIds } from "../../../../libs/SalesChannelProviders";
+import { mapChannelType } from "./get-sales-channel-types";
 
 /**
  * GET …/core/sales-channels/recommendations
@@ -38,13 +24,8 @@ export default async function GetSalesChannelRecommendationsController(req: any,
       } catch { /* ignore */ }
     }
 
-    const installedAppIds = await getInstalledAppIds();
-    const types = SalesChannelRegistry.recommendedTypesForCountry(country).map((def) => ({
-      ...def,
-      settingsUrl: canManage ? def.settingsUrl : null,
-      providerModule: canManage ? def.providerModule : null,
-      installed: def.providerModule ? installedAppIds.has(def.providerModule) : true,
-    }));
+    const installed = await getInstalledProviderAppIds();
+    const types = SalesChannelRegistry.recommendedTypesForCountry(country).map((def) => mapChannelType(def, installed, canManage));
     return res.json({ country: country || null, results: types, meta: { permissions, canManage } });
   } catch (error) {
     sails.log.error("Get sales channel recommendations error", error);

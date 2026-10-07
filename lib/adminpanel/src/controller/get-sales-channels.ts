@@ -1,4 +1,5 @@
 import { getSalesChannelPermissions, hasAccess, mapChannel } from "./sales-channels-helpers";
+import { getInstalledProviderAppIds, refreshStatuses } from "../../../../libs/SalesChannelProviders";
 
 /**
  * GET …/core/sales-channels
@@ -17,7 +18,9 @@ export default async function GetSalesChannelsController(req: any, res: any) {
     const concept = String(req.query.concept || "").trim();
 
     const channels = await SalesChannel.find({}).sort("sortOrder ASC");
-    const mapped = channels.map((c: any) => mapChannel(c, { canManage }));
+    // Readiness comes from the providers on every read, so a finished build shows up at once.
+    const [installed, statuses] = await Promise.all([getInstalledProviderAppIds(), refreshStatuses(channels)]);
+    const mapped = channels.map((c: any) => mapChannel(c, { canManage, installed, computed: statuses[c.id], req }));
 
     const filtered = mapped.filter((c: any) => {
       if (enabled === "on" && !c.enabled) return false;

@@ -4,8 +4,11 @@
 
 import slugifyLib from "slugify";
 import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
+import { describeChannelProvider, refusalText, SalesChannelRefusal } from "../../../../libs/SalesChannelProviders";
+import type { SalesChannelStatusResult } from "../../../../adapters/sales-channel/SalesChannelAdapter";
 import {
   getModulePermissions,
+  hasAnyPermission,
   requireModulePermission,
   SALES_CHANNELS_ACCESS,
 } from "./access-rights";
@@ -22,7 +25,19 @@ export function hasManageAccess(req: any, res: any): boolean {
 }
 
 export function getSalesChannelPermissions(req: any) {
-  return getModulePermissions(req, SALES_CHANNELS_ACCESS);
+  return {
+    ...getModulePermissions(req, SALES_CHANNELS_ACCESS),
+    // Same right the module manager checks before installing (app-manager upgrade action).
+    canInstallProviders: hasAnyPermission(req, req.user, ["modules-process-upgrade"]),
+  };
+}
+
+/** Answer a refused rule (409 & co.) with a translated `error` plus its extra fields. */
+export function sendRefusal(req: any, res: any, refusal: SalesChannelRefusal) {
+  const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
+  const extra: Record<string, unknown> = { ...(refusal.extra || {}) };
+  if (typeof extra.message === "string") extra.message = t(extra.message);
+  return res.status(refusal.status).json({ error: refusalText(refusal, t), ...extra });
 }
 
 export function toNumber(value: any): number {
@@ -67,10 +82,19 @@ export function slugify(value: string): string {
     .slice(0, 64);
 }
 
-/** Map a SalesChannel record into the shape used by the admin frontend. */
-export function mapChannel(channel: any, options: { canManage?: boolean } = {}): any {
+/**
+ * Map a SalesChannel record into the shape used by the admin frontend. `installed` is the
+ * set from getInstalledProviderAppIds() (fetched once per request), `computed` a fresh
+ * readiness from the provider; see libs/SalesChannelProviders.ts for the provider fields.
+ */
+export function mapChannel(
+  channel: any,
+  options: { canManage?: boolean; installed?: Set<string> | null; computed?: SalesChannelStatusResult | null; req?: any } = {}
+): any {
   const typeDef = SalesChannelRegistry.getType(channel?.type);
   const canManage = options.canManage === true;
+  const provider = describeChannelProvider(channel, options.installed ?? null, options.computed);
+  const t = (key: string) => (options.req?.i18n?.__ ? options.req.i18n.__(key) : key);
   return {
     id: channel?.id,
     key: channel?.key || "",
@@ -80,10 +104,18 @@ export function mapChannel(channel: any, options: { canManage?: boolean } = {}):
     category: typeDef?.category || "custom",
     capabilities: typeDef?.capabilities || [],
     icon: typeDef?.icon || "tune",
-    settingsUrl: canManage ? (typeDef?.settingsUrl || null) : null,
+    settingsUrl: canManage ? provider.settingsUrl : null,
     providerModule: canManage ? (channel?.providerModule || null) : null,
+    managedBy: provider.managedBy,
+    providerInstalled: provider.providerInstalled,
+    providerAlive: provider.providerAlive,
+    typeComingSoon: provider.typeComingSoon,
+    marketplaceAppId: provider.marketplaceAppId,
+    canDelete: provider.canDelete,
+    active: provider.active,
     enabled: channel?.enabled === true,
-    status: channel?.status || "draft",
+    status: provider.status,
+    statusMessage: provider.statusMessage ? t(provider.statusMessage) : null,
     countries: stringArray(channel?.countries),
     concepts: stringArray(channel?.concepts),
     platforms: stringArray(channel?.platforms),
