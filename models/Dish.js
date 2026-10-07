@@ -67,7 +67,10 @@ let attributes = {
         allowNull: true,
     },
     /** The number of carbohydrates per (100g)*/
-    carbohydrateAmount: "number",
+    carbohydrateAmount: {
+        type: "number",
+        allowNull: true
+    },
     /**
      * @deprecated
      * The number of carbohydrates in the dish */

@@ -82,7 +82,10 @@ let attributes = {
   } as unknown as string,
 
   /** The number of carbohydrates per (100g)*/
-  carbohydrateAmount: "number" as unknown as number,
+  carbohydrateAmount: {
+    type: "number",
+    allowNull: true
+  } as unknown as number,
 
   /**
    * @deprecated  
