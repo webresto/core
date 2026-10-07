@@ -583,6 +583,8 @@
 	"Setup progress": "Прогресс настройки",
 	"{done} of {total}": "{done} из {total}",
 	"{done} of {total} checked": "Проверено {done} из {total}",
+	"{done} of {total} required": "{done} из {total} обязательных",
+	"{done} of {total} recommended": "{done} из {total} рекомендованных",
 	"{count} required steps left": "Осталось обязательных: {count}",
 	"Hidden": "Скрыто",
 	"done": "готово",

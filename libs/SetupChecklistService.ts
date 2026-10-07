@@ -283,6 +283,10 @@ export class SetupChecklistService {
   /** Lightweight aggregate for the global banner (same live run, no item arrays). */
   static async getSummary(ctx: CheckupContext): Promise<SetupChecklistSummary> {
     const status = await SetupChecklistService.getStatus(ctx);
+    // The counter shown next to the percentage must describe the SAME items as
+    // `progressPercent` (see `progressScale`), otherwise the widget reads "100 %" next to
+    // "9 of 10 checked". Recommended/optional extras are listed on the checklist page itself.
+    const scale = SetupChecklistService.progressScale(status.counts);
     return {
       counts: status.counts,
       overallReady: status.overallReady,
@@ -293,10 +297,10 @@ export class SetupChecklistService {
         ready: ctx.t("Ready to go"),
         incomplete: ctx.t("Setup is incomplete"),
         open: ctx.t("Open checklist"),
-        checked: ctx.t("{done} of {total} checked", {
-          done: status.counts.required.done + status.counts.recommended.done + status.counts.optional.done,
-          total: status.counts.required.total + status.counts.recommended.total + status.counts.optional.total,
-        }),
+        checked: ctx.t(
+          scale.severity === "required" ? "{done} of {total} required" : "{done} of {total} recommended",
+          { done: scale.done, total: scale.total }
+        ),
       },
     };
   }
@@ -378,10 +382,23 @@ export class SetupChecklistService {
    * carries a signal; skipped (dismissed) items are already out of `counts`.
    */
   private static percent(counts: SeverityCounts): number {
-    const scale = counts.required.total > 0 ? counts.required : counts.recommended;
+    const scale = SetupChecklistService.progressScale(counts);
     if (scale.total === 0) return 100;
     if (scale.done >= scale.total) return 100;
     // Never let rounding claim 100 % while something is still open.
     return Math.min(99, Math.round((scale.done / scale.total) * 100));
+  }
+
+  /**
+   * The bucket progress is measured on: the required items, or — for sets without any
+   * required item — the recommended ones. Shared by `percent` and the summary's
+   * `labels.checked`, so the number and the counter can never drift apart again.
+   */
+  private static progressScale(
+    counts: SeverityCounts
+  ): { severity: "required" | "recommended"; done: number; total: number } {
+    return counts.required.total > 0
+      ? { severity: "required", done: counts.required.done, total: counts.required.total }
+      : { severity: "recommended", done: counts.recommended.done, total: counts.recommended.total };
   }
 }

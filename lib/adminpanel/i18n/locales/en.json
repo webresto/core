@@ -574,6 +574,8 @@
 	"Setup progress": "Setup progress",
 	"{done} of {total}": "{done} of {total}",
 	"{done} of {total} checked": "{done} of {total} checked",
+	"{done} of {total} required": "{done} of {total} required",
+	"{done} of {total} recommended": "{done} of {total} recommended",
 	"{count} required steps left": "{count} required steps left",
 	"Hidden": "Hidden",
 	"done": "done",

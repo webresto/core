@@ -87,5 +87,11 @@
 	"Unexpected property {property}": "Propriedade inesperada: {property}",
 	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Identificador técnico (slug) desta instalação, não o nome visível do estabelecimento: letras latinas minúsculas, dígitos e hífens, pelo menos 3 caracteres",
 	"Project ID": "ID do projeto",
-	"You can set any sign for the currency": "Pode definir qualquer símbolo para a moeda"
+	"You can set any sign for the currency": "Pode definir qualquer símbolo para a moeda",
+	"Setup checklist": "Checklist de configuração",
+	"Setup progress": "Progresso da configuração",
+	"Ready to go": "Pronto para começar",
+	"Setup is incomplete": "Configuração incompleta",
+	"{done} of {total} required": "{done} de {total} obrigatórios",
+	"{done} of {total} recommended": "{done} de {total} recomendados"
 }

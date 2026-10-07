@@ -8,7 +8,7 @@ export default class SetupChecklistWidget extends CustomBase {
   readonly description = "Setup progress";
   readonly icon = "checklist";
   readonly backgroundCSS = "transparent";
-  readonly size = { h: 2, w: 2 };
+  readonly size = { h: 1, w: 1 };
   readonly jsPath = {
     dev: "/restocore/assets/core-adminizer-assets/SetupChecklistWidget.js",
     production: "/restocore/assets/core-adminizer-assets/SetupChecklistWidget.js",

@@ -751,6 +751,8 @@
 	"Setup progress": "Прогрес налаштування",
 	"{done} of {total}": "{done} із {total}",
 	"{done} of {total} checked": "Перевірено {done} із {total}",
+	"{done} of {total} required": "{done} із {total} обов’язкових",
+	"{done} of {total} recommended": "{done} із {total} рекомендованих",
 	"{count} required steps left": "Залишилося обов’язкових кроків: {count}",
 	"Hidden": "Приховано",
 	"done": "готово",

@@ -34,8 +34,10 @@ The only persisted piece of the whole feature is the per-item dismissal map
 `SetupChecklistService` (live evaluation, used by the HTTP layer):
 
 - `getStatus(ctx)` — runs every `check()` in parallel (with per-check timeout + isolation),
-  groups results, computes severity counts, `overallReady` and a weighted `progressPercent`.
-- `getSummary(ctx)` — lightweight aggregate for a global indicator.
+  groups results, computes severity counts, `overallReady` and `progressPercent` — measured on
+  the required items only (recommended ones if a set has no required items), so 100 % ⟺ ready.
+- `getSummary(ctx)` — lightweight aggregate for a global indicator; its `labels.checked`
+  ("N of M required") counts the same items as `progressPercent`.
 - `dismiss(key, { snoozeDays? })` / `restore(key)` — hide/snooze a non-required checkup
   (required checkups can never be dismissed).
 

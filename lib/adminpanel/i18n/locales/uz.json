@@ -87,5 +87,11 @@
 	"Unexpected property {property}": "Ortiqcha maydon {property}",
 	"Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters": "Ushbu o'rnatmaning texnik identifikatori (slug), muassasaning ko'rinadigan nomi emas: faqat kichik lotin harflari, raqamlar va defis, kamida 3 ta belgi",
 	"Project ID": "Loyiha ID",
-	"You can set any sign for the currency": "Valyuta uchun istalgan belgini o'rnatishingiz mumkin"
+	"You can set any sign for the currency": "Valyuta uchun istalgan belgini o'rnatishingiz mumkin",
+	"Setup checklist": "Sozlash ro'yxati",
+	"Setup progress": "Sozlash jarayoni",
+	"Ready to go": "Ishga tayyor",
+	"Setup is incomplete": "Sozlash tugallanmagan",
+	"{done} of {total} required": "Majburiy: {done}/{total}",
+	"{done} of {total} recommended": "Tavsiya etilgan: {done}/{total}"
 }

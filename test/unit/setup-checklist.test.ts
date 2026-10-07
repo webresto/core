@@ -132,6 +132,29 @@ describe("SetupChecklist registry + service", () => {
     store["COUNTRY_ISO"] = "RU";
   });
 
+  it("summary counter counts the same items as progressPercent (no '100 %' next to '9 of 10')", async () => {
+    const tctx = {
+      ...ctx,
+      t: (k: string, p?: Record<string, string | number>) =>
+        Object.entries(p || {}).reduce((s, [n, v]) => s.replace(`{${n}}`, String(v)), k),
+    };
+
+    // all required done, recommended extras still open
+    let sum = await SetupChecklistService.getSummary(tctx);
+    expect(sum.counts.recommended.done).to.be.lessThan(sum.counts.recommended.total);
+    expect(sum.progressPercent).to.equal(100);
+    expect(sum.labels.checked).to.equal(`${sum.counts.required.total} of ${sum.counts.required.total} required`);
+
+    // one required item open → both the percentage and the counter show it
+    store["PROJECT_NAME"] = "";
+    sum = await SetupChecklistService.getSummary(tctx);
+    const { done, total } = sum.counts.required;
+    expect(done).to.equal(total - 1);
+    expect(sum.progressPercent).to.equal(Math.round((done / total) * 100));
+    expect(sum.labels.checked).to.equal(`${done} of ${total} required`);
+    store["PROJECT_NAME"] = "My Resto";
+  });
+
   it("created-but-not-enabled → still 'todo' with an explanatory hint", async () => {
     // a place exists but none is enabled → not ready yet
     placeTotal = 1; placeEnabled = 0;
