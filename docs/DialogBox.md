@@ -8,12 +8,12 @@
 
 ### Contents
 
-1. **`DialogBox` class** — [libs/DialogBox.ts](../libs/DialogBox.ts)
+1. **`DialogBox` class** — [lib/DialogBox.ts](../lib/DialogBox.ts)
    - The constructor is `private`. Dialogs are always created through `DialogBox.ask(...)`.
    - Active dialogs are stored in the static map `DialogBox.dialogs` keyed by `askId`.
 
 2. **Static methods**
-   - `DialogBox.ask(config, deviceId, timeout?)` — validates the config against the JSON schema [`libs/schemas/dialogBoxConfig.json`](../libs/schemas/dialogBoxConfig.json), creates a dialog, emits `dialog-box:new`, and polls for the answer every 500 ms until it arrives or the timeout expires.
+   - `DialogBox.ask(config, deviceId, timeout?)` — validates the config against the JSON schema [`lib/schemas/dialogBoxConfig.json`](../lib/schemas/dialogBoxConfig.json), creates a dialog, emits `dialog-box:new`, and polls for the answer every 500 ms until it arrives or the timeout expires.
      - `config: DialogBoxConfig` — the dialog payload (see below).
      - `deviceId: string` — target device that should display the dialog.
      - `timeout?: number` — milliseconds to wait. Defaults to `30_000` (30 seconds).
@@ -186,7 +186,7 @@ The pending `DialogBox.ask(...)` call will resolve on its next poll tick (≤ 50
 A few consequences worth knowing:
 
 - The dialog is addressed only by `deviceId` — there is no `userId` in the config, so `ask()` cannot look up a user's language on its own.
-- The `user: UserRecord` field on the `DialogBox` instance ([libs/DialogBox.ts:14](../libs/DialogBox.ts#L14)) is currently never populated by `ask()`. Don't rely on it.
+- The `user: UserRecord` field on the `DialogBox` instance ([lib/DialogBox.ts:14](../lib/DialogBox.ts#L14)) is currently never populated by `ask()`. Don't rely on it.
 - The user's language preference lives elsewhere — typically `Order.locale` ([models/Order.ts:164](../models/Order.ts#L164)), with the site's default locale as a fallback.
 
 **The caller is responsible for translating strings before calling `ask()`.** Resolve the locale, translate every visible string (including each `button.label`), then build the config:
@@ -221,7 +221,7 @@ const answerId = await DialogBox.ask({
 }, deviceId, 60_000);
 ```
 
-Translation keys should be added to [libs/locales/en.json](../libs/locales/en.json) and [libs/locales/ru.json](../libs/locales/ru.json) (and any other locales the project supports).
+Translation keys should be added to [lib/locales/en.json](../lib/locales/en.json) and [lib/locales/ru.json](../lib/locales/ru.json) (and any other locales the project supports).
 
 ### Errors and validation
 

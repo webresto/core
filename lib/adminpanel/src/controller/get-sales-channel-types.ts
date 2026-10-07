@@ -1,5 +1,5 @@
 import { getSalesChannelPermissions, hasAccess } from "./sales-channels-helpers";
-import { SalesChannelRegistry } from "../../../../libs/SalesChannelRegistry";
+import { SalesChannelRegistry } from "../../../SalesChannelRegistry";
 
 /**
  * GET …/core/sales-channels/types

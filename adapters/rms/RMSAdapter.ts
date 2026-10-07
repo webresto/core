@@ -2,7 +2,7 @@
 // todo: fix types model instance to {%ModelName%}Record for Dish";
 // todo: fix types model instance to {%ModelName%}Record for Group";
 // todo: fix types model instance to {%ModelName%}Record for SelectedMediaFile";
-import { ObservablePromise } from "../../libs/ObservablePromise";
+import { ObservablePromise } from "../../lib/ObservablePromise";
 import { DishRecord } from "../../models/Dish";
 import { GroupRecord } from "../../models/Group";
 import { OrderRecord } from "../../models/Order";

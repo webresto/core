@@ -2,7 +2,7 @@ import {
   getAllowedOrderTransitionsByRole,
   isCompletedOrderState,
   isOperatorUser,
-} from "../../../../libs/OrderStateFlow";
+} from "../../../order/OrderStateFlow";
 
 function parseTimestamp(value: unknown): number {
   const timestamp = new Date(value as any).getTime();

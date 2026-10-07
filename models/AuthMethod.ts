@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
 import type AuthAdapter from "../adapters/auth/AuthAdapter";
 import type { AuthFlowKind, PhoneProofMode, SecretOrigin, Offer } from "../adapters/auth/AuthAdapter";
-import { isPrimaryWorker } from "../libs/cluster";
+import { isPrimaryWorker } from "../lib/cluster";
 
 export type AuthMethodKind = "identity" | "phone_proof";
 export type AuthMethodHealth = "ready" | "needs_setup" | "error" | "conflict";

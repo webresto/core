@@ -9,7 +9,7 @@ const listFiles = (0, util_1.promisify)(fs_1.readdir);
 const isRecord = (o) => o != null && typeof o === "object" && !(o instanceof Array) && Object.keys(o).reduce((result, key) => result && typeof key === "string", true);
 class MockSet {
     constructor() {
-        this.declarationPaths = ["../../models/", "../../interfaces/", "../../adapters/", "../../config/", "../../libs/"];
+        this.declarationPaths = ["../../models/", "../../interfaces/", "../../adapters/", "../../config/", "../../lib/"];
         this.extension = ".d.ts";
         //this.interfaces = options.interfaces;
     }

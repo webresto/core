@@ -1,7 +1,7 @@
 import AbstractPromotionHandler from "../../../adapters/promotion/AbstractPromotion";
 import { IconfigDiscount } from './../../../interfaces/ConfigDiscount';
-import findModelInstanceByAttributes from "../../../libs/findModelInstance";
-import { someInArray } from "../../../libs/stringsInArray";
+import findModelInstanceByAttributes from "../../../lib/findModelInstance";
+import { someInArray } from "../../../lib/stringsInArray";
 import ConfiguredPromotion from "../../../adapters/promotion/default/configuredPromotion";
 import Decimal from "decimal.js";
 import { GroupRecord } from "../../../models/Group";

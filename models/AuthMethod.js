@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const cluster_1 = require("../libs/cluster");
+const cluster_1 = require("../lib/cluster");
 let attributes = {
     id: {
         type: "string",

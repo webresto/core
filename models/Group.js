@@ -3,13 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
+const checkExpression_1 = __importDefault(require("../lib/checkExpression"));
 // todo: fix types model instance to {%ModelName%}Record for Dish";
 const worktime_1 = require("@webresto/worktime");
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
-const slugIt_1 = require("../libs/slugIt");
-const auditLog_1 = require("../libs/auditLog");
+const slugIt_1 = require("../lib/slugIt");
+const auditLog_1 = require("../lib/auditLog");
 let attributes = {
     /**Id */
     id: {

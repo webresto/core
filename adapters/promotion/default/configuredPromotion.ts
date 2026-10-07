@@ -1,9 +1,9 @@
 // import { WorkTime } from "@webresto/worktime";
 import AbstractPromotionHandler from "../AbstractPromotion";
 import { IconfigDiscount } from "../../../interfaces/ConfigDiscount";
-import findModelInstanceByAttributes from "../../../libs/findModelInstance";
+import findModelInstanceByAttributes from "../../../lib/findModelInstance";
 import Decimal from "decimal.js";
-import { someInArray } from "../../../libs/stringsInArray";
+import { someInArray } from "../../../lib/stringsInArray";
 import { GroupRecord } from "../../../models/Group";
 import { DishRecord } from "../../../models/Dish";
 import { OrderRecord, PromotionState } from "../../../models/Order";

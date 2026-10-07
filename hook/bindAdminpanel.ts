@@ -10,7 +10,7 @@
  */
 import * as fs from "fs";
 import * as path from "path";
-import { ensureDefaultGroups } from "../libs/adminpanel/ensureDefaultGroups";
+import { ensureDefaultGroups } from "../lib/adminpanel/ensureDefaultGroups";
 import {
   AdminPanelModule,
   adminPanelAccessTokens,
@@ -177,7 +177,7 @@ function addModelConfig(newModels: Record<string, any>) {
 function processBindAdminpanel() {
   // Using local addModelConfig
   try {
-    const models = require("../libs/adminpanel/models/bind").models;
+    const models = require("../lib/adminpanel/models/bind").models;
     addModelConfig(models);
   } catch (e) {
     sails.log.warn("Adminpanel model bindings are skipped: failed to load model configs", e);

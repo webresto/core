@@ -2,7 +2,7 @@ import {
   getAllowedOrderTransitionsByRole,
   isOperatorUser,
   isValidOrderState,
-} from "../../../../libs/OrderStateFlow";
+} from "../../../order/OrderStateFlow";
 
 function mapOrder(order: any, operatorLimited: boolean) {
   const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};

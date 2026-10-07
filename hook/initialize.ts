@@ -1,29 +1,29 @@
-import  HookTools from "../libs/hookTools";
+import  HookTools from "../lib/hookTools";
 import { resolve } from "path";
 import afterHook from "./afterHook";
 import * as _ from "lodash";
 import bindAssets from "./bindAssets";
 import bindDictionaries from "./bindDictionaries";
-import { CartCleanup } from "../libs/CartCleanup";
+import { CartCleanup } from "../lib/order/CartCleanup";
 
 /**
  * Set global emitter
  */
-import getEmitter from "../libs/getEmitter";
+import getEmitter from "../lib/getEmitter";
 // @ts-ignore
 global.emitter = getEmitter();
 
 /**
  * Set global NotificationManager
  */
-import { NotificationManager } from "../libs/NotificationManager";
+import { NotificationManager } from "../lib/notifications/NotificationManager";
 // @ts-ignore
 global.NotificationManager = NotificationManager
 
 /**
  * Set global DialogBox
  */
-import { DialogBox } from "../libs/DialogBox";
+import { DialogBox } from "../lib/DialogBox";
 // @ts-ignore
 global.DialogBox = DialogBox
 

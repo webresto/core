@@ -3,7 +3,7 @@ import ORM from "../interfaces/ORM";
 import { v4 as uuid } from "uuid";
 import PaymentAdapter from "../adapters/payment/PaymentAdapter";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import { PaymentMethodType } from "../libs/enums/PaymentMethodTypes";
+import { PaymentMethodType } from "../lib/enums/PaymentMethodTypes";
 
 let alivePaymentMethods = {} as {[k: string]: PaymentAdapter } ;
 

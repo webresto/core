@@ -41,11 +41,11 @@ __exportStar(require("./models/UserLocation"), exports);
 __exportStar(require("./models/UserOrderHistory"), exports);
 __exportStar(require("./models/Promotion"), exports);
 // Helpers
-__exportStar(require("./libs/helpers/OrderHelper"), exports);
-__exportStar(require("./libs/NotificationDispatcher"), exports);
-__exportStar(require("./libs/SetupChecklistRegistry"), exports);
-__exportStar(require("./libs/SetupChecklistService"), exports);
-__exportStar(require("./libs/AuthService"), exports);
+__exportStar(require("./lib/order/OrderHelper"), exports);
+__exportStar(require("./lib/notifications/NotificationDispatcher"), exports);
+__exportStar(require("./lib/SetupChecklistRegistry"), exports);
+__exportStar(require("./lib/SetupChecklistService"), exports);
+__exportStar(require("./lib/AuthService"), exports);
 __exportStar(require("./adapters/auth/AuthAdapter"), exports);
 module.exports = function (sails) {
     return {
@@ -53,4 +53,4 @@ module.exports = function (sails) {
         initialize: require('./hook/initialize').default(sails)
     };
 };
-module.exports.HookTools = require("./libs/hookTools");
+module.exports.HookTools = require("./lib/hookTools");

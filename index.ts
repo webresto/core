@@ -29,15 +29,15 @@ export * from './models/UserOrderHistory';
 export * from './models/Promotion';
 
 // Helpers
-export * from './libs/helpers/OrderHelper'
-export * from './libs/NotificationDispatcher'
-export * from './libs/NotificationEventRegistry'
-export * from './libs/NotificationTypeRegistry'
-export * from './libs/NotificationTemplateRenderer'
-export * from './libs/NotificationService'
-export * from './libs/SetupChecklistRegistry'
-export * from './libs/SetupChecklistService'
-export * from './libs/AuthService'
+export * from './lib/order/OrderHelper'
+export * from './lib/notifications/NotificationDispatcher'
+export * from './lib/notifications/NotificationEventRegistry'
+export * from './lib/notifications/NotificationTypeRegistry'
+export * from './lib/notifications/NotificationTemplateRenderer'
+export * from './lib/notifications/NotificationService'
+export * from './lib/SetupChecklistRegistry'
+export * from './lib/SetupChecklistService'
+export * from './lib/AuthService'
 export { default as AuthAdapter } from './adapters/auth/AuthAdapter'
 export * from './adapters/auth/AuthAdapter'
 
@@ -48,5 +48,5 @@ module.exports = function (sails: any) {
   };
 };
 
-module.exports.HookTools = require("./libs/hookTools");
+module.exports.HookTools = require("./lib/hookTools");
 

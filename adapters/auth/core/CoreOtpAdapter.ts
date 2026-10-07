@@ -1,6 +1,6 @@
 import AuthAdapter, { Offer, StartResult } from "../AuthAdapter";
 import { AuthAttemptRecord } from "../../../models/AuthAttempt";
-import { NotificationService } from "../../../libs/NotificationService";
+import { NotificationService } from "../../../lib/notifications/NotificationService";
 
 /**
  * The core's own phone_proof capability: "we invent a 6-digit code and put it in a message".

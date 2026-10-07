@@ -1,44 +1,6 @@
 /**
- * // TODO: Abandoned because we have gone to global changes from Dish to Item
+ * @deprecated `libs/` became `lib/`: import from "@webresto/core/lib/checkExpression".
+ * This path stays for modules outside core and is removed in core 3.0.
  */
-
-import { WorkTime } from "@webresto/worktime";
-
-/**
- * Check additionalInfo. Return empty string if success or reject reason string
- * @param obj
- * @return string
- */
-export default function (obj: AdditionalInfo): string {
-  if (!obj) {
-    return "";
-  }
-
-  try {
-
-    if (obj.worktime) {
-      if (!checkTime(obj.worktime)) {
-        return "time";
-      }
-    }
-
-    if (obj.promo && obj.promo === true) return "promo";
-
-    if (obj.modifier && obj.modifier === true) return "modifier";
-
-    return "";
-  } catch (e) {
-    return "";
-  }
-}
-
-export interface AdditionalInfo {
-  visible?: boolean;
-  worktime?: WorkTime[];
-  promo?: boolean;
-  modifier?: boolean;
-}
-
-function checkTime(timeArray: WorkTime[]): boolean {
-  return true;
-}
+export * from "../lib/checkExpression";
+export { default } from "../lib/checkExpression";

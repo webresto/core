@@ -33,7 +33,7 @@ class AboutProjectStep {
         
         // Load countries data into payload
         try {
-            const countriesPath = path.resolve(__dirname, "../libs/dictionaries/countries.json");
+            const countriesPath = path.resolve(__dirname, "../lib/dictionaries/countries.json");
             const countriesData = fs.readFileSync(countriesPath, 'utf8');
             this.payload.countries = JSON.parse(countriesData);
         } catch (e) {

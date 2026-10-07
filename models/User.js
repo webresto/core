@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const Countries = require("../libs/dictionaries/countries.json");
-const AuthService_1 = __importDefault(require("../libs/AuthService"));
+const Countries = require("../lib/dictionaries/countries.json");
+const AuthService_1 = __importDefault(require("../lib/AuthService"));
 let attributes = {
     /** User model ID — the account key. Nothing else identifies a user (extend_user_account §3.1):
      *  every way in is a row in AuthIdentity, found by (provider, externalId). */

@@ -1,6 +1,6 @@
 import sails from "@42pub/typed-sails";
 import { Config } from "./Config";
-import AwaitEmitter from "../libs/AwaitEmitter";
+import AwaitEmitter from "../lib/AwaitEmitter";
 import { WorkTime } from "@webresto/worktime";
 import { Country, Currency, CountryISOList, CurrencyISOList } from "./Country";
 type sailsConfig = typeof sails.config;
@@ -31,8 +31,8 @@ interface SailsHooks {
 }
 declare global {
     const emitter: AwaitEmitter;
-    const NotificationManager: typeof import("../libs/NotificationManager").NotificationManager;
-    const DialogBox: typeof import("../libs/DialogBox").DialogBox;
+    const NotificationManager: typeof import("../lib/notifications/NotificationManager").NotificationManager;
+    const DialogBox: typeof import("../lib/DialogBox").DialogBox;
     const Adapter: typeof import("../adapters").Adapter;
     interface Sails extends sails.Sails {
         [x: string]: {};

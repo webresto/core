@@ -1,9 +1,9 @@
 import { expect } from "chai";
-import AuthService from "../../libs/AuthService";
+import AuthService from "../../lib/AuthService";
 import AuthAdapter, { NormalizedProfile, StartResult } from "../../adapters/auth/AuthAdapter";
 import { AuthAttemptRecord } from "../../models/AuthAttempt";
 import { CoreOtpAdapter } from "../../adapters/auth/core/CoreOtpAdapter";
-import { NotificationService } from "../../libs/NotificationService";
+import { NotificationService } from "../../lib/notifications/NotificationService";
 
 /**
  * Auth v2 — step-up is bound to the account, not to what the client typed (review2 §1.2).

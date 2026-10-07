@@ -1,6 +1,6 @@
 # AwaitEmitter Events
 
-This document summarizes all events exposed by `AwaitEmitter`. Each event name corresponds to a specific hook in the core logic. Use `emitter.on(eventName, id, handler)` to subscribe to events. All parameters in the list below follow the typings from `libs/AwaitEmitter.ts`.
+This document summarizes all events exposed by `AwaitEmitter`. Each event name corresponds to a specific hook in the core logic. Use `emitter.on(eventName, id, handler)` to subscribe to events. All parameters in the list below follow the typings from `lib/AwaitEmitter.ts`.
 
 ## Usage Example
 

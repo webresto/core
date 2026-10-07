@@ -6,16 +6,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const decimal_js_1 = __importDefault(require("decimal.js"));
 const worktime_1 = require("@webresto/worktime");
-const phoneValidByMask_1 = require("../libs/phoneValidByMask");
-const OrderHelper_1 = require("../libs/helpers/OrderHelper");
-const AuthService_1 = __importDefault(require("../libs/AuthService"));
-const cancelPaymentDialog_1 = require("../libs/dialogs/cancelPaymentDialog");
+const phoneValidByMask_1 = require("../lib/phoneValidByMask");
+const OrderHelper_1 = require("../lib/order/OrderHelper");
+const AuthService_1 = __importDefault(require("../lib/AuthService"));
+const cancelPaymentDialog_1 = require("../lib/order/cancelPaymentDialog");
 const isValue_1 = require("../utils/isValue");
-const ProductModifier_1 = require("../libs/ProductModifier");
-const OrderStateFlow_1 = require("../libs/OrderStateFlow");
+const ProductModifier_1 = require("../lib/ProductModifier");
+const OrderStateFlow_1 = require("../lib/order/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
-const NotificationService_1 = require("../libs/NotificationService");
-const OrderLogHelper_1 = __importDefault(require("../libs/OrderLogHelper"));
+const NotificationService_1 = require("../lib/notifications/NotificationService");
+const OrderLogHelper_1 = __importDefault(require("../lib/order/OrderLogHelper"));
 const ORDERED_STATES = ["ORDER", "COOKING", "ON_THE_WAY"];
 let attributes = {
     /** Id  */

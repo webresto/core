@@ -12,14 +12,14 @@ export default async function () {
       return;
     } 
 
-    const translations = fs.readdirSync(path.resolve(__dirname, `../libs/locales`)).filter(function (file) {
+    const translations = fs.readdirSync(path.resolve(__dirname, `../lib/locales`)).filter(function (file) {
       return path.extname(file).toLowerCase() === ".json";
     });
 
     for (let locale of sails.config.i18n?.locales ?? []) {
       if (translations.includes(`${locale}.json`)) {
         try {
-          let jsonData = require(`../libs/locales/${locale}.json`);
+          let jsonData = require(`../lib/locales/${locale}.json`);
           sails.hooks.i18n.appendLocale(locale, jsonData);
         } catch (error) {
           sails.log.error(`restocore bindTranslations > Error when reading ${locale}.json: ${error}`);

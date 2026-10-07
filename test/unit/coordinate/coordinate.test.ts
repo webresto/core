@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { toCoordinatePair, toAddressCoordinate } from '../../../libs/coordinate';
+import { toCoordinatePair, toAddressCoordinate } from '../../../lib/coordinate';
 
 describe("coordinate.toCoordinatePair", () => {
   it("converts string lon/lat to numbers", () => {

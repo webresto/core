@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import AuthService from "../../../libs/AuthService";
+import AuthService from "../../../lib/AuthService";
 import { CoreOtpAdapter } from "../../../adapters/auth/core/CoreOtpAdapter";
 import { DishRecord } from "../../../models/Dish";
 

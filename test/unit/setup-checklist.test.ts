@@ -11,8 +11,8 @@
  */
 
 import { expect } from "chai";
-import { SetupChecklistRegistry } from "../../libs/SetupChecklistRegistry";
-import { SetupChecklistService } from "../../libs/SetupChecklistService";
+import { SetupChecklistRegistry } from "../../lib/SetupChecklistRegistry";
+import { SetupChecklistService } from "../../lib/SetupChecklistService";
 
 // ── global mocks ──────────────────────────────────────────────────────────────
 const store: Record<string, any> = {};

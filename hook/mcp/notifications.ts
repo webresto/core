@@ -1,6 +1,6 @@
-import { NotificationEventRegistry } from '../../libs/NotificationEventRegistry';
-import { NotificationTypeRegistry, NotificationType } from '../../libs/NotificationTypeRegistry';
-import { NotificationService } from '../../libs/NotificationService';
+import { NotificationEventRegistry } from '../../lib/notifications/NotificationEventRegistry';
+import { NotificationTypeRegistry, NotificationType } from '../../lib/notifications/NotificationTypeRegistry';
+import { NotificationService } from '../../lib/notifications/NotificationService';
 
 declare const mcp: any;
 

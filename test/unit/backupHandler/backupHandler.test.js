@@ -39,10 +39,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // npx mocha -r ts-node/register test/unit/backupHandler/backupHandler.test.ts
 const sinon = __importStar(require("sinon"));
 const chai_1 = require("chai");
-const BackupHandler_1 = require("../../../libs/BackupHandler");
+const BackupHandler_1 = require("../../../lib/BackupHandler");
 const group_generator_1 = __importDefault(require("../../generators/group.generator"));
 const dish_generator_1 = __importDefault(require("../../generators/dish.generator"));
-const fs_1 = require("../../../libs/wrapper/fs");
+const fs_1 = require("../../../lib/wrapper/fs");
 const scriptName = process.argv.find(arg => arg.endsWith('.ts') || arg.endsWith('.js'));
 if (scriptName && scriptName.includes('backupHandler.test.ts')) {
     // @ts-ignore

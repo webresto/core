@@ -3,13 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const checkExpression_1 = __importDefault(require("../libs/checkExpression"));
-const hashCode_1 = __importDefault(require("../libs/hashCode"));
+const checkExpression_1 = __importDefault(require("../lib/checkExpression"));
+const hashCode_1 = __importDefault(require("../lib/hashCode"));
 const uuid_1 = require("uuid");
 const adapters_1 = require("../adapters");
 const CustomData_1 = require("../interfaces/CustomData");
-const slugIt_1 = require("../libs/slugIt");
-const auditLog_1 = require("../libs/auditLog");
+const slugIt_1 = require("../lib/slugIt");
+const auditLog_1 = require("../lib/auditLog");
 let attributes = {
     /** */
     id: {

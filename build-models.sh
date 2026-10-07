@@ -3,11 +3,11 @@
 #
 # models/ is the ONE directory whose .js/.d.ts are committed: `index.js` re-exports every model,
 # so consumers (and the type surface of the published package) resolve them without a TS loader.
-# Everything else — libs/, adapters/, hook/ — is TS-first and runs through tsx (the app starts via
-# `npx tsx`, the tests through `mocha --import=tsx`); those .js files that do exist under libs/ are
-# leftovers of the older build, and several models already require TS-only siblings
-# (libs/NotificationService, libs/AuthService, libs/helpers/OrderHelper …), so a pure-node
-# `require("@webresto/core")` has not been the supported path for a while.
+# Everything else — lib/, adapters/, hook/ — is TS-first and runs through tsx (the app starts via
+# `npx tsx`, the tests through `mocha --import=tsx`); several models already require TS-only
+# siblings (lib/notifications/NotificationService, lib/AuthService, lib/order/OrderHelper …), so a
+# pure-node `require("@webresto/core")` has not been the supported path for a while.
+# libs/ holds only deprecated re-export shims to lib/, kept for modules outside core until 3.0.
 #
 # Rule of thumb, so the artifacts stop drifting (review1 §4): touch models/*.ts → run this script
 # and commit the regenerated .js/.d.ts in the same commit. Do NOT hand-edit models/*.js.

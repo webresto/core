@@ -395,20 +395,20 @@ export const adminPanelDashboardWidgets: string[] = [
 ];
 
 export const adminPanelControls: AdminPanelControl[] = [
-  { name: "order-logs-viewer", type: "jsonEditor", module: "../../libs/adminpanel/controls/OrderLogsViewerControl", export: "OrderLogsViewerControl", asset: "OrderLogsViewer.js" },
-  { name: "worktime-viewer", type: "jsonEditor", module: "../../libs/adminpanel/controls/WorktimeViewerControl", export: "WorktimeViewerControl", asset: "WorktimeViewer.js" },
-  { name: "modifiers-editor", type: "jsonEditor", module: "../../libs/adminpanel/controls/ModifiersEditorControl", export: "ModifiersEditorControl", asset: "ModifiersEditor.js" },
-  { name: "tags-editor", type: "jsonEditor", module: "../../libs/adminpanel/controls/TagsEditorControl", export: "TagsEditorControl", asset: "TagsEditor.js" },
+  { name: "order-logs-viewer", type: "jsonEditor", module: "controls/OrderLogsViewerControl", export: "OrderLogsViewerControl", asset: "OrderLogsViewer.js" },
+  { name: "worktime-viewer", type: "jsonEditor", module: "controls/WorktimeViewerControl", export: "WorktimeViewerControl", asset: "WorktimeViewer.js" },
+  { name: "modifiers-editor", type: "jsonEditor", module: "controls/ModifiersEditorControl", export: "ModifiersEditorControl", asset: "ModifiersEditor.js" },
+  { name: "tags-editor", type: "jsonEditor", module: "controls/TagsEditorControl", export: "TagsEditorControl", asset: "TagsEditor.js" },
 ];
 
 export const adminPanelCatalog = {
-  module: "../../libs/adminpanel/ProductCatalog/ProductCatalog",
+  module: "ProductCatalog/ProductCatalog",
   export: "ProductCatalog",
   accessRightsToken: "catalog-products",
 };
 
 export const adminPanelMediaManager = {
-  module: "../../libs/adminpanel/ProductMediaManager/ProductMediaManager",
+  module: "ProductMediaManager/ProductMediaManager",
   export: "ProductMediaManager",
 };
 

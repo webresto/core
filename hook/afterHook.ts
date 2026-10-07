@@ -1,15 +1,15 @@
-import { generateUUID } from "../libs/hashCode";
-import { NotificationDispatcher } from "../libs/NotificationDispatcher";
-import { NotificationEventRegistry } from "../libs/NotificationEventRegistry";
-import { NotificationTypeRegistry } from "../libs/NotificationTypeRegistry";
-import { SetupChecklistRegistry } from "../libs/SetupChecklistRegistry";
-import { SalesChannelRegistry } from "../libs/SalesChannelRegistry";
-import { NotificationService } from "../libs/NotificationService";
+import { generateUUID } from "../lib/hashCode";
+import { NotificationDispatcher } from "../lib/notifications/NotificationDispatcher";
+import { NotificationEventRegistry } from "../lib/notifications/NotificationEventRegistry";
+import { NotificationTypeRegistry } from "../lib/notifications/NotificationTypeRegistry";
+import { SetupChecklistRegistry } from "../lib/SetupChecklistRegistry";
+import { SalesChannelRegistry } from "../lib/SalesChannelRegistry";
+import { NotificationService } from "../lib/notifications/NotificationService";
 import { registerCoreMcpTools } from "./mcp";
 import { CoreOtpAdapter } from "../adapters/auth/core/CoreOtpAdapter";
-import { registerAuthSetupCheckups } from "../libs/authSetupCheckups";
-import { isPrimaryWorker, workerIndex } from "../libs/cluster";
-import AuthService from "../libs/AuthService";
+import { registerAuthSetupCheckups } from "../lib/authSetupCheckups";
+import { isPrimaryWorker, workerIndex } from "../lib/cluster";
+import AuthService from "../lib/AuthService";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -158,7 +158,7 @@ export default async function () {
     }
 
     // Background notification loops are NOT cluster-safe (no cross-process claim
-    // coordination): in PM2 cluster mode run them only in the primary worker (libs/cluster).
+    // coordination): in PM2 cluster mode run them only in the primary worker (lib/cluster).
     if (!isPrimaryWorker()) {
       sails.log.info(`RestoCore > notification loops skipped on PM2 worker ${workerIndex()} (loops run only on worker 0)`);
     } else {

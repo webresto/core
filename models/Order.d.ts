@@ -19,7 +19,7 @@ export interface PromotionState {
     message: string;
     state: object | object[];
 }
-import { OrderLogLevel, OrderLogEntry } from "../libs/OrderLogHelper";
+import { OrderLogLevel, OrderLogEntry } from "../lib/order/OrderLogHelper";
 export type { OrderLogLevel, OrderLogEntry };
 export type PaymentBack = {
     backLinkSuccess: string;

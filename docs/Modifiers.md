@@ -7,7 +7,7 @@ editor (the `modifiers-editor` control) validates against.
 
 Related code:
 - Interfaces — [`interfaces/Modifier.ts`](../interfaces/Modifier.ts)
-- Validation / defaults helper — [`libs/ProductModifier.ts`](../libs/ProductModifier.ts)
+- Validation / defaults helper — [`lib/ProductModifier.ts`](../lib/ProductModifier.ts)
 - Populate logic — `Dish.getDishModifiers()` in [`models/Dish.ts`](../models/Dish.ts)
 - JSON Schema — [`docs/schemas/modifiers.schema.json`](./schemas/modifiers.schema.json)
 
@@ -129,7 +129,7 @@ editor never produces this shape.
 
 ## 4. Validation rules
 
-Enforced by [`ProductModifier`](../libs/ProductModifier.ts) at order time and mirrored by the
+Enforced by [`ProductModifier`](../lib/ProductModifier.ts) at order time and mirrored by the
 editor:
 
 1. **Group `id` and `rmsId` are the anchors.** A group is identified by its `id` (restocore

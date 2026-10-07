@@ -11,13 +11,13 @@ import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
 import { Restrictions, WorkTimeValidator } from "@webresto/worktime";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
-import { phoneValidByMask } from "../libs/phoneValidByMask";
-import { OrderHelper } from "../libs/helpers/OrderHelper";
-import AuthService from "../libs/AuthService";
+import { phoneValidByMask } from "../lib/phoneValidByMask";
+import { OrderHelper } from "../lib/order/OrderHelper";
+import AuthService from "../lib/AuthService";
 import {
   buildCancelPaymentDialog,
   CANCEL_PAYMENT_DIALOG_CONFIRM,
-} from "../libs/dialogs/cancelPaymentDialog";
+} from "../lib/order/cancelPaymentDialog";
 import { GroupModifier } from "../interfaces/Modifier";
 import { isValue } from "../utils/isValue";
 import { PaymentMethodRecord } from "./PaymentMethod";
@@ -30,10 +30,10 @@ import { PaymentDocumentRecord } from "./PaymentDocument";
 import ToInitialize from "../hook/initialize";
 import { or } from "ajv/dist/compile/codegen";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
-import { ProductModifier } from "../libs/ProductModifier";
-import { getAllowedOrderTransitions } from "../libs/OrderStateFlow";
+import { ProductModifier } from "../lib/ProductModifier";
+import { getAllowedOrderTransitions } from "../lib/order/OrderStateFlow";
 import { normalizePercent } from "../utils/normalize";
-import { NotificationService } from "../libs/NotificationService";
+import { NotificationService } from "../lib/notifications/NotificationService";
 
 export interface PromotionState {
   type: string;
@@ -41,7 +41,7 @@ export interface PromotionState {
   state: object | object[];
 }
 
-import OrderLogHelper, { OrderLogLevel, OrderLogEntry } from "../libs/OrderLogHelper";
+import OrderLogHelper, { OrderLogLevel, OrderLogEntry } from "../lib/order/OrderLogHelper";
 export type { OrderLogLevel, OrderLogEntry };
 
 export type PaymentBack = {

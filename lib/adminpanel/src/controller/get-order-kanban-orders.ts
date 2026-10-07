@@ -4,7 +4,7 @@ import {
   getAllowedOrderTransitionsByRole,
   isCompletedOrderState,
   isOperatorUser,
-} from "../../../../libs/OrderStateFlow";
+} from "../../../order/OrderStateFlow";
 
 // Non-completed states that the kanban board actually renders as columns
 // (mirrors VISIBLE_BOARD_STATES minus DONE/REJECT on the frontend).

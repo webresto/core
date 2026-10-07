@@ -1,6 +1,6 @@
-import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
+import checkExpression, { AdditionalInfo } from "../lib/checkExpression";
 import { MediaFileRecord } from "./MediaFile";
-import hashCode from "../libs/hashCode";
+import hashCode from "../lib/hashCode";
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 import ORM from "../interfaces/ORM";
 import { WorkTime } from "@webresto/worktime";
@@ -9,10 +9,10 @@ import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { GroupModifier, Modifier } from "../interfaces/Modifier";
 import { Adapter } from "../adapters";
 import { CustomData, isCustomData } from "../interfaces/CustomData";
-import { slugIt } from "../libs/slugIt";
+import { slugIt } from "../lib/slugIt";
 import { UserRecord } from "./User";
 import { GroupRecord } from "./Group";
-import { buildAuditDiff, logAuditEvent } from "../libs/auditLog";
+import { buildAuditDiff, logAuditEvent } from "../lib/auditLog";
 
 let attributes = {
   /** */

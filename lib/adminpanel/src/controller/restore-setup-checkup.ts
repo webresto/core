@@ -1,4 +1,4 @@
-import { SetupChecklistService } from "../../../../libs/SetupChecklistService";
+import { SetupChecklistService } from "../../../SetupChecklistService";
 import { hasChecklistAccess } from "./setup-checklist-context";
 
 /**

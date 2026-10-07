@@ -1,4 +1,4 @@
-import checkExpression, { AdditionalInfo } from "../libs/checkExpression";
+import checkExpression, { AdditionalInfo } from "../lib/checkExpression";
 
 import { CriteriaQuery, ORMModel } from "../interfaces/ORMModel";
 
@@ -9,9 +9,9 @@ import { WorkTime, WorkTimeValidator } from "@webresto/worktime";
 import { v4 as uuid } from "uuid";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { Adapter } from "../adapters";
-import { slugIt } from "../libs/slugIt";
+import { slugIt } from "../lib/slugIt";
 import { DishRecord } from "./Dish";
-import { buildAuditDiff, logAuditEvent } from "../libs/auditLog";
+import { buildAuditDiff, logAuditEvent } from "../lib/auditLog";
 export type GetGroupType = { [x: string]: GroupWithAdditionalFields }
 
 let attributes = {

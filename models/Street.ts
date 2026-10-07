@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 
 import { v4 as uuid } from "uuid";
-import hashCode from "../libs/hashCode";
+import hashCode from "../lib/hashCode";
 import { RequiredField } from "../interfaces/toolsTS";
 import { CustomData, isCustomData } from "../interfaces/CustomData";
 import { CityRecord } from "./City";

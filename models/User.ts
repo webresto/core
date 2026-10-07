@@ -8,8 +8,8 @@ import { Country } from "../interfaces/Country";
 import { OptionalAll } from "../interfaces/toolsTS";
 import { UserBonusProgramRecord } from "./UserBonusProgram";
 import { DishRecord } from "./Dish";
-const Countries: Country[] = require("../libs/dictionaries/countries.json")
-import AuthService from "../libs/AuthService";
+const Countries: Country[] = require("../lib/dictionaries/countries.json")
+import AuthService from "../lib/AuthService";
 export type Phone = {
   code: string
   number: string

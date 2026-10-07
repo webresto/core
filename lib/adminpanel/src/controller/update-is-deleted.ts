@@ -1,4 +1,4 @@
-import { buildAuditDiff, getAuditActor, logAuditEvent } from "../../../../libs/auditLog";
+import { buildAuditDiff, getAuditActor, logAuditEvent } from "../../../auditLog";
 
 export default async function UpdateIsDeletedController(req: any, res: any) {
     const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;

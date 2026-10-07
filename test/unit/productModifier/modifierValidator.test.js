@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
-const ProductModifier_1 = require("../../../libs/ProductModifier");
+const ProductModifier_1 = require("../../../lib/ProductModifier");
 describe('ProductModifier', () => {
     const childModifiers = [
         { id: 'm1', rmsId: 'mod1', modifierId: 'mod1' },

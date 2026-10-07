@@ -1,11 +1,11 @@
 import { expect } from "chai";
-import AuthService from "../../libs/AuthService";
+import AuthService from "../../lib/AuthService";
 import { CoreOtpAdapter } from "../../adapters/auth/core/CoreOtpAdapter";
 import AuthAdapter, { NormalizedProfile, Offer, StartResult } from "../../adapters/auth/AuthAdapter";
 import { AuthAttemptRecord } from "../../models/AuthAttempt";
-import { NotificationService } from "../../libs/NotificationService";
-import { resolveRedirectBack } from "../../libs/authRedirect";
-import getEmitter from "../../libs/getEmitter";
+import { NotificationService } from "../../lib/notifications/NotificationService";
+import { resolveRedirectBack } from "../../lib/authRedirect";
+import getEmitter from "../../lib/getEmitter";
 
 /**
  * The auth v2 cycle, end to end against real models
