@@ -27,6 +27,7 @@ import { DishRecord } from "./Dish";
 import { UserRecord } from "./User";
 import { PaymentDocumentRecord } from "./PaymentDocument";
 import ToInitialize from "../hook/initialize";
+import { coreI18n } from "../hook/bindLocales";
 import { or } from "ajv/dist/compile/codegen";
 import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 import { ProductModifier } from "../libs/ProductModifier";
@@ -1325,8 +1326,11 @@ let Model = {
    * payment link so the only way forward is to register a new payment matching
    * the new basket. If there is no pending PaymentDocument, this is a no-op.
    *
-   * Errors from the underlying adapter cancel are propagated — callers MUST
-   * abort the basket mutation in that case (see addDish/removeDish/etc.).
+   * A gateway that cannot cancel does not lock the basket: the document is
+   * superseded instead, and if it still gets paid the operator is alerted
+   * (PaymentDocument.invalidate, Order.doPaidSuperseded). It throws when a pending
+   * payment turns out to be already paid — callers MUST abort the basket mutation
+   * then (see addDish/removeDish/etc.): the order is being placed with the paid basket.
    */
   async cancelOrderPayment(criteria: CriteriaQuery<OrderRecord>): Promise<void> {
     const order = await Order.findOne(criteria);
@@ -1337,6 +1341,7 @@ let Model = {
       originModelId: order.id,
       paid: false,
       status: ["NEW", "REGISTERED"],
+      supersededAt: null,
     });
 
     if (!pendingDocs.length) return;
@@ -1348,7 +1353,19 @@ let Model = {
         status: pd.status,
         amount: pd.amount,
       });
-      await PaymentDocument.cancel({ id: pd.id });
+      const result = await PaymentDocument.invalidate({ id: pd.id });
+      if (result === "PAID") {
+        await Order.log({ id: order.id }, "warn", "core", "payment: pending document is already paid, basket change aborted", {
+          paymentDocumentId: pd.id,
+        });
+        throw new Error(`Order ${order.id}: payment ${pd.id} is already paid — cart is frozen`);
+      }
+      if (result === "SUPERSEDED") {
+        await Order.log({ id: order.id }, "warn", "core", "payment: gateway did not cancel, document superseded", {
+          paymentDocumentId: pd.id,
+          externalId: pd.externalId,
+        });
+      }
     }
   },
 
@@ -1384,6 +1401,9 @@ let Model = {
     } catch (e) {
       sails.log.error("Order > payment: ", e);
       await Order.log({id: order.id}, "error", "core", "payment: register failed", {error: e?.message || e});
+      // Stay in CHECKOUT: there is no payment link to wait for, the customer can retry
+      // the payment or edit the basket right away.
+      throw e;
     }
     await Order.next(order.id, "PAYMENT");
     return paymentResponse;
@@ -1999,12 +2019,18 @@ let Model = {
       }
       const paymentMethodId = paymentDocument.paymentMethod
       let paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
+      // A payment confirmed by hand (PaymentDocument.confirm) is marked in the comment, so the
+      // operator and the kitchen see it in the RMS too
+      const manualConfirmation = (paymentDocument.data as { manualConfirmation?: { reason: string } })?.manualConfirmation;
       await Order.update(
         { id: paymentDocument.originModelId },
         {
           paid: true,
           paymentMethod: paymentDocument.paymentMethod,
           paymentMethodTitle: paymentMethodTitle,
+          ...(manualConfirmation && {
+            comment: [order.comment, `${await coreI18n("Payment confirmed manually")}: ${manualConfirmation.reason}`].filter(Boolean).join("\n"),
+          }),
         }
       ).fetch();
 
@@ -2057,6 +2083,34 @@ let Model = {
       Order.emitAndLogDetached({id: order.id}, "core:order-after-dopaid-error", order, e);
       throw e;
     }
+  },
+
+  /**
+   * The gateway confirmed a superseded payment: the basket changed after the payment link
+   * was issued and the gateway could not cancel it (see PaymentDocument.invalidate).
+   * The money matches the old basket, not the current one, so the order is neither placed
+   * nor marked paid. It is flagged as a problem and the operator is alerted — refunding
+   * (or placing the order by hand) is a human decision.
+   */
+  async doPaidSuperseded(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocumentRecord): Promise<void> {
+    const order = await Order.findOne(criteria);
+    if (!order) throw `Order > doPaidSuperseded: order not found for payment ${paymentDocument.id}`;
+
+    sails.log.error(`Order > doPaidSuperseded: order ${order.id} received superseded payment ${paymentDocument.id} (${paymentDocument.amount}), order not placed`);
+    await Order.update({ id: order.id }, { problem: true }).fetch();
+    await Order.log({id: order.id}, "error", "core", "payment: superseded payment was paid — order not placed, refund manually", {
+      paymentDocumentId: paymentDocument.id,
+      externalId: paymentDocument.externalId,
+      paidAmount: paymentDocument.amount,
+      orderTotal: order.total,
+      state: order.state,
+    });
+    Order.emitAndLogDetached({id: order.id}, "core:order-superseded-payment-paid", order, paymentDocument);
+    await NotificationManager.sendMessageToDeliveryManager(
+      "error",
+      `${await coreI18n("Payment received for a changed basket, the order was not placed. Refund the payment manually")}: ` +
+        `${order.shortId}, ${paymentDocument.amount}, ${paymentDocument.externalId}`
+    );
   },
   async doFinalize(criteriaOne: CriteriaQuery<OrderRecord>, state: "DONE" | "REJECT"): Promise<void> {
     let order = await Order.findOne(criteriaOne);
@@ -2258,8 +2312,9 @@ let Model = {
     // Rolling back to CART from an in-payment state means the basket is about to
     // be edited; the outstanding payment link must be invalidated first so the
     // gateway can't confirm a payment for a basket that no longer exists.
-    // If cancellation throws, the state stays where it is — caller's mutation
-    // must abort, otherwise we re-introduce the original race.
+    // If cancelOrderPayment throws (the pending payment turned out to be paid), the
+    // state stays where it is — caller's mutation must abort, otherwise we
+    // re-introduce the original race.
     if (
       nextState === "CART" &&
       (currentState === "CHECKOUT" || currentState === "PAYMENT")
@@ -2270,6 +2325,7 @@ let Model = {
             originModelId: order.id,
             paid: false,
             status: "REGISTERED",
+            supersededAt: null,
           })
         : undefined;
 
