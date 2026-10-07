@@ -75,9 +75,31 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	
 
 	public async create(data: T, catalogId: string): Promise<T> {
-		//@ts-ignore
-		data.parentGroup = data.parentId
-		let result = await sails.models[this.model].create(data).fetch()
+		const payload = data as any;
+		const parentId = payload.parentId ?? null;
+
+		// The catalog "create" dialog for `type: 'model'` items (Group, Product) saves the record
+		// itself via /admin/model/<adminResource>/add and then calls createItem with
+		// `{ record, parentId, type }`, where `record` is the already-saved row (same contract as
+		// updateModelItems/resolveModelId). Creating it again here produced a nameless duplicate
+		// group and a 500 "Missing value for required attribute `name`" for dishes.
+		const recordId = payload.record && typeof payload.record === "object" ? payload.record.id : undefined;
+		if (recordId !== undefined && recordId !== null) {
+			let record = await sails.models[this.model].findOne({ id: recordId });
+			if (!record) {
+				throw new Error(`${this.model} \`${recordId}\` was not found after the add form saved it`);
+			}
+			const currentParent = record.parentGroup && typeof record.parentGroup === "object" ? record.parentGroup.id : record.parentGroup;
+			// Place the record under the group selected in the tree, unless the form already set one
+			if (parentId && !currentParent && parentId !== record.id) {
+				record = await sails.models[this.model].updateOne({ id: recordId }).set({ parentGroup: parentId });
+			}
+			return this.toItem(record) as T;
+		}
+
+		// Plain item data (no add form involved): create the record here
+		payload.parentGroup = parentId;
+		let result = await sails.models[this.model].create(payload).fetch()
 		return this.toItem(result) as T;
 	}
 
