@@ -2011,12 +2011,18 @@ let Model = {
       }
       const paymentMethodId = paymentDocument.paymentMethod
       let paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
+      // A payment confirmed by hand (PaymentDocument.confirm) is marked in the comment, so the
+      // operator and the kitchen see it in the RMS too
+      const manualConfirmation = (paymentDocument.data as { manualConfirmation?: { reason: string } })?.manualConfirmation;
       await Order.update(
         { id: paymentDocument.originModelId },
         {
           paid: true,
           paymentMethod: paymentDocument.paymentMethod,
           paymentMethodTitle: paymentMethodTitle,
+          ...(manualConfirmation && {
+            comment: [order.comment, `${await coreI18n("Payment confirmed manually")}: ${manualConfirmation.reason}`].filter(Boolean).join("\n"),
+          }),
         }
       ).fetch();
 

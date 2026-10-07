@@ -102,6 +102,19 @@ declare let Model: {
      * Returns the resulting status or "SUPERSEDED".
      */
     invalidate: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentStatus | "SUPERSEDED">;
+    /**
+     * Confirm a pending payment by hand, as if the gateway had reported it paid: the money was
+     * checked outside the gateway, or there is no money at all — a test order on a live gateway.
+     * Everything after the status change is the regular paid flow (afterUpdate → doPaid of the
+     * origin model); the gateway is not contacted. Who, how and why is kept in
+     * data.manualConfirmation and in the origin's log; Order.doPaid also adds the reason to the order comment.
+     * Only a REGISTERED, unpaid and not superseded document can be confirmed.
+     */
+    confirm: (criteria: CriteriaQuery<PaymentDocumentRecord>, confirmation: {
+        by: string;
+        via: string;
+        reason: string;
+    }) => Promise<PaymentDocumentRecord>;
     doCheck: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentRecord>;
     register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: object) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: () => void) => Promise<void>;

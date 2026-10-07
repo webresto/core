@@ -154,6 +154,45 @@ let Model = {
             return "SUPERSEDED";
         }
     },
+    /**
+     * Confirm a pending payment by hand, as if the gateway had reported it paid: the money was
+     * checked outside the gateway, or there is no money at all — a test order on a live gateway.
+     * Everything after the status change is the regular paid flow (afterUpdate → doPaid of the
+     * origin model); the gateway is not contacted. Who, how and why is kept in
+     * data.manualConfirmation and in the origin's log; Order.doPaid also adds the reason to the order comment.
+     * Only a REGISTERED, unpaid and not superseded document can be confirmed.
+     */
+    confirm: async function (criteria, confirmation) {
+        const self = (await PaymentDocument.find(criteria).limit(1))[0];
+        if (!self)
+            throw `PaymentDocument is not found`;
+        const reason = confirmation?.reason?.trim();
+        if (!reason)
+            throw `PaymentDocument > confirm: reason is required`;
+        if (self.paid || self.status !== "REGISTERED") {
+            throw `PaymentDocument > confirm: ${self.id} is ${self.status}${self.paid ? " and paid" : ""}, only a pending (REGISTERED) payment can be confirmed`;
+        }
+        // the basket changed after the payment link was issued (see invalidate)
+        if (self.supersededAt)
+            throw `PaymentDocument > confirm: ${self.id} is superseded, the basket changed after the payment link was issued`;
+        const manualConfirmation = { by: confirmation.by, via: confirmation.via, reason, at: new Date().toISOString() };
+        sails.log.warn(`PaymentDocument > confirm: ${self.id} (${self.amount}) confirmed by hand`, manualConfirmation);
+        const originModel = sails.models[self.originModel];
+        if (typeof originModel?.log === "function") {
+            await originModel.log({ id: self.originModelId }, "warn", "core", "payment: confirming by hand, the gateway is not asked", {
+                paymentDocumentId: self.id,
+                externalId: self.externalId,
+                amount: self.amount,
+                ...manualConfirmation,
+            });
+        }
+        const data = self.data && typeof self.data === "object" ? self.data : {};
+        const confirmed = await PaymentDocument.update({ id: self.id, status: "REGISTERED", paid: false, supersededAt: null }, { status: "PAID", paid: true, data: { ...data, manualConfirmation } }).fetch();
+        if (!confirmed.length)
+            throw `PaymentDocument > confirm: ${self.id} changed while confirming, check it again`;
+        emitter.emit("core:payment-document-confirmed-manually", confirmed[0]);
+        return confirmed[0];
+    },
     doCheck: async function (criteria) {
         const self = (await PaymentDocument.find(criteria).limit(1))[0];
         if (!self)
@@ -168,7 +207,12 @@ let Model = {
                 checkedPaymentDocument.paid = true;
             }
             else {
-                await PaymentDocument.update({ id: self.id }, { status: checkedPaymentDocument.status }).fetch();
+                // Compare-and-set: a gateway that still reports the payment pending must not roll back
+                // a paid document — it was confirmed by hand (see confirm) or by a parallel check.
+                const updated = await PaymentDocument.update({ id: self.id, paid: false }, { status: checkedPaymentDocument.status }).fetch();
+                if (!updated.length) {
+                    checkedPaymentDocument = (await PaymentDocument.find({ id: self.id }).limit(1))[0];
+                }
             }
             emitter.emit("core:payment-document-checked-document", checkedPaymentDocument);
             return checkedPaymentDocument;

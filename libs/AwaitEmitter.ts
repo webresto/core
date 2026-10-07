@@ -51,6 +51,7 @@ declare global {
     "core:payment-document-before-cancel": [PaymentDocumentRecord]
     "core:payment-document-canceled": [PaymentDocumentRecord]
     "core:payment-document-superseded": [PaymentDocumentRecord]
+    "core:payment-document-confirmed-manually": [PaymentDocumentRecord]
     "core:order-after-order": [OrderRecord]
     "core:order-order-delivery": [OrderRecord]
     "core:order-before-order": [OrderRecord]
