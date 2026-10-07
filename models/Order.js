@@ -1000,35 +1000,44 @@ let Model = {
                 await Order.log({ id: order.id }, "info", "core", "order: RMS order created", { rmsOrderNumber: orderWithRMS.rmsOrderNumber, rmsId: orderWithRMS.rmsId });
             }
             catch (error) {
-                // Extract detailed error information
-                let errorMessage = error.message || '';
-                // If message is empty, try to extract more information
-                if (!errorMessage || errorMessage === '{}') {
-                    // Gather all available error properties
-                    const errorDetails = {
-                        name: error.name,
-                        code: error.code,
-                        stack: error.stack,
-                        ...error
-                    };
-                    errorMessage = JSON.stringify(errorDetails, null, 2);
+                // Extract detailed error information.
+                // RMS adapters (and Adapter.getRMSAdapter itself: `throw "RMS adapter is not installed"`)
+                // may throw primitives, not Error instances. Spreading a string (`...error`) turns it into
+                // a char map {"0":"R","1":"M",...}, so primitives are stringified as-is.
+                let errorMessage;
+                if (error === null || typeof error !== "object") {
+                    errorMessage = String(error);
+                }
+                else {
+                    errorMessage = typeof error.message === "string" ? error.message : '';
+                    // If message is empty, try to extract more information
+                    if (!errorMessage || errorMessage === '{}') {
+                        // Gather all available error properties
+                        const errorDetails = {
+                            name: error.name,
+                            code: error.code,
+                            stack: error.stack,
+                            ...error
+                        };
+                        errorMessage = JSON.stringify(errorDetails, null, 2);
+                    }
                 }
                 const orderError = {
-                    rmsErrorCode: error.code ?? "Error",
+                    rmsErrorCode: error?.code ?? "Error",
                     rmsErrorMessage: errorMessage
                 };
                 // Enhanced logging with stack trace
                 sails.log.error(`RestoCore > orderIt error:`, {
-                    code: error.code,
-                    message: error.message,
-                    name: error.name,
-                    stack: error.stack,
+                    code: error?.code,
+                    message: errorMessage,
+                    name: error?.name,
+                    stack: error?.stack,
                     orderId: order.id,
                     orderShortId: order.shortId,
                     fullError: error
                 });
                 await Order.update({ id: order.id }, orderError);
-                await Order.log({ id: order.id }, "error", "core", "order: RMS error", { code: error.code, message: error.message });
+                await Order.log({ id: order.id }, "error", "core", "order: RMS error", { code: error?.code, message: errorMessage });
             }
             sails.log.debug("CORE > about to emit core:order-after-order, orderId:", order?.id, "emitter events count:", emitter?.events?.length, "subscribers:", emitter?.events?.map(e => `${e.name}[${e.subscribers?.length}]`).join(", "));
             Order.emitAndLogDetached({ id: order.id }, "core:order-after-order", order);

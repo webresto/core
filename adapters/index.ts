@@ -227,7 +227,7 @@ export class Adapter {
 
     if (!adapterName) {
       adapterName = await Settings.get("RMS_ADAPTER");
-      if (!adapterName) throw "RMS adapter is not installed";
+      if (!adapterName) throw new Error("RMS adapter is not installed");
     }
 
     let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
