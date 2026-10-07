@@ -2,6 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 let payment_processor_interval;
+/** A pending payment link is given up (DECLINE) after this */
+const REGISTERED_TTL_MS = 60 * 60 * 1000;
+/** register() holds a document in NEW only for the duration of adapter.createPayment */
+const STALE_NEW_MS = 10 * 60 * 1000;
 let attributes = {
     /** Unique ID in PaymentDocument */
     id: {
@@ -41,7 +45,17 @@ let attributes = {
     redirectLink: "string",
     /** Error text */
     error: "string",
-    data: "json"
+    data: "json",
+    /**
+     * Seconds since 1970 when the payment was detached from its order: the basket changed
+     * while the payment was still pending and the gateway could not cancel it (see invalidate).
+     * A superseded document no longer blocks basket changes, the processor keeps checking it,
+     * and if it still gets paid the order is NOT placed — the operator is alerted instead.
+     */
+    supersededAt: {
+        type: "number",
+        allowNull: true,
+    }
 };
 let Model = {
     beforeCreate(paymentDocumentInit, cb) {
@@ -53,9 +67,10 @@ let Model = {
     /**
      * Cancel a pending PaymentDocument (status NEW/REGISTERED).
      * Calls paymentAdapter.cancelPayment to revoke the payment in the external system,
-     * then sets status='CANCEL' locally.
+     * then sets status='CANCEL' locally. The adapter must throw if the gateway did not cancel.
+     * A NEW document never got a payment link to the customer — it is canceled locally only.
      * If the document is already finalized (PAID/REFUND/CANCEL/DECLINE) — no-op.
-     * Used to invalidate a payment link when the underlying basket changes.
+     * Used to invalidate a payment link when the underlying basket changes (see invalidate).
      */
     cancel: async function (criteria) {
         const self = (await PaymentDocument.find(criteria).limit(1))[0];
@@ -65,6 +80,19 @@ let Model = {
         if (self.paid || ["PAID", "REFUND", "CANCEL", "DECLINE"].includes(self.status)) {
             sails.log.debug(`PaymentDocument > cancel: ${self.id} already finalized (status=${self.status}, paid=${self.paid}), no-op`);
             return self;
+        }
+        // NEW: register() never completed — adapter.createPayment failed or is still in flight
+        // (then register refuses to resurrect the document, see the compare-and-set there). The
+        // customer never got a payment link, so there is nothing to revoke at the gateway; asking
+        // it to cancel `payments/null` can only fail and would lock the basket forever.
+        if (self.status === "NEW") {
+            emitter.emit("core:payment-document-before-cancel", self);
+            const canceled = await PaymentDocument.update({ id: self.id, status: "NEW" }, { status: "CANCEL" }).fetch();
+            // registered in the meantime — it has a payment link now, cancel it at the gateway
+            if (!canceled.length)
+                return await PaymentDocument.cancel(criteria);
+            emitter.emit("core:payment-document-canceled", { ...self, status: "CANCEL" });
+            return { ...self, status: "CANCEL" };
         }
         if (typeof self.paymentMethod !== "string") {
             throw `PaymentDocument > cancel: paymentMethod must be a string id, got ${typeof self.paymentMethod}`;
@@ -81,6 +109,49 @@ let Model = {
         catch (e) {
             sails.log.error("PaymentDocument > cancel error :", e);
             throw e;
+        }
+    },
+    /**
+     * Make a pending document stop blocking its order: called when the basket changes.
+     * Unlike cancel() it never leaves the basket locked because of the gateway:
+     *  - the gateway is asked first; if the payment is already PAID, the regular paid flow runs
+     *    (doCheck → afterUpdate → doPaid) and "PAID" is returned — the caller must abort the
+     *    basket change, the basket is frozen;
+     *  - if the gateway already finalized the payment (CANCEL/DECLINE/...) — nothing else to do;
+     *  - otherwise cancel() is tried; if the gateway cannot cancel (ЮKassa cannot cancel a pending
+     *    capture:true payment at all), the document is marked superseded: the processor keeps
+     *    checking it, and a late payment alerts the operator instead of placing the order.
+     * Returns the resulting status or "SUPERSEDED".
+     */
+    invalidate: async function (criteria) {
+        const self = (await PaymentDocument.find(criteria).limit(1))[0];
+        if (!self)
+            throw `PaymentDocument is not found`;
+        if (self.paid)
+            return "PAID";
+        if (!["NEW", "REGISTERED"].includes(self.status))
+            return self.status;
+        if (self.supersededAt)
+            return "SUPERSEDED";
+        if (self.status === "REGISTERED") {
+            const checked = await PaymentDocument.doCheck({ id: self.id });
+            if (checked?.paid || checked?.status === "PAID")
+                return "PAID";
+            if (checked?.status && !["NEW", "REGISTERED"].includes(checked.status))
+                return checked.status;
+        }
+        try {
+            return (await PaymentDocument.cancel({ id: self.id })).status;
+        }
+        catch (e) {
+            const supersededAt = Math.floor(Date.now() / 1000);
+            const superseded = await PaymentDocument.update({ id: self.id, paid: false }, { supersededAt }).fetch();
+            // paid in the meantime: the paid flow has already run, the basket is frozen
+            if (!superseded.length)
+                return "PAID";
+            sails.log.warn(`PaymentDocument > invalidate: gateway did not cancel ${self.id}, document superseded`);
+            emitter.emit("core:payment-document-superseded", { ...self, supersededAt });
+            return "SUPERSEDED";
         }
     },
     doCheck: async function (criteria) {
@@ -134,9 +205,10 @@ let Model = {
         }
         let paymentAdapter = await PaymentMethod.getAdapterById(paymentMethodId);
         sails.log.debug("PaymentDocument > register [paymentAdapter]", paymentMethodId, paymentAdapter);
+        let paymentResponse;
         try {
             sails.log.silly("PaymentDocument > register [before paymentAdapter.createPayment]", payment, backLinkSuccess, backLinkFail);
-            let paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
+            paymentResponse = await paymentAdapter.createPayment(payment, backLinkSuccess, backLinkFail);
             sails.log.silly("PaymentDocument > register [after paymentAdapter.createPayment]", paymentResponse);
             if (!paymentResponse.id) {
                 throw `PaymentDocument > register [after paymentAdapter.createPayment] paymentResponse.id from external payment system is required`;
@@ -144,20 +216,42 @@ let Model = {
             if (!paymentResponse.redirectLink) {
                 throw `PaymentDocument > register [after paymentAdapter.createPayment] paymentResponse.redirectLink from external payment system is required`;
             }
-            await PaymentDocument.update({ id: paymentResponse.id }, {
-                status: "REGISTERED",
-                externalId: paymentResponse.externalId,
-                redirectLink: paymentResponse.redirectLink,
-            }).fetch();
-            return paymentResponse;
         }
         catch (e) {
             sails.log.error("Error in paymentAdapter.createPayment :", e);
+            // The document must not stay NEW: nothing polls NEW, and a pending document blocks
+            // the order's basket (see Order.cancelOrderPayment).
+            try {
+                await PaymentDocument.update({ id: id, status: "NEW" }, { status: "DECLINE", error: String(e?.message ?? e) }).fetch();
+            }
+            catch (updateError) {
+                sails.log.error("PaymentDocument > register: failed to decline document", id, updateError);
+            }
             throw {
                 code: 4,
                 error: "Error in paymentAdapter.createPayment :" + e,
             };
         }
+        // Compare-and-set: the basket may have changed while the gateway call was in flight, and
+        // cancel() closes a document without externalId locally. Do not resurrect it.
+        const registered = await PaymentDocument.update({ id: id, status: "NEW" }, {
+            status: "REGISTERED",
+            externalId: paymentResponse.externalId,
+            redirectLink: paymentResponse.redirectLink,
+        }).fetch();
+        if (!registered.length) {
+            try {
+                await paymentAdapter.cancelPayment({ ...payment, externalId: paymentResponse.externalId });
+            }
+            catch (e) {
+                sails.log.warn("PaymentDocument > register: could not cancel payment created for a canceled document", id, e);
+            }
+            throw {
+                code: 5,
+                error: "PaymentDocument was canceled while registering the payment",
+            };
+        }
+        return paymentResponse;
     },
     afterUpdate: async function (values, next) {
         sails.log.silly("PaymentDocument > afterUpdate > ", JSON.stringify(values));
@@ -167,7 +261,18 @@ let Model = {
                     sails.log.error("PaymentDocument > afterUpdate, not have required fields :", values);
                     throw "PaymentDocument > afterUpdate, not have required fields";
                 }
-                await sails.models[values.originModel].doPaid({ id: values.originModelId }, values);
+                const originModel = sails.models[values.originModel];
+                if (values.supersededAt) {
+                    // The basket changed after this payment link was issued (see invalidate): the money
+                    // matches the old basket, so the origin must not be fulfilled automatically.
+                    if (typeof originModel.doPaidSuperseded !== "function") {
+                        throw `PaymentDocument > afterUpdate: ${values.originModel} cannot handle superseded payment ${values.id}`;
+                    }
+                    await originModel.doPaidSuperseded({ id: values.originModelId }, values);
+                }
+                else {
+                    await originModel.doPaid({ id: values.originModelId }, values);
+                }
             }
             catch (e) {
                 sails.log.error("Error in PaymentDocument.afterUpdate :", e);
@@ -179,20 +284,42 @@ let Model = {
     processor: async function (timeout) {
         sails.log.silly("PaymentDocument.processor > started with timeout: " + (timeout ?? 45000));
         return (payment_processor_interval = setInterval(async () => {
-            let actualTime = new Date();
-            let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTERED" });
-            /**If the date of creation of a payment document more than an hour ago, we put the status expired */
-            actualTime.setHours(actualTime.getHours() - 1);
-            for await (let actualPaymentDocument of actualPaymentDocuments) {
-                if (actualPaymentDocument.createdAt < actualTime) {
-                    await PaymentDocument.update({ id: actualPaymentDocument.id }, { status: "DECLINE" }).fetch();
-                }
-                else {
-                    sails.log.silly("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt, "after:", actualTime);
-                    await PaymentDocument.doCheck({ id: actualPaymentDocument.id });
-                }
+            try {
+                await PaymentDocument.processorTick();
+            }
+            catch (e) {
+                sails.log.error("PaymentDocument.processor > tick failed:", e);
             }
         }, timeout || 45000));
+    },
+    /** One pass of the payment check cycle */
+    processorTick: async function () {
+        const now = Date.now();
+        const staleNewBefore = new Date(now - STALE_NEW_MS);
+        const registeredExpiredBefore = new Date(now - REGISTERED_TTL_MS);
+        // NEW lives only while register() waits for adapter.createPayment. An older one was left
+        // by a crash in between; nothing else polls NEW, so it would block the basket forever.
+        const staleNewDocuments = (await PaymentDocument.find({ status: "NEW" }))
+            .filter((newDocument) => newDocument.createdAt < staleNewBefore);
+        for (const staleNewDocument of staleNewDocuments) {
+            await PaymentDocument.update({ id: staleNewDocument.id, status: "NEW" }, { status: "DECLINE", error: "payment registration did not complete" }).fetch();
+        }
+        let actualPaymentDocuments = await PaymentDocument.find({ status: "REGISTERED" });
+        for (let actualPaymentDocument of actualPaymentDocuments) {
+            /**If the date of creation of a payment document more than an hour ago, we put the status expired */
+            if (actualPaymentDocument.createdAt < registeredExpiredBefore) {
+                // Final check first: a payment made just before the deadline must be picked up,
+                // not declined blindly (the money would be taken and the order never placed).
+                const checked = await PaymentDocument.doCheck({ id: actualPaymentDocument.id });
+                if (checked && (checked.paid || checked.status !== "REGISTERED"))
+                    continue;
+                await PaymentDocument.update({ id: actualPaymentDocument.id, status: "REGISTERED" }, { status: "DECLINE" }).fetch();
+            }
+            else {
+                sails.log.silly("PAYMENT DOCUMENT > processor actualPaymentDocuments", actualPaymentDocument.id, actualPaymentDocument.createdAt);
+                await PaymentDocument.doCheck({ id: actualPaymentDocument.id });
+            }
+        }
     },
 };
 module.exports = {

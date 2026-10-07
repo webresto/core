@@ -4,5 +4,6 @@
   "Cancel pending payment?": "Отменить ожидающую оплату?",
   "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "По этому заказу есть активная ссылка на оплату. Изменение корзины отменит эту оплату. Продолжить?",
   "Cancel payment and edit basket": "Отменить оплату и изменить корзину",
-  "Keep payment": "Оставить оплату"
+  "Keep payment": "Оставить оплату",
+  "Payment received for a changed basket, the order was not placed. Refund the payment manually": "Пришла оплата по изменённой корзине, заказ не оформлен. Верните платёж вручную"
 }

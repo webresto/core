@@ -62,6 +62,13 @@ declare let attributes: {
     /** Error text */
     error: string;
     data: object;
+    /**
+     * Seconds since 1970 when the payment was detached from its order: the basket changed
+     * while the payment was still pending and the gateway could not cancel it (see invalidate).
+     * A superseded document no longer blocks basket changes, the processor keeps checking it,
+     * and if it still gets paid the order is NOT placed — the operator is alerted instead.
+     */
+    supersededAt: number;
 };
 type attributes = typeof attributes;
 /**
@@ -76,16 +83,32 @@ declare let Model: {
     /**
      * Cancel a pending PaymentDocument (status NEW/REGISTERED).
      * Calls paymentAdapter.cancelPayment to revoke the payment in the external system,
-     * then sets status='CANCEL' locally.
+     * then sets status='CANCEL' locally. The adapter must throw if the gateway did not cancel.
+     * A NEW document never got a payment link to the customer — it is canceled locally only.
      * If the document is already finalized (PAID/REFUND/CANCEL/DECLINE) — no-op.
-     * Used to invalidate a payment link when the underlying basket changes.
+     * Used to invalidate a payment link when the underlying basket changes (see invalidate).
      */
     cancel: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentRecord | undefined>;
+    /**
+     * Make a pending document stop blocking its order: called when the basket changes.
+     * Unlike cancel() it never leaves the basket locked because of the gateway:
+     *  - the gateway is asked first; if the payment is already PAID, the regular paid flow runs
+     *    (doCheck → afterUpdate → doPaid) and "PAID" is returned — the caller must abort the
+     *    basket change, the basket is frozen;
+     *  - if the gateway already finalized the payment (CANCEL/DECLINE/...) — nothing else to do;
+     *  - otherwise cancel() is tried; if the gateway cannot cancel (ЮKassa cannot cancel a pending
+     *    capture:true payment at all), the document is marked superseded: the processor keeps
+     *    checking it, and a late payment alerts the operator instead of placing the order.
+     * Returns the resulting status or "SUPERSEDED".
+     */
+    invalidate: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentStatus | "SUPERSEDED">;
     doCheck: (criteria: CriteriaQuery<PaymentDocumentRecord>) => Promise<PaymentDocumentRecord>;
     register: (originModelId: string, originModel: string, amount: number, paymentMethodId: string, backLinkSuccess: string, backLinkFail: string, comment: string, data: object) => Promise<PaymentResponse>;
     afterUpdate: (values: PaymentDocument, next: () => void) => Promise<void>;
     /** Payment check cycle*/
     processor: (timeout: number) => Promise<ReturnType<typeof setInterval>>;
+    /** One pass of the payment check cycle */
+    processorTick: () => Promise<void>;
 };
 declare global {
     const PaymentDocument: typeof Model & ORMModel<PaymentDocumentRecord, null>;

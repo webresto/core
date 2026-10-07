@@ -234,8 +234,11 @@ declare let Model: {
      * payment link so the only way forward is to register a new payment matching
      * the new basket. If there is no pending PaymentDocument, this is a no-op.
      *
-     * Errors from the underlying adapter cancel are propagated — callers MUST
-     * abort the basket mutation in that case (see addDish/removeDish/etc.).
+     * A gateway that cannot cancel does not lock the basket: the document is
+     * superseded instead, and if it still gets paid the operator is alerted
+     * (PaymentDocument.invalidate, Order.doPaidSuperseded). It throws when a pending
+     * payment turns out to be already paid — callers MUST abort the basket mutation
+     * then (see addDish/removeDish/etc.): the order is being placed with the paid basket.
      */
     cancelOrderPayment(criteria: CriteriaQuery<OrderRecord>): Promise<void>;
     payment(criteria: CriteriaQuery<OrderRecord>): Promise<PaymentResponse>;
@@ -327,6 +330,14 @@ declare let Model: {
      */
     countCart(criteria: CriteriaQuery<OrderRecord>, isPromoting?: boolean): Promise<OrderRecord>;
     doPaid(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocumentRecord): Promise<void>;
+    /**
+     * The gateway confirmed a superseded payment: the basket changed after the payment link
+     * was issued and the gateway could not cancel it (see PaymentDocument.invalidate).
+     * The money matches the old basket, not the current one, so the order is neither placed
+     * nor marked paid. It is flagged as a problem and the operator is alerted — refunding
+     * (or placing the order by hand) is a human decision.
+     */
+    doPaidSuperseded(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocumentRecord): Promise<void>;
     doFinalize(criteriaOne: CriteriaQuery<OrderRecord>, state: "DONE" | "REJECT"): Promise<void>;
     doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord>;
     applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord>;
