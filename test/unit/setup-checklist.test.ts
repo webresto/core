@@ -105,6 +105,56 @@ describe("SetupChecklist registry + service", () => {
     expect(st.overallReady).to.equal(true);
   });
 
+  it("progress reaches 100 % on required alone — recommended extras never hold it back", async () => {
+    // continues from the previous test: every required item is done, but the recommended
+    // ones (place, RMS adapter, the partial demo) are not — and some never will be on a
+    // given installation. 100 % must still be reachable, in step with "Ready to go".
+    const st = await SetupChecklistService.getStatus(ctx);
+    expect(st.counts.recommended.done).to.be.lessThan(st.counts.recommended.total);
+    expect(st.progressPercent).to.equal(100);
+    expect(st.overallReady).to.equal(true);
+
+    const project = st.groups.find((g: any) => g.key === "project");
+    expect(project.ready).to.equal(true);
+    expect(project.progressPercent).to.equal(100);
+  });
+
+  it("progress tracks the required items proportionally", async () => {
+    store["PROJECT_NAME"] = "";
+    store["COUNTRY_ISO"] = "";
+    const st = await SetupChecklistService.getStatus(ctx);
+    const { done, total } = st.counts.required;
+    expect(done).to.equal(total - 2);
+    expect(st.progressPercent).to.equal(Math.round((done / total) * 100));
+    expect(st.progressPercent).to.be.lessThan(100);
+
+    store["PROJECT_NAME"] = "My Resto"; // restore for the following tests
+    store["COUNTRY_ISO"] = "RU";
+  });
+
+  it("summary counter counts the same items as progressPercent (no '100 %' next to '9 of 10')", async () => {
+    const tctx = {
+      ...ctx,
+      t: (k: string, p?: Record<string, string | number>) =>
+        Object.entries(p || {}).reduce((s, [n, v]) => s.replace(`{${n}}`, String(v)), k),
+    };
+
+    // all required done, recommended extras still open
+    let sum = await SetupChecklistService.getSummary(tctx);
+    expect(sum.counts.recommended.done).to.be.lessThan(sum.counts.recommended.total);
+    expect(sum.progressPercent).to.equal(100);
+    expect(sum.labels.checked).to.equal(`${sum.counts.required.total} of ${sum.counts.required.total} required`);
+
+    // one required item open → both the percentage and the counter show it
+    store["PROJECT_NAME"] = "";
+    sum = await SetupChecklistService.getSummary(tctx);
+    const { done, total } = sum.counts.required;
+    expect(done).to.equal(total - 1);
+    expect(sum.progressPercent).to.equal(Math.round((done / total) * 100));
+    expect(sum.labels.checked).to.equal(`${done} of ${total} required`);
+    store["PROJECT_NAME"] = "My Resto";
+  });
+
   it("created-but-not-enabled → still 'todo' with an explanatory hint", async () => {
     // a place exists but none is enabled → not ready yet
     placeTotal = 1; placeEnabled = 0;

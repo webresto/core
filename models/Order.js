@@ -11,6 +11,7 @@ const OrderHelper_1 = require("../lib/order/OrderHelper");
 const AuthService_1 = __importDefault(require("../lib/AuthService"));
 const cancelPaymentDialog_1 = require("../lib/order/cancelPaymentDialog");
 const isValue_1 = require("../utils/isValue");
+const bindLocales_1 = require("../hook/bindLocales");
 const ProductModifier_1 = require("../lib/ProductModifier");
 const OrderStateFlow_1 = require("../lib/order/OrderStateFlow");
 const normalize_1 = require("../utils/normalize");
@@ -1038,35 +1039,44 @@ let Model = {
                 await Order.log({ id: order.id }, "info", "core", "order: RMS order created", { rmsOrderNumber: orderWithRMS.rmsOrderNumber, rmsId: orderWithRMS.rmsId });
             }
             catch (error) {
-                // Extract detailed error information
-                let errorMessage = error.message || '';
-                // If message is empty, try to extract more information
-                if (!errorMessage || errorMessage === '{}') {
-                    // Gather all available error properties
-                    const errorDetails = {
-                        name: error.name,
-                        code: error.code,
-                        stack: error.stack,
-                        ...error
-                    };
-                    errorMessage = JSON.stringify(errorDetails, null, 2);
+                // Extract detailed error information.
+                // RMS adapters (and Adapter.getRMSAdapter itself: `throw "RMS adapter is not installed"`)
+                // may throw primitives, not Error instances. Spreading a string (`...error`) turns it into
+                // a char map {"0":"R","1":"M",...}, so primitives are stringified as-is.
+                let errorMessage;
+                if (error === null || typeof error !== "object") {
+                    errorMessage = String(error);
+                }
+                else {
+                    errorMessage = typeof error.message === "string" ? error.message : '';
+                    // If message is empty, try to extract more information
+                    if (!errorMessage || errorMessage === '{}') {
+                        // Gather all available error properties
+                        const errorDetails = {
+                            name: error.name,
+                            code: error.code,
+                            stack: error.stack,
+                            ...error
+                        };
+                        errorMessage = JSON.stringify(errorDetails, null, 2);
+                    }
                 }
                 const orderError = {
-                    rmsErrorCode: error.code ?? "Error",
+                    rmsErrorCode: error?.code ?? "Error",
                     rmsErrorMessage: errorMessage
                 };
                 // Enhanced logging with stack trace
                 sails.log.error(`RestoCore > orderIt error:`, {
-                    code: error.code,
-                    message: error.message,
-                    name: error.name,
-                    stack: error.stack,
+                    code: error?.code,
+                    message: errorMessage,
+                    name: error?.name,
+                    stack: error?.stack,
                     orderId: order.id,
                     orderShortId: order.shortId,
                     fullError: error
                 });
                 await Order.update({ id: order.id }, orderError);
-                await Order.log({ id: order.id }, "error", "core", "order: RMS error", { code: error.code, message: error.message });
+                await Order.log({ id: order.id }, "error", "core", "order: RMS error", { code: error?.code, message: errorMessage });
             }
             sails.log.debug("CORE > about to emit core:order-after-order, orderId:", order?.id, "emitter events count:", emitter?.events?.length, "subscribers:", emitter?.events?.map(e => `${e.name}[${e.subscribers?.length}]`).join(", "));
             Order.emitAndLogDetached({ id: order.id }, "core:order-after-order", order);
@@ -1125,8 +1135,11 @@ let Model = {
      * payment link so the only way forward is to register a new payment matching
      * the new basket. If there is no pending PaymentDocument, this is a no-op.
      *
-     * Errors from the underlying adapter cancel are propagated — callers MUST
-     * abort the basket mutation in that case (see addDish/removeDish/etc.).
+     * A gateway that cannot cancel does not lock the basket: the document is
+     * superseded instead, and if it still gets paid the operator is alerted
+     * (PaymentDocument.invalidate, Order.doPaidSuperseded). It throws when a pending
+     * payment turns out to be already paid — callers MUST abort the basket mutation
+     * then (see addDish/removeDish/etc.): the order is being placed with the paid basket.
      */
     async cancelOrderPayment(criteria) {
         const order = await Order.findOne(criteria);
@@ -1137,6 +1150,7 @@ let Model = {
             originModelId: order.id,
             paid: false,
             status: ["NEW", "REGISTERED"],
+            supersededAt: null,
         });
         if (!pendingDocs.length)
             return;
@@ -1147,7 +1161,19 @@ let Model = {
                 status: pd.status,
                 amount: pd.amount,
             });
-            await PaymentDocument.cancel({ id: pd.id });
+            const result = await PaymentDocument.invalidate({ id: pd.id });
+            if (result === "PAID") {
+                await Order.log({ id: order.id }, "warn", "core", "payment: pending document is already paid, basket change aborted", {
+                    paymentDocumentId: pd.id,
+                });
+                throw new Error(`Order ${order.id}: payment ${pd.id} is already paid — cart is frozen`);
+            }
+            if (result === "SUPERSEDED") {
+                await Order.log({ id: order.id }, "warn", "core", "payment: gateway did not cancel, document superseded", {
+                    paymentDocumentId: pd.id,
+                    externalId: pd.externalId,
+                });
+            }
         }
     },
     async payment(criteria) {
@@ -1175,6 +1201,9 @@ let Model = {
         catch (e) {
             sails.log.error("Order > payment: ", e);
             await Order.log({ id: order.id }, "error", "core", "payment: register failed", { error: e?.message || e });
+            // Stay in CHECKOUT: there is no payment link to wait for, the customer can retry
+            // the payment or edit the basket right away.
+            throw e;
         }
         await Order.next(order.id, "PAYMENT");
         return paymentResponse;
@@ -1724,10 +1753,16 @@ let Model = {
             }
             const paymentMethodId = paymentDocument.paymentMethod;
             let paymentMethodTitle = (await PaymentMethod.findOne({ id: paymentMethodId })).title;
+            // A payment confirmed by hand (PaymentDocument.confirm) is marked in the comment, so the
+            // operator and the kitchen see it in the RMS too
+            const manualConfirmation = paymentDocument.data?.manualConfirmation;
             await Order.update({ id: paymentDocument.originModelId }, {
                 paid: true,
                 paymentMethod: paymentDocument.paymentMethod,
                 paymentMethodTitle: paymentMethodTitle,
+                ...(manualConfirmation && {
+                    comment: [order.comment, `${await (0, bindLocales_1.coreI18n)("Payment confirmed manually")}: ${manualConfirmation.reason}`].filter(Boolean).join("\n"),
+                }),
             }).fetch();
             sails.log.debug("Order > doPaid: ", order.id, order.state, order.total, paymentDocument.amount);
             if (order.state !== "PAYMENT") {
@@ -1772,6 +1807,30 @@ let Model = {
             Order.emitAndLogDetached({ id: order.id }, "core:order-after-dopaid-error", order, e);
             throw e;
         }
+    },
+    /**
+     * The gateway confirmed a superseded payment: the basket changed after the payment link
+     * was issued and the gateway could not cancel it (see PaymentDocument.invalidate).
+     * The money matches the old basket, not the current one, so the order is neither placed
+     * nor marked paid. It is flagged as a problem and the operator is alerted — refunding
+     * (or placing the order by hand) is a human decision.
+     */
+    async doPaidSuperseded(criteria, paymentDocument) {
+        const order = await Order.findOne(criteria);
+        if (!order)
+            throw `Order > doPaidSuperseded: order not found for payment ${paymentDocument.id}`;
+        sails.log.error(`Order > doPaidSuperseded: order ${order.id} received superseded payment ${paymentDocument.id} (${paymentDocument.amount}), order not placed`);
+        await Order.update({ id: order.id }, { problem: true }).fetch();
+        await Order.log({ id: order.id }, "error", "core", "payment: superseded payment was paid — order not placed, refund manually", {
+            paymentDocumentId: paymentDocument.id,
+            externalId: paymentDocument.externalId,
+            paidAmount: paymentDocument.amount,
+            orderTotal: order.total,
+            state: order.state,
+        });
+        Order.emitAndLogDetached({ id: order.id }, "core:order-superseded-payment-paid", order, paymentDocument);
+        await NotificationManager.sendMessageToDeliveryManager("error", `${await (0, bindLocales_1.coreI18n)("Payment received for a changed basket, the order was not placed. Refund the payment manually")}: ` +
+            `${order.shortId}, ${paymentDocument.amount}, ${paymentDocument.externalId}`);
     },
     async doFinalize(criteriaOne, state) {
         let order = await Order.findOne(criteriaOne);
@@ -1964,8 +2023,9 @@ let Model = {
         // Rolling back to CART from an in-payment state means the basket is about to
         // be edited; the outstanding payment link must be invalidated first so the
         // gateway can't confirm a payment for a basket that no longer exists.
-        // If cancellation throws, the state stays where it is — caller's mutation
-        // must abort, otherwise we re-introduce the original race.
+        // If cancelOrderPayment throws (the pending payment turned out to be paid), the
+        // state stays where it is — caller's mutation must abort, otherwise we
+        // re-introduce the original race.
         if (nextState === "CART" &&
             (currentState === "CHECKOUT" || currentState === "PAYMENT")) {
             const registeredPayment = currentState === "PAYMENT"
@@ -1974,6 +2034,7 @@ let Model = {
                     originModelId: order.id,
                     paid: false,
                     status: "REGISTERED",
+                    supersededAt: null,
                 })
                 : undefined;
             // CHECKOUT alone does not mean that a payment link exists. Ask only when

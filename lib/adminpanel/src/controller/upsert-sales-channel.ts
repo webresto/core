@@ -1,16 +1,22 @@
-import { hasManageAccess, mapChannel, stringArray, toNumber, slugify, parseJsonObject } from "./sales-channels-helpers";
+import { hasManageAccess, mapChannel, stringArray, toNumber, slugify, parseJsonObject, sendRefusal } from "./sales-channels-helpers";
 import { SalesChannelRegistry } from "../../../SalesChannelRegistry";
-
-const VALID_STATUS = ["draft", "needs_setup", "ready", "disabled", "error"];
+import { checkCanCreate, checkCanEnable, checkPlatforms, getInstalledProviderAppIds } from "../../../SalesChannelProviders";
 
 /**
  * POST …/core/sales-channel   (create or update an instance)
- * Body: { id?, key?, title, type, providerModule?, enabled?, status?, countries[], platforms[],
- *         concepts[], defaultConcept?, allowConceptSwitch?, url?, settings?, publicConfig?, sortOrder? }
+ * Body: { id?, key?, title, type, enabled?, countries[], platforms[], concepts[],
+ *         defaultConcept?, allowConceptSwitch?, url?, settings?, publicConfig?, sortOrder? }
  *
  * `key` identifies a backend client/integration. It must not be confused with frontend
  * runtime platform values such as "web", "pwa-ios", "pwa-android", "ios", or "android".
  * Uniqueness is enforced here (mirrors the promo-code precedent — no DB unique constraint).
+ *
+ * Provider rules (lib/SalesChannelProviders.ts), same as MCP sales-channel-upsert:
+ *  - create only for an available type whose provider is alive, respecting
+ *    supportsMultipleInstances; the channel starts disabled, needs_setup, managedBy "operator";
+ *  - `type`, `providerModule`, `managedBy` and `status` are never taken from the body;
+ *  - switching on needs the provider to report `ready` (409 "Finish setup first");
+ *  - a platform may belong to one channel only.
  */
 export default async function UpsertSalesChannelController(req: any, res: any) {
   const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
@@ -37,15 +43,30 @@ export default async function UpsertSalesChannelController(req: any, res: any) {
       return res.status(409).json({ error: t("A sales channel with this key already exists") });
     }
 
-    // Validate type against the registry, falling back to "custom".
-    let type = String(body.type || existing?.type || "custom").trim();
-    if (!SalesChannelRegistry.getType(type) && type !== "legacy") type = "custom";
+    // The type picks the provider, so it is fixed once the channel exists.
+    const requestedType = String(body.type || "").trim();
+    if (existing && requestedType && requestedType !== existing.type) {
+      return res.status(409).json({ error: t("Channel type cannot be changed") });
+    }
+    const type = existing ? existing.type : requestedType;
+    if (!existing) {
+      const refusal = await checkCanCreate(type);
+      if (refusal) return sendRefusal(req, res, refusal);
+    }
     const typeDef = SalesChannelRegistry.getType(type);
 
-    const enabled = Boolean(body.enabled);
-    let status = String(body.status || "").trim();
-    if (!VALID_STATUS.includes(status)) {
-      status = enabled ? "ready" : (existing?.status && existing.status !== "ready" ? existing.status : "draft");
+    const platforms = stringArray(body.platforms);
+    const platformRefusal = await checkPlatforms(platforms, existing);
+    if (platformRefusal) return sendRefusal(req, res, platformRefusal);
+
+    const installed = await getInstalledProviderAppIds();
+    // A new channel always starts off; an existing one keeps its switch unless the body sets it.
+    const enabled = existing ? (body.enabled !== undefined ? Boolean(body.enabled) : existing.enabled === true) : false;
+    let computed = null;
+    if (existing && enabled && existing.enabled !== true) {
+      const check = await checkCanEnable(existing, installed);
+      if (check.refusal) return sendRefusal(req, res, check.refusal);
+      computed = check.computed;
     }
 
     const concepts = stringArray(body.concepts);
@@ -57,12 +78,9 @@ export default async function UpsertSalesChannelController(req: any, res: any) {
     const values: any = {
       key,
       title,
-      type,
-      providerModule: body.providerModule ? String(body.providerModule).trim() : (typeDef?.providerModule ?? null),
       enabled,
-      status,
       countries: stringArray(body.countries),
-      platforms: stringArray(body.platforms),
+      platforms,
       concepts,
       defaultConcept,
       allowConceptSwitch: body.allowConceptSwitch !== false,
@@ -76,10 +94,17 @@ export default async function UpsertSalesChannelController(req: any, res: any) {
     if (existing) {
       saved = (await SalesChannel.update({ id: existing.id }, values).fetch())[0];
     } else {
-      saved = await SalesChannel.create(values).fetch();
+      saved = await SalesChannel.create({
+        ...values,
+        type,
+        providerModule: typeDef?.providerModule ?? null,
+        managedBy: "operator",
+        status: "needs_setup",
+      }).fetch();
+      computed = await SalesChannel.channelStatus(saved);
     }
 
-    return res.json({ success: true, result: mapChannel(saved, { canManage: true }) });
+    return res.json({ success: true, result: mapChannel(saved, { canManage: true, installed, computed, req }) });
   } catch (error) {
     sails.log.error("Upsert sales channel error", error);
     return res.status(500).json({ error: String(error) });

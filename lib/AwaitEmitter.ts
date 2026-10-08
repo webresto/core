@@ -50,6 +50,8 @@ declare global {
     "core:payment-document-checked-document": [PaymentDocumentRecord]
     "core:payment-document-before-cancel": [PaymentDocumentRecord]
     "core:payment-document-canceled": [PaymentDocumentRecord]
+    "core:payment-document-superseded": [PaymentDocumentRecord]
+    "core:payment-document-confirmed-manually": [PaymentDocumentRecord]
     "core:order-after-order": [OrderRecord]
     "core:order-order-delivery": [OrderRecord]
     "core:order-before-order": [OrderRecord]
@@ -124,6 +126,7 @@ declare global {
     "core:auth-send-refused": [{ reason: import("./AuthService").AuthSendRefusal }]
     "core:notification-created": [import("../models/Notification").NotificationRecord]
     "core:notification-log": [import("../models/Notification").NotificationRecord, import("./notifications/NotificationLogHelper").NotificationLogEntry]
+    "core:notification-delivery-attempt": [import("../models/Notification").NotificationRecord, { channel: string; result: "success" | "failed" }]
     /** Collected by the admin panel link registry. Subscribers return admin page links. */
     "admin-panel:collect-links": []
   }

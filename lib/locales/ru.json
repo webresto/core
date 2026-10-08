@@ -7,5 +7,7 @@
   "Keep payment": "Оставить оплату",
   "Sent a confirmation code by SMS to": "Отправили код подтверждения по SMS на",
   "Enter it on the site to finish signing in — no need to type it here.": "Введите его на сайте, чтобы завершить вход — здесь код вводить не нужно.",
-  "Please enter the code on the site, in the sign-in confirmation window. I cannot accept it here.": "Код нужно ввести на сайте, в окне подтверждения входа. Здесь я его не приму."
+  "Please enter the code on the site, in the sign-in confirmation window. I cannot accept it here.": "Код нужно ввести на сайте, в окне подтверждения входа. Здесь я его не приму.",
+  "Payment received for a changed basket, the order was not placed. Refund the payment manually": "Пришла оплата по изменённой корзине, заказ не оформлен. Верните платёж вручную",
+  "Payment confirmed manually": "Оплата проведена вручную"
 }

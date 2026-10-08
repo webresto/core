@@ -44,7 +44,7 @@ async function loadFullOrder(criteria: Record<string, unknown>) {
     return order;
 }
 
-async function findOrderByIdentifier(id?: string, shortId?: string) {
+export async function findOrderByIdentifier(id?: string, shortId?: string) {
     const normalizedId = id ? String(id).trim() : '';
     const normalizedShortId = shortId ? String(shortId).trim().toUpperCase() : '';
 

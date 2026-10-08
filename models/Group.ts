@@ -49,7 +49,10 @@ let attributes = {
   isDeleted: "boolean" as unknown as boolean,
 
   /** System status flag. When false, the group is completely disabled for ordering. Managed manually by administrators and not overwritten by RMS synchronization. */
-  enable: "boolean" as unknown as boolean,
+  enable: {
+    type: "boolean",
+    defaultsTo: true,
+  } as unknown as boolean,
 
   /** Dishes group name*/
   name: {
@@ -179,8 +182,8 @@ let Model = {
       init.concept = "origin"
     }
 
-    init.visible = init.visible ?? true
-    init.enable = init.enable ?? true
+    // `visible` and `enable` default to true via `defaultsTo`: Waterline fills in missing
+    // attributes before `beforeCreate` runs, so a guard on `undefined` here never fires.
 
     const slugOpts = [];
     if(init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {

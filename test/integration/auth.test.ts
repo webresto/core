@@ -1229,6 +1229,7 @@ describe("Auth v2", function () {
       const channelDefaults = {
         type: "custom",
         providerModule: null as unknown as string,
+        managedBy: "operator" as const,
         status: "ready" as const,
         countries: [] as string[],
         concepts: [] as string[],

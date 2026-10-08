@@ -18,6 +18,9 @@
         "cost": {
           "type": "number",
           "minimum": 0
+        },
+        "stopEscalation": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

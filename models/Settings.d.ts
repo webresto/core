@@ -65,6 +65,16 @@ declare let Model: {
     set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings>;
     env<K extends keyof SettingList>(key: K): SettingList[K] | undefined;
     /**
+     * Whether process.env pins this setting, shadowing whatever is stored in the DB.
+     * Used by the admin API to label such settings and to refuse writes that would be
+     * saved but never take effect.
+     */
+    envOverride(setting: SettingsRecord): {
+        active: boolean;
+        valid: boolean;
+        value?: SettingValue;
+    };
+    /**
      * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB
      * into process.env on boot, so libraries reading process.env[key] directly
      * stay in sync with the value configured in Settings.

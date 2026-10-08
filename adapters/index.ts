@@ -10,6 +10,8 @@ import { Config } from "../interfaces/Config";
 import DeliveryAdapter from "./delivery/DeliveryAdapter";
 import { DefaultDeliveryAdapter } from "./delivery/default/defaultDelivery";
 import { PromotionAdapter } from "./promotion/default/promotionAdapter";
+export { default as SalesChannelAdapter } from "./sales-channel/SalesChannelAdapter";
+export type { SalesChannelStatusResult, SalesChannelReadiness, InitSalesChannelAdapter } from "./sales-channel/SalesChannelAdapter";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
@@ -188,7 +190,7 @@ export class Adapter {
 
     if (!adapterName) {
       adapterName = await Settings.get("RMS_ADAPTER");
-      if (!adapterName) throw "RMS adapter is not installed";
+      if (!adapterName) throw new Error("RMS adapter is not installed");
     }
 
     let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
