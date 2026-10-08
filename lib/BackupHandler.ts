@@ -65,7 +65,8 @@ export class BackupHandler {
         cwd: this.workDir
       }, ['.']);
   
-      await fsw.unlink(this.workDir);
+      // The work directory holds data.json and the images: unlink() refuses a directory.
+      await fsw.rmdir(this.workDir);
   
       console.log(`Export process completed successfully: ${filePath}`);
     } catch (error) {

@@ -29,6 +29,15 @@ export const fsw = {
     }
   },
 
+  async rmdir(dirPath: string): Promise<void> {
+    try {
+      await fs.promises.rm(dirPath, { recursive: true, force: true });
+    } catch (error) {
+      sails.log.error(`Error deleting directory ${dirPath}:`, error);
+      throw error;
+    }
+  },
+
   async exists(filePath: string): Promise<boolean> {
     try {
       await fs.promises.access(filePath, fs.constants.F_OK);
