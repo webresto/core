@@ -3,7 +3,7 @@ import { expect } from "chai";
 describe("Favorites", function () {
   
   it("Handle favorite dish", async function () {
-    let user = await User.create({id: "handleFavoriteDish", login: "1123555", lastName: 'TESThandleFavoriteDish', firstName: "111", phone: {code: "1", number:"123555"}}).fetch();
+    let user = await User.create({id: "handleFavoriteDish", lastName: 'TESThandleFavoriteDish', firstName: "111", phone: {code: "1", number:"123555"}}).fetch();
     let dishes = await Dish.find({});
     await User.handleFavoriteDish(user.id, dishes[0].id);
 

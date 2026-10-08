@@ -50,6 +50,22 @@ function buildChannelData(notification: NotificationRecord): Record<string, any>
 }
 
 /**
+ * The address snapshot the emitter pinned on the recipient (`EmitPayload.recipient.address`),
+ * read back off the persisted payload so a recovery or retry delivery uses it too. Only the
+ * keys actually given are returned — a snapshot is an override of single fields, not a
+ * replacement for the user record.
+ */
+function resolveRecipientAddress(notification: NotificationRecord): Record<string, any> | null {
+  const address = parseRecordObject(notification.data)?.recipient?.address;
+  if (!address || typeof address !== "object" || Array.isArray(address)) return null;
+  const overlay: Record<string, any> = {};
+  for (const key of ["phone", "email"]) {
+    if (address[key] !== undefined && address[key] !== null) overlay[key] = address[key];
+  }
+  return Object.keys(overlay).length > 0 ? overlay : null;
+}
+
+/**
  * True when the notification was delivered through a channel marked terminal
  * (Channel.stopEscalation): a successful send there ends the waterfall, so the unread
  * escalation loop must not spend a further (paid) channel on the same message.
@@ -61,6 +77,10 @@ function findTerminalDeliveryChannel(entries: NotificationChannelEntry[]): Notif
     const channel: any = NotificationManager.channels.find((item) => item.type === entry.type);
     return typeof channel?.isStopEscalation === "function" && channel.isStopEscalation();
   });
+}
+
+async function emitDeliveryAttempt(notification: NotificationRecord, channel: string, result: "success" | "failed"): Promise<void> {
+  await emitter.emit("core:notification-delivery-attempt", notification, { channel, result });
 }
 
 /**
@@ -343,6 +363,15 @@ export class NotificationDispatcher {
     const trace: string[] = [];
     if (unresolvedUser) trace.push(`user ${notification.user} not found (channels receive raw value)`);
 
+    // The record just reloaded above is the CURRENT one, and for a notice about a change to the
+    // recipient's own address that is precisely the wrong address — the change has already been
+    // written. Lay the emitter's snapshot over the populated user, field by field.
+    const addressOverride = resolveRecipientAddress(notification);
+    if (addressOverride && notification.user && typeof notification.user === "object") {
+      notification.user = { ...(notification.user as any), ...addressOverride } as any;
+      trace.push(`recipient address pinned by the sender: ${Object.keys(addressOverride).join(", ")}`);
+    }
+
     // priorityDeviceOnly means targeted delivery only to the selected UserDevice:
     // form channels are ignored, fallback/waterfall to other channels is forbidden.
     if (priorityDeviceOnly) {
@@ -373,6 +402,7 @@ export class NotificationDispatcher {
             channelData as any,
             priorityDevice
           );
+          await emitDeliveryAttempt(notification, priorityChannel.type, sent ? "success" : "failed");
           trace.push(`${priorityChannel.type}: ${sent ? "sent" : `failed (${priorityChannel.error || "unknown error"})`}`);
         }
       }
@@ -462,6 +492,7 @@ export class NotificationDispatcher {
             channelData as any,
             priorityDevice
           );
+          await emitDeliveryAttempt(notification, priorityChannel.type, ok ? "success" : "failed");
           if (ok) {
             const priorityCost = Number(priorityChannel.cost) || 0;
             successChannels.push({ type: priorityChannel.type, cost: priorityCost, sentAt: Date.now() });
@@ -518,6 +549,7 @@ export class NotificationDispatcher {
           channelData as any,
           priorityDevice
         );
+        await emitDeliveryAttempt(notification, channel.type, ok ? "success" : "failed");
 
         if (ok) {
           const channelCost = Number(channel.cost) || 0;
@@ -774,6 +806,7 @@ export class NotificationDispatcher {
         content.title,
         channelData as any
       );
+      await emitDeliveryAttempt(notification, channel.type, ok ? "success" : "failed");
 
       if (ok) {
         const channelCost = Number(channel.cost) || 0;

@@ -53,12 +53,7 @@ declare global {
 
   interface SettingList {
     RESTOCORE_TIME_SYNC_PAYMENTS: number
-    CORE_LOGIN_FIELD: string
-    CORE_LOGIN_OTP_REQUIRED: boolean
-    CORE_SET_LAST_OTP_AS_PASSWORD: boolean
-    CORE_PASSWORD_REQUIRED: boolean
     DEFAULT_CAPTCHA_ADAPTER: string
-    DEFAULT_OTP_ADAPTER: string
     DEFAULT_BONUS_ADAPTER: string
     RMS_ADAPTER: string
     DEFAULT_MEDIAFILE_ADAPTER: string
@@ -128,12 +123,40 @@ declare global {
     DEFAULT_ENABLE_PAYMENT_METHODS: boolean
     ENABLE_BY_DEFAULT_ON_SYNC: boolean
     PROMOTION_ENABLE_BY_DEFAULT: boolean
-    PASSWORD_REGEX: string
-    PASSWORD_MIN_LENGTH: number
-    PASSWORD_POLICY: "required" | "from_otp" | "disabled"
-    PASSWORD_SALT: number
-    LOGIN_OTP_REQUIRED: boolean
-    CREATE_USER_IF_NOT_EXIST: boolean
+    /** Proof layer — the per-attempt budget, plus the per-login one that spans attempts (И6) */
+    OTP_MAX_ATTEMPTS: number
+    OTP_RESEND_INTERVAL_SECONDS: number
+    OTP_TTL_SECONDS: number
+    /** AuthAttempt lifetime and resend cap */
+    AUTH_STATE_TTL_SECONDS: number
+    AUTH_OTP_MAX_RESENDS: number
+    /** Per-target send ledger caps + the switch cap that keeps "another way in" finite (И6) */
+    AUTH_MAX_SWITCHES: number
+    AUTH_SEND_MAX_PER_TARGET_HOUR: number
+    AUTH_SEND_MAX_PER_TARGET_DAY: number
+    /**
+     * Caps that hold when the source rotates: the ledger total and the country allowlist.
+     * A device id or an IP is not a boundary — both are the attacker's to change — so what is
+     * bounded here is the bill and the geography, not where the request came from (send-caps.md).
+     */
+    AUTH_SEND_MAX_GLOBAL_HOUR: number
+    AUTH_SEND_ALLOWED_COUNTRIES: string[]
+    AUTH_MAX_LIVE_ATTEMPTS_PER_DEVICE: number
+    ALLOW_USER_WITHOUT_PHONE: boolean
+    DEFAULT_ENABLE_AUTH_PROVIDERS: boolean
+    AUTH_CALLBACK_BASE_URL: string
+    /** Origins the post-login redirect is allowed to leave for; the base URL is always allowed */
+    AUTH_REDIRECT_ALLOWED_ORIGINS: string[]
+    /** Cardinality policy: how many ways in of each kind one account may hold (0 = unlimited) */
+    AUTH_MAX_PHONE_IDENTITIES: number
+    AUTH_MAX_IDENTITIES_PER_ADAPTER: number
+    AUTH_ALLOW_PHONE_CHANGE: boolean
+    AUTH_PHONE_CHANGE_KEEP_OLD: boolean
+    /** Security notices on any change to the set of ways in (extend_user_account §6) */
+    AUTH_LINK_NOTICE_POLICY: "off" | "notify" | "confirm"
+    AUTH_INCUMBENT_PROTECT_HOURS: number
+    /** CSV of normalized targets allowed to receive DEMO_MODE's fixed OTP code (review1 §2) */
+    AUTH_DEMO_PHONES: string
     TIME_TO_SYNC_BONUSES_IN_MINUTES: number
     SYNC_BONUSTRANSACTION_AFTER_TIME: number
     DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean
@@ -161,6 +184,11 @@ declare global {
     WORK_TIME: WorkTime[]
     FIELDS_FOR_ORDER_INITIALIZATION: ("address" | "serviceType" | "pickupPoint" | "date" | "personsCount" | "comment" | "customer" | "promotionCode" | "paymentMethod" | "concept" | "maxWaitMinutes")[]
     /**
+     * No anonymous cart: only an authenticated user may create one and put dishes in it.
+     * Off = today's behaviour (guest cart keyed by deviceId).
+     */
+    REQUIRE_AUTH_FOR_CART: boolean
+    /**
      * System-only notification channel runtime state.
      */
     NOTIFICATION_CHANNELS_STATE: Record<string, {
@@ -173,8 +201,6 @@ declare global {
     projectName: string
     test: any
     test_123Test: boolean
-    PasswordRegex: string
-    PasswordMinLength: string
     EMITTER_CHECKOUT_STRATEGY: "NOT_REQUIRED" | "ALL_REQUIRED"
     /**
      * Strict phone check by mask

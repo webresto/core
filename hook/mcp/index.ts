@@ -22,7 +22,7 @@ const CORE_GROUPS: Array<{ name: string; description: string }> = [
     { name: 'settings',       description: 'Read and update global application settings and configuration.' },
     { name: 'places',         description: 'Manage delivery places / spots: list, inspect and edit locations.' },
     { name: 'maintenance',    description: 'Maintenance mode and service operations: toggle availability, run housekeeping.' },
-    { name: 'payment',        description: 'Payment methods and configuration.' },
+    { name: 'payment',        description: 'Payment methods and payment documents: configure methods, confirm a pending payment by hand.' },
     { name: 'dishes',         description: 'Manage menu dishes: list, get, create and update dishes.' },
     { name: 'groups',         description: 'Manage menu groups / categories: list, get, create and update categories.' },
     { name: 'media',          description: 'Manage media and images: list, upload, attach and remove media.' },

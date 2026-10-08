@@ -23,7 +23,7 @@ describe("Bonuses", function () {
   before(async function () {
     await resetDatabase();
     ({ system, bonusProgram } = await startBonusSystem());
-    user = await User.create({ login: "15550000001", firstName: "Customer", lastName: "1", phone: { code: "1", number: "5550000001" } }).fetch();
+    user = await User.create({ firstName: "Customer", lastName: "1", phone: { code: "1", number: "5550000001" } }).fetch();
     await UserBonusProgram.registration(user, "bonus-1");
     system.balances.set(user.id, 1000);
 

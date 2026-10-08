@@ -69,7 +69,10 @@ let attributes = {
         allowNull: true,
     },
     /** The number of carbohydrates per (100g)*/
-    carbohydrateAmount: "number",
+    carbohydrateAmount: {
+        type: "number",
+        allowNull: true
+    },
     /** The number of carbohydrates in the dish */
     carbohydrateFullAmount: {
         type: "number",
@@ -237,8 +240,8 @@ let Model = {
         }
         if (!init.modifiers)
             init.modifiers = [];
-        if (init.visible === undefined)
-            init.visible = true;
+        // `visible` defaults to true and `enable` to false via `defaultsTo`: Waterline fills in missing
+        // attributes before `beforeCreate` runs, so a guard on `undefined` here never fires.
         if (init.notForSale === undefined)
             init.notForSale = false;
         // An empty string slips past both `isIn` and `defaultsTo`; dropping the
@@ -256,7 +259,6 @@ let Model = {
         if (!(0, CustomData_1.isCustomData)(init.customData)) {
             init.customData = {};
         }
-        init.visible = init.visible ?? true;
         cb();
     },
     beforeUpdate: async function (value, cb) {

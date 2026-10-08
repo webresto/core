@@ -17,6 +17,12 @@ declare let attributes: {
     isLoggedIn: boolean;
     /** Owner of the device. May be empty (null) — a device always exists, but it gets bound to a user only after login */
     user: UserRecord | string | null;
+    /**
+     * Which identity this session was opened through — set by User.authDevice() from the
+     * completed AuthAttempt. Lets the cabinet show "signed in via Telegram" and lets unlinking
+     * that identity revoke sessions opened through it (extend_user_account §3.4, И15).
+     */
+    identity: import("./AuthIdentity").AuthIdentityRecord | string | null;
     lastIP: string;
     loginTime: number;
     lastActivity: number;

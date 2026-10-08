@@ -155,7 +155,6 @@ function formatUserOption(user) {
   if (user.name) parts.push(user.name);
   if (user.phone) parts.push(user.phone);
   if (user.email) parts.push(user.email);
-  if (user.login) parts.push(`@${user.login}`);
   if (user.deviceId) parts.push(`${user.foundByDeviceId ? 'найден по ' : ''}📱${user.deviceId}`);
   return parts.join(' · ');
 }
@@ -931,14 +930,14 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
               <h3 style={formGroupTitle}>{t('User selection')}</h3>
               <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <Label>{t('Search user by login, phone, email, device id')}</Label>
+                  <Label>{t('Search user by name, phone, email, device id')}</Label>
                   <div style={{ position: 'relative' }}>
                     <Input
                       value={createUserQuery}
                       onFocus={() => setShowUserAutocomplete(true)}
                       onChange={(e) => { setCreateUserQuery(e.target.value); setSelectedUser(null); setShowUserAutocomplete(true); }}
                       onBlur={() => { window.setTimeout(() => setShowUserAutocomplete(false), 150); }}
-                      placeholder={t('Search user by login, phone, email, device id')}
+                      placeholder={t('Search user by name, phone, email, device id')}
                     />
                     {showUserAutocomplete && createUserQuery.trim().length >= 2 && (
                       <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: '0 12px 24px rgba(0,0,0,0.18)', maxHeight: 240, overflow: 'auto', zIndex: 20 }}>
@@ -950,7 +949,7 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                             <div style={{ fontSize: 13 }}>
                               {user.kind === 'cart' ? `🛒 ${t('Cart')} ${user.shortId || user.orderId || ''}`
                                 : user.kind === 'device' ? `📱 ${t('Device')} ${user.name || user.deviceId || ''}`
-                                : (user.name || user.login || user.id)}
+                                : (user.name || user.id)}
                             </div>
                             <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{formatUserOption(user)}</div>
                           </button>
@@ -1357,7 +1356,7 @@ function NotificationsManagerContent({ permissions = { canView: true, canManage:
                             <div style={{ fontSize: 13 }}>
                               {user.kind === 'cart' ? `🛒 ${t('Cart')} ${user.shortId || user.orderId || ''}`
                                 : user.kind === 'device' ? `📱 ${t('Device')} ${user.name || user.deviceId || ''}`
-                                : (user.name || user.login || user.id)}
+                                : (user.name || user.id)}
                             </div>
                             <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{formatUserOption(user)}</div>
                           </button>

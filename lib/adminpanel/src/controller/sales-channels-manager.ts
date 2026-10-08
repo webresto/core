@@ -11,7 +11,7 @@ export default function SalesChannelsManagerController(req: any, res: any) {
   return req.Inertia.render({
     component: "module",
     props: {
-      moduleComponent: adminModuleUrl("SalesChannelsManager", "20260721-1"),
+      moduleComponent: adminModuleUrl("SalesChannelsManager", "20261007-1"),
       message: t("Sales Channels"),
       locale,
       messages,

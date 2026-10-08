@@ -8,8 +8,12 @@ import { nominatim } from "./nominatim";
  * nothing leaks from the file that ran before it.
  */
 
-/** Rows core seeds at boot; kept, since a fresh installation has them too. */
-const SEEDED = new Set(["settings", "notificationrules"]);
+/**
+ * Rows core seeds at boot; kept, since a fresh installation has them too.
+ * `authmethod` is the auth registry: its own `core/sms` row is written when the
+ * adapter registers itself on boot, and nothing writes it again.
+ */
+const SEEDED = new Set(["settings", "notificationrules", "authmethod"]);
 
 /**
  * Settings as they read right after boot, by key. The value `Settings.get`

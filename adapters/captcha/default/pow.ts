@@ -12,7 +12,7 @@ export class POW extends CaptchaAdapter {
 
     /**
      * Action: as example captcha adapter receive label `login:12025550184` sent task, and a client solves it
-     * When a client pass solved captcha to login user, Method User.login pass same label, and if this not matched
+     * When a client passes a solved captcha, the auth mutation passes the same label; if they do not match
      * Captcha adapter reject login.
      * To prevent brute force, the adapter increases the complexity after several attempts.
      */

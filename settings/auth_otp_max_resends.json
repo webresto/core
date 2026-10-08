@@ -1,0 +1,8 @@
+{
+  "key": "AUTH_OTP_MAX_RESENDS",
+  "type": "number",
+  "name": "Auth: max OTP resends per login attempt",
+  "description": "How many times the code may be re-sent within one social login attempt.",
+  "defaultValue": 3,
+  "isRequired": true
+}

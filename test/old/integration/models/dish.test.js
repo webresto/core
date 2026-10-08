@@ -18,7 +18,7 @@ describe('Dish', function () {
     });
     it('Dish Model attributes', async () => {
         let dish = (await Dish.find({}).limit(1).populate("images"))[0];
-        (0, chai_1.expect)(dish).to.include.all.keys('id', 'rmsId', 'additionalInfo', 'code', 'name', 'seoDescription', 'seoKeywords', 'seoText', 'seoTitle', 'carbohydrateAmount', 'carbohydrateFullAmount', 'energyAmount', 'energyFullAmount', 'fatAmount', 'fatFullAmount', 'fiberAmount', 'fiberFullAmount', 'groupId', 'measureUnit', 'price', 'productCategoryId', 'type', 'weight', 'sortOrder', 'isDeleted', 'isModificable', 'modifiers', 'parentGroup', 'tags', 'balance', 'images', 'slug', 'hash', 'description', 'visible', 'modifier', 'promo', 'worktime', 'concept', 'ingredients', 'updatedAt', 'createdAt');
+        (0, chai_1.expect)(dish).to.include.all.keys('id', 'rmsId', 'additionalInfo', 'code', 'name', 'seoDescription', 'seoKeywords', 'seoText', 'seoTitle', 'carbohydrateAmount', 'carbohydrateFullAmount', 'energyAmount', 'energyFullAmount', 'fatAmount', 'fatFullAmount', 'fiberAmount', 'fiberFullAmount', 'measureUnit', 'price', 'productCategoryId', 'type', 'weight', 'sortOrder', 'isDeleted', 'isModificable', 'modifiers', 'parentGroup', 'tags', 'balance', 'images', 'slug', 'hash', 'description', 'visible', 'modifier', 'promo', 'worktime', 'concept', 'ingredients', 'updatedAt', 'createdAt');
     });
     it('getDishes', function () {
         // it's planned implement after connect @webresto/worktime
@@ -46,6 +46,33 @@ describe('Dish', function () {
         (0, chai_1.expect)(dish.modifiers.length).to.equal(1);
         (0, chai_1.expect)(dish.modifiers[0].childModifiers[0].dish.id).to.equal(dishes[0].id);
         (0, chai_1.expect)(dish.modifiers[0].group.id).to.equal(group.id);
+    });
+    /**
+     * Demo set "World cuisine" 1.1.0 ships dishes with every nutrition field set to null.
+     * BackupHandler.importFromTar creates them with Dish.create, so a nutrition attribute
+     * that rejects null aborts the whole import before images are uploaded.
+     */
+    it('accepts null in every nutrition field', async function () {
+        const nutrition = {
+            carbohydrateAmount: null,
+            carbohydrateFullAmount: null,
+            energyAmount: null,
+            energyFullAmount: null,
+            fatAmount: null,
+            fatFullAmount: null,
+            fiberAmount: null,
+            fiberFullAmount: null,
+            proteinAmount: null,
+            proteinFullAmount: null,
+        };
+        const dish = await Dish.create({ ...(0, dish_generator_1.default)({ name: "test dish null nutrition", price: 100.1 }), ...nutrition }).fetch();
+        for (const attr of Object.keys(nutrition)) {
+            (0, chai_1.expect)(dish[attr], attr).to.equal(null);
+        }
+    });
+    it('stores an omitted carbohydrateAmount as null', async function () {
+        const dish = await Dish.create((0, dish_generator_1.default)({ name: "test dish without carbohydrates", price: 100.1 })).fetch();
+        (0, chai_1.expect)(dish.carbohydrateAmount).to.equal(null);
     });
     it('createOrUpdate', async function () {
         (0, chai_1.expect)(Dish.createOrUpdate).to.not.equals(undefined);

@@ -8,7 +8,7 @@ describe("Favorites", function () {
     const group = await Group.create({ name: "Group 1", enable: true }).fetch();
     const dish1 = await Dish.create({ name: "Dish 1", price: 100, enable: true, parentGroup: group.id }).fetch();
     const dish2 = await Dish.create({ name: "Dish 2", price: 100, enable: true, parentGroup: group.id }).fetch();
-    const user = await User.create({ login: "15550000001", firstName: "Customer", lastName: "1", phone: { code: "1", number: "5550000001" } }).fetch();
+    const user = await User.create({ firstName: "Customer", lastName: "1", phone: { code: "1", number: "5550000001" } }).fetch();
 
     const favorites = async () => (await User.findOne({ id: user.id }).populate("favorites")).favorites.map((dish: any) => dish.name);
 

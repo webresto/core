@@ -1,0 +1,9 @@
+{
+  "key": "AUTH_MAX_PHONE_IDENTITIES",
+  "type": "number",
+  "name": "Auth: max phone identities per account",
+  "description": "How many phone numbers one account may hold. 0 = unlimited.",
+  "defaultValue": 1,
+  "readOnly": false,
+  "isRequired": false
+}

@@ -86,9 +86,12 @@ declare let Model: {
     validateRule(rule: Partial<NotificationRulesRecord>): string[];
     /**
      * Seed the example rules (mostly disabled — registration ≠ sending; e.g. `order_on_the_way_push`
-     * ships enabled by default) when the catalog is empty. Replaces the old `NOTIFICATION_TYPES`
-     * settings `defaultValue`. Templates for existing rows are handled on read by
-     * `NotificationTypeRegistry` (parse + seed fallback), so no per-row backfill is needed here.
+     * ships enabled by default). Idempotent by `key`: a rule the catalog already has is never
+     * touched (it is the operator's now), a rule it lacks is created — so a rule that arrives with
+     * a newer core (`user_otp_sms`, the only way a login code goes out) also lands on an
+     * installation whose catalog was seeded before the rule existed (review2 §1.1). Replaces the
+     * old `NOTIFICATION_TYPES` settings `defaultValue`. Templates for existing rows are handled on
+     * read by `NotificationTypeRegistry` (parse + seed fallback), so no per-row backfill is needed.
      */
     seedDefaults(): Promise<void>;
 };

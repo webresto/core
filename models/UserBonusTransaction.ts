@@ -124,12 +124,12 @@ let Model = {
       }
 
       if(!user || !bonusProgram){
-        throw `User or BonusProgram not found: user: [${user.login}] bonusProgram: [${bonusProgram}]`
+        throw `User or BonusProgram not found: user: [${user.id}] bonusProgram: [${bonusProgram}]`
       }
 
       const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
       if(!userBonusProgram){
-        throw `UserBonusProgram not found: user: [${user.login}] bonusProgram: [${bonusProgram}]`
+        throw `UserBonusProgram not found: user: [${user.id}] bonusProgram: [${bonusProgram}]`
       }
 
 
@@ -142,7 +142,7 @@ let Model = {
       const adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
       let extBalance =  parseFloat(new Decimal(await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
 
-      sails.log.debug(`Sync UserBonusProgram for user ${user.login}, extBalance: ${extBalance}, balanceOnly: ${balanceOnly}`);
+      sails.log.debug(`Sync UserBonusProgram for user ${user.id}, extBalance: ${extBalance}, balanceOnly: ${balanceOnly}`);
 
       if(balanceOnly) {
         await UserBonusProgram.update({id: userBonusProgram.id}, {balance: extBalance}).fetch();

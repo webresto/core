@@ -3,5 +3,6 @@
   "Cancel pending payment?": "Annuler le paiement en attente ?",
   "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "Un lien de paiement actif existe pour cette commande. Modifier le panier annulera ce paiement. Voulez-vous continuer ?",
   "Cancel payment and edit basket": "Annuler le paiement et modifier le panier",
-  "Keep payment": "Conserver le paiement"
+  "Keep payment": "Conserver le paiement",
+  "Payment confirmed manually": "Paiement confirmé manuellement"
 }

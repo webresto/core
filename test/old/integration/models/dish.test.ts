@@ -34,7 +34,6 @@ describe('Dish', function () {
     'fatFullAmount',
     'fiberAmount',
     'fiberFullAmount',
-    'groupId',
     'measureUnit',
     'price',
     'productCategoryId',
@@ -94,6 +93,35 @@ describe('Dish', function () {
     expect(dish.modifiers[0].group.id).to.equal(group.id);
 
   });
+  /**
+   * Demo set "World cuisine" 1.1.0 ships dishes with every nutrition field set to null.
+   * BackupHandler.importFromTar creates them with Dish.create, so a nutrition attribute
+   * that rejects null aborts the whole import before images are uploaded.
+   */
+  it('accepts null in every nutrition field', async function(){
+    const nutrition: { [attr: string]: null } = {
+      carbohydrateAmount: null,
+      carbohydrateFullAmount: null,
+      energyAmount: null,
+      energyFullAmount: null,
+      fatAmount: null,
+      fatFullAmount: null,
+      fiberAmount: null,
+      fiberFullAmount: null,
+      proteinAmount: null,
+      proteinFullAmount: null,
+    };
+    const dish = await Dish.create({ ...dishGenerator({ name: "test dish null nutrition", price: 100.1 }), ...nutrition }).fetch() as unknown as { [attr: string]: unknown };
+    for (const attr of Object.keys(nutrition)) {
+      expect(dish[attr], attr).to.equal(null);
+    }
+  });
+
+  it('stores an omitted carbohydrateAmount as null', async function(){
+    const dish = await Dish.create(dishGenerator({ name: "test dish without carbohydrates", price: 100.1 })).fetch();
+    expect(dish.carbohydrateAmount).to.equal(null);
+  });
+
   it('createOrUpdate', async function(){
     expect(Dish.createOrUpdate).to.not.equals(undefined);
 

@@ -10,7 +10,10 @@ export * from './models/Group';
 export * from './models/Maintenance';
 export * from './models/MediaFile';
 export * from './models/Notification';
-export * from './models/OneTimePassword';
+export * from './models/AuthAttempt';
+export * from './models/AuthIdentity';
+export * from './models/AuthMethod';
+export * from './models/AuthSendLog';
 export * from './models/Order';
 export * from './models/OrderDish';
 export * from './models/PaymentDocument';
@@ -36,6 +39,9 @@ export * from './lib/notifications/NotificationTemplateRenderer'
 export * from './lib/notifications/NotificationService'
 export * from './lib/SetupChecklistRegistry'
 export * from './lib/SetupChecklistService'
+export * from './lib/AuthService'
+export { default as AuthAdapter } from './adapters/auth/AuthAdapter'
+export * from './adapters/auth/AuthAdapter'
 
 module.exports = function (sails: any) {
   return {

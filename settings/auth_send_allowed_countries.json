@@ -1,0 +1,15 @@
+{
+  "key": "AUTH_SEND_ALLOWED_COUNTRIES",
+  "type": "json",
+  "name": "Auth: countries codes may be sent to",
+  "description": "ISO country codes whose phone numbers may be spent on at all (e.g. [\"RU\",\"KZ\"]). Aimed at IRSF: premium numbers in countries you never serve are the usual way an OTP form is turned into revenue for somebody else. Refused numbers are told why, so a legitimate foreign visitor knows what happened. Note that +7 is one calling code for both Russia and Kazakhstan, so allowing either allows both. Left empty, this falls back to the project's own COUNTRY_ISO setting rather than allowing every country — set this explicitly (even to the same single country) once you actually want to serve more than one.",
+  "jsonSchema": {
+    "type": "array",
+    "items": {
+      "type": "string"
+    },
+    "minItems": 0
+  },
+  "defaultValue": [],
+  "isRequired": false
+}

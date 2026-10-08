@@ -1,0 +1,8 @@
+{
+  "key": "AUTH_MAX_LIVE_ATTEMPTS_PER_DEVICE",
+  "type": "number",
+  "name": "Auth: max unfinished attempts per device",
+  "description": "How many unfinished auth attempts one device may hold at once, counted across purposes — and the cabinet legitimately holds several (a login, then verify:phone, then link), which is why the default is 5 rather than 3. Hygiene rather than defence — a device id comes from the client and costs nothing to rotate — but it stops a looping frontend and casual dial-in number farming. Restarting the same screen supersedes its own attempt and is never refused. 0 = unlimited.",
+  "defaultValue": 5,
+  "isRequired": true
+}

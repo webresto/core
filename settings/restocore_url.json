@@ -2,10 +2,11 @@
   "key": "RESTOCORE_URL",
   "type": "string",
   "name": "Restocore URL",
-  "description": "Restocore URL that you can see in browser",
+  "description": "Restocore URL that you can see in browser, for example: https://resto.example.com. A host name with an optional port and path; the install wizard fills it from the current address.",
+  "patternHint": "an http(s) address, for example: https://resto.example.com or http://localhost:8080",
   "jsonSchema": {
     "type": "string",
-    "pattern": "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)\\/$"
+    "pattern": "^(https?:\\/\\/)?[^\\s\\/?#]+(?:[\\/?#][^\\s]*)?$"
   },
   "isRequired": true
 }

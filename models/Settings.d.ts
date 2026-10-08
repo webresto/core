@@ -59,6 +59,16 @@ declare let Model: {
     set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<SettingsRecord>;
     env<K extends keyof SettingList>(key: K): SettingList[K] | undefined;
     /**
+     * Whether process.env pins this setting, shadowing whatever is stored in the DB.
+     * Used by the admin API to label such settings and to refuse writes that would be
+     * saved but never take effect.
+     */
+    envOverride(setting: SettingsRecord): {
+        active: boolean;
+        valid: boolean;
+        value?: SettingValue;
+    };
+    /**
      * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB
      * into process.env on boot, so libraries reading process.env[key] directly
      * stay in sync with the value configured in Settings.
@@ -104,6 +114,8 @@ declare global {
         ALLOW_USER_WITHOUT_PHONE: boolean;
         /** Public base URL used to build OAuth redirect_uri and post-login redirect */
         AUTH_CALLBACK_BASE_URL: string;
+        /** Extra origins `authStart(redirectBack:)` may return the browser to (review1 §1.4) */
+        AUTH_REDIRECT_ALLOWED_ORIGINS: string[];
     }
 }
 interface SettingsSetInputBase<K extends string, F> {

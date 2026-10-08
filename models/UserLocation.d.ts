@@ -3,20 +3,6 @@ import { ORMModel } from "../interfaces/ORMModel";
 import OrderAddress from "../interfaces/OrderAddress";
 import { UserRecord } from "./User";
 declare let attributes: {
-    formatted: string;
-    city?: string;
-    home?: string;
-    housing?: string;
-    apartment?: string;
-    entrance?: string;
-    floor?: string;
-    doorphone?: string;
-    comment?: string;
-    coordinate?: import("../interfaces/Geo").AddressPoint | null;
-    /** ID */
-    id: string;
-    /** What the storefront lists. `formatted` unless given. */
-    name: string;
     /**
      * Set as default for specific user
      * */
@@ -25,6 +11,20 @@ declare let attributes: {
     customData: {
         [key: string]: string | boolean | number;
     } | string;
+    city?: string;
+    coordinate?: import("../interfaces/Geo").AddressPoint | null;
+    entrance?: string;
+    home?: string;
+    formatted: string;
+    housing?: string;
+    apartment?: string;
+    floor?: string;
+    doorphone?: string;
+    comment?: string;
+    /** ID */
+    id: string;
+    /** What the storefront lists. `formatted` unless given. */
+    name: string;
 };
 type attributes = typeof attributes;
 export interface UserLocationRecord extends attributes, ORM {

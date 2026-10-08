@@ -1,0 +1,8 @@
+{
+  "key": "AUTH_SEND_MAX_PER_TARGET_DAY",
+  "type": "number",
+  "name": "Auth: max deliveries per login per day",
+  "description": "Hard cap on codes/calls aimed at one phone number within 24 hours. Without it the resend interval alone still allows one message a minute, forever. 0 = unlimited.",
+  "defaultValue": 15,
+  "isRequired": true
+}

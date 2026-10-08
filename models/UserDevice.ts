@@ -29,6 +29,16 @@ let attributes = {
   user: {
     model: 'user'
   } as unknown as UserRecord | string | null,
+
+  /**
+   * Which identity this session was opened through — set by User.authDevice() from the
+   * completed AuthAttempt. Lets the cabinet show "signed in via Telegram" and lets unlinking
+   * that identity revoke sessions opened through it (extend_user_account §3.4, И15).
+   */
+  identity: {
+    model: 'authidentity',
+  } as unknown as import("./AuthIdentity").AuthIdentityRecord | string | null,
+
   lastIP: "string",
   loginTime:  { type: "number"} as unknown as number,
   lastActivity: { type: "number"} as unknown as number,

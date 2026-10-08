@@ -1,0 +1,8 @@
+{
+  "key": "AUTH_SEND_MAX_PER_TARGET_HOUR",
+  "type": "number",
+  "name": "Auth: max deliveries per login per hour",
+  "description": "Hard cap on codes/calls aimed at one phone number within an hour, counted over all attempts and all methods. 0 = unlimited.",
+  "defaultValue": 5,
+  "isRequired": true
+}

@@ -5,7 +5,7 @@ import {
   validateTags,
   summarizeTags,
   canonicalTagName,
-} from '../../../libs/adminpanel/controls/tagsEditorHelper';
+} from '../../../lib/adminpanel/controls/tagsEditorHelper';
 
 describe('tagsEditorHelper', () => {
   it('normalizes the canonical DishTag[] shape', () => {

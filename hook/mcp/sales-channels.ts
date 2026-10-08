@@ -1,26 +1,48 @@
+import slugifyLib from 'slugify';
 import { SalesChannelRegistry } from '../../lib/SalesChannelRegistry';
+import {
+    checkCanCreate,
+    checkCanDelete,
+    checkCanEnable,
+    checkPlatforms,
+    describeChannelProvider,
+    getInstalledProviderAppIds,
+    refreshStatuses,
+    refusalText,
+    SalesChannelRefusal,
+} from '../../lib/SalesChannelProviders';
 
 declare const mcp: any;
 
-const VALID_STATUS = ['draft', 'needs_setup', 'ready', 'disabled', 'error'];
+/** Same refusal the admin API answers with 409, as an MCP error. */
+function refuse(refusal: SalesChannelRefusal): never {
+    const extra = Object.entries(refusal.extra || {})
+        .filter(([, value]) => value !== null && value !== undefined && value !== '')
+        .map(([name, value]) => `${name}: ${value}`);
+    throw new Error([refusalText(refusal), ...extra].join('; '));
+}
 
 function stringArray(value: any): string[] {
     if (!Array.isArray(value)) return [];
     return value.filter((x: any) => typeof x === 'string' && x.trim()).map((x: string) => x.trim());
 }
 
+/** Same transliterating slug as the admin page uses, so both produce the same channel key. */
 function slugify(value: string): string {
-    return String(value || '')
-        .toLowerCase()
-        .trim()
+    return slugifyLib(String(value || ''), { lower: true, strict: true, locale: 'en' })
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .slice(0, 64);
 }
 
-/** Map a SalesChannel record into a diagnostics-friendly shape (adds the registry's typeTitle/category). */
-function mapChannel(channel: any) {
+/**
+ * Map a SalesChannel record into a diagnostics-friendly shape (adds the registry's
+ * typeTitle/category and the same provider fields as the admin API — see
+ * lib/SalesChannelProviders.ts describeChannelProvider).
+ */
+function mapChannel(channel: any, installed: Set<string> | null, computed?: any) {
     const typeDef = SalesChannelRegistry.getType(channel?.type);
+    const provider = describeChannelProvider(channel, installed, computed);
     return {
         id: channel?.id,
         key: channel?.key || '',
@@ -29,8 +51,15 @@ function mapChannel(channel: any) {
         typeTitle: typeDef?.title || channel?.type || 'custom',
         category: typeDef?.category || 'custom',
         providerModule: channel?.providerModule || null,
+        managedBy: provider.managedBy,
+        providerInstalled: provider.providerInstalled,
+        providerAlive: provider.providerAlive,
+        marketplaceAppId: provider.marketplaceAppId,
+        settingsUrl: provider.settingsUrl,
         enabled: channel?.enabled === true,
-        status: channel?.status || 'draft',
+        status: provider.status,
+        statusMessage: provider.statusMessage,
+        active: provider.active,
         countries: stringArray(channel?.countries),
         concepts: stringArray(channel?.concepts),
         platforms: stringArray(channel?.platforms),
@@ -47,9 +76,11 @@ function mapChannel(channel: any) {
  * MCP tools for SalesChannel (sales channels / order sources management).
  *
  * SalesChannel records are configured backend clients (website, bot, kiosk, …) that can
- * create orders. `platforms` lists the runtime device/platform labels (e.g. "web",
- * "pwa-android", "pwa-ios", "app-ios") that report orders through a channel — set manually
- * by the operator, never auto-filled. See models/SalesChannel.ts for the full model doc.
+ * create orders. They come from provider modules (SalesChannel.alive); the tools enforce
+ * the same rules as the admin API: create only for a type with a live provider, switch on
+ * only when the provider reports ready, a platform belongs to one channel, provider
+ * channels are not deleted while their module is installed. `status` is the provider's
+ * readiness and cannot be set. See models/SalesChannel.ts for the full model doc.
  */
 export function registerSalesChannelsTools() {
     if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
@@ -57,7 +88,8 @@ export function registerSalesChannelsTools() {
     mcp.registerTool({
         name: 'sales-channel-list',
         group: 'sales-channels',
-        description: 'Lists configured sales channels (order sources). Supports filtering by enabled, type and concept.',
+        description: 'Lists configured sales channels (order sources) with provider state and fresh readiness. '
+            + '`active` = enabled + ready + provider alive: only active channels take orders. Supports filtering by enabled, type and concept.',
         mode: 'protected',
         schema: {
             type: 'object',
@@ -69,8 +101,9 @@ export function registerSalesChannelsTools() {
         },
         handler: async ({ enabled, type, concept }: { enabled?: boolean; type?: string; concept?: string }) => {
             const channels = await SalesChannel.find({}).sort('sortOrder ASC');
+            const [installed, statuses] = await Promise.all([getInstalledProviderAppIds(), refreshStatuses(channels)]);
             return channels
-                .map((c: any) => mapChannel(c))
+                .map((c: any) => mapChannel(c, installed, statuses[c.id]))
                 .filter((c: any) => {
                     if (enabled !== undefined && c.enabled !== enabled) return false;
                     if (type && c.type !== type) return false;
@@ -95,18 +128,22 @@ export function registerSalesChannelsTools() {
         handler: async ({ id, key }: { id?: string; key?: string }) => {
             if (!id && !key) throw new Error('id or key is required');
             const channel = await SalesChannel.findOne(id ? { id } : { key });
-            return channel ? mapChannel(channel) : null;
+            if (!channel) return null;
+            const [installed, computed] = await Promise.all([getInstalledProviderAppIds(), SalesChannel.channelStatus(channel)]);
+            return mapChannel(channel, installed, computed);
         },
     });
 
     mcp.registerTool({
         name: 'sales-channel-types',
         group: 'sales-channels',
-        description: 'Lists the registered channel TYPES (web-storefront, telegram-bot, …) available to assign to a channel — not configured instances.',
+        description: 'Lists the registered channel TYPES (web-storefront, telegram-bot, …) — not configured instances. '
+            + '`alive` = the provider module is running, only then a channel of the type can be created; '
+            + '`comingSoon` types have no provider yet.',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
         handler: async () => {
-            return SalesChannelRegistry.listTypes();
+            return SalesChannelRegistry.listTypes().map((def) => ({ ...def, alive: Boolean(SalesChannel.getAdapter(def.type)) }));
         },
     });
 
@@ -115,7 +152,7 @@ export function registerSalesChannelsTools() {
         group: 'sales-channels',
         description:
             'Diagnostic: resolves an order-source string (Order.orderedOnPlatform value) the way order creation does — '
-            + 'matches an ENABLED channel by `key` first, then by membership in any channel\'s `platforms` list. '
+            + 'matches an ACTIVE channel (enabled + ready + provider alive) by `key` first, then by membership in any channel\'s `platforms` list. '
             + 'Returns null when nothing matches (the value would still be accepted, just unattributed).',
         mode: 'protected',
         schema: {
@@ -127,7 +164,7 @@ export function registerSalesChannelsTools() {
         },
         handler: async ({ value }: { value: string }) => {
             const channel = await SalesChannel.resolve(value);
-            return channel ? mapChannel(channel) : null;
+            return channel ? mapChannel(channel, await getInstalledProviderAppIds()) : null;
         },
     });
 
@@ -136,9 +173,11 @@ export function registerSalesChannelsTools() {
         group: 'sales-channels',
         description:
             'Creates or updates a sales channel. Pass id to update an existing one. `key` is slugified and must be '
-            + 'unique; if omitted it is derived from title (create) or kept (update). `platforms` is the set of '
-            + 'runtime orderedOnPlatform values that should resolve to this channel — set it explicitly, it is '
-            + 'never filled automatically.',
+            + 'unique; if omitted it is derived from title (create) or kept (update). Create only works for a type whose '
+            + 'provider is alive (see sales-channel-types); a new channel starts disabled, the provider reports readiness. '
+            + '`type` cannot be changed later. `enabled: true` is refused until the provider reports ready ("Finish setup first"). '
+            + '`platforms` is the set of runtime orderedOnPlatform values that should resolve to this channel; a platform '
+            + 'may belong to one channel only.',
         mode: 'protected',
         schema: {
             type: 'object',
@@ -146,10 +185,8 @@ export function registerSalesChannelsTools() {
                 id: { type: 'string', description: 'SalesChannel ID — pass to update.', example: 'abc123' },
                 key: { type: 'string', description: 'Stable slug. Auto-derived from title if omitted on create.', example: 'web-main' },
                 title: { type: 'string', description: 'Display name.', example: 'Main website' },
-                type: { type: 'string', description: 'Type slug from sales-channel-types (falls back to "custom").', example: 'web-storefront' },
-                providerModule: { type: 'string', description: 'appId of the module providing this type.', example: 'admin-frontend' },
-                enabled: { type: 'boolean', description: 'Master switch — only enabled channels are valid order sources.', example: true },
-                status: { type: 'string', description: `One of: ${VALID_STATUS.join(', ')}.`, example: 'ready' },
+                type: { type: 'string', description: 'Type slug from sales-channel-types. Required on create, fixed afterwards.', example: 'web-storefront' },
+                enabled: { type: 'boolean', description: 'Operator switch. Ignored on create (channels start disabled); switching on needs a ready provider.', example: true },
                 countries: { type: 'array', items: { type: 'string' }, description: 'ISO 3166-1 alpha-2 codes.', example: ['RU'] },
                 platforms: { type: 'array', items: { type: 'string' }, description: 'Runtime platform/device labels that report through this channel.', example: ['web', 'pwa-android', 'pwa-ios', 'app-ios'] },
                 concepts: { type: 'array', items: { type: 'string' }, description: 'Concept allowlist. Empty = all concepts.', example: [] },
@@ -175,14 +212,26 @@ export function registerSalesChannelsTools() {
             const clash = await SalesChannel.findOne({ key });
             if (clash && clash.id !== existing?.id) throw new Error('A sales channel with this key already exists');
 
-            let type = String(params.type || existing?.type || 'custom').trim();
-            if (!SalesChannelRegistry.getType(type) && type !== 'legacy') type = 'custom';
+            const requestedType = String(params.type || '').trim();
+            if (existing && requestedType && requestedType !== existing.type) throw new Error('Channel type cannot be changed');
+            const type = existing ? existing.type : requestedType;
+            if (!existing) {
+                const refusal = await checkCanCreate(type);
+                if (refusal) refuse(refusal);
+            }
             const typeDef = SalesChannelRegistry.getType(type);
 
-            const enabled = params.enabled !== undefined ? Boolean(params.enabled) : (existing?.enabled ?? false);
-            let status = String(params.status || '').trim();
-            if (!VALID_STATUS.includes(status)) {
-                status = enabled ? 'ready' : (existing?.status && existing.status !== 'ready' ? existing.status : 'draft');
+            const platforms = params.platforms !== undefined ? stringArray(params.platforms) : stringArray(existing?.platforms);
+            const platformRefusal = await checkPlatforms(platforms, existing);
+            if (platformRefusal) refuse(platformRefusal);
+
+            const installed = await getInstalledProviderAppIds();
+            const enabled = existing ? (params.enabled !== undefined ? Boolean(params.enabled) : existing.enabled === true) : false;
+            let computed = null;
+            if (existing && enabled && existing.enabled !== true) {
+                const check = await checkCanEnable(existing, installed);
+                if (check.refusal) refuse(check.refusal);
+                computed = check.computed;
             }
 
             const concepts = params.concepts !== undefined ? stringArray(params.concepts) : stringArray(existing?.concepts);
@@ -192,12 +241,9 @@ export function registerSalesChannelsTools() {
             const values: any = {
                 key,
                 title,
-                type,
-                providerModule: params.providerModule !== undefined ? String(params.providerModule).trim() || null : (existing?.providerModule ?? typeDef?.providerModule ?? null),
                 enabled,
-                status,
                 countries: params.countries !== undefined ? stringArray(params.countries) : stringArray(existing?.countries),
-                platforms: params.platforms !== undefined ? stringArray(params.platforms) : stringArray(existing?.platforms),
+                platforms,
                 concepts,
                 defaultConcept,
                 allowConceptSwitch: params.allowConceptSwitch !== undefined ? Boolean(params.allowConceptSwitch) : (existing?.allowConceptSwitch ?? true),
@@ -205,17 +251,28 @@ export function registerSalesChannelsTools() {
                 sortOrder: params.sortOrder !== undefined ? Number(params.sortOrder) || 0 : (existing?.sortOrder ?? 0),
             };
 
-            const saved = existing
-                ? (await SalesChannel.update({ id: existing.id }, values).fetch())[0]
-                : await SalesChannel.create(values).fetch();
-            return mapChannel(saved);
+            let saved: any;
+            if (existing) {
+                saved = (await SalesChannel.update({ id: existing.id }, values).fetch())[0];
+            } else {
+                saved = await SalesChannel.create({
+                    ...values,
+                    type,
+                    providerModule: typeDef?.providerModule ?? null,
+                    managedBy: 'operator',
+                    status: 'needs_setup',
+                }).fetch();
+                computed = await SalesChannel.channelStatus(saved);
+            }
+            return mapChannel(saved, installed, computed);
         },
     });
 
     mcp.registerTool({
         name: 'sales-channel-delete',
         group: 'sales-channels',
-        description: 'Deletes a configured sales channel. Existing orders keep their orderedOnPlatform string for reports — this is not destructive to order history.',
+        description: 'Deletes a configured sales channel. A provider\'s own channel cannot be deleted while its module is installed — disable it instead. '
+            + 'Existing orders keep their orderedOnPlatform string for reports — this is not destructive to order history.',
         mode: 'protected',
         schema: {
             type: 'object',
@@ -227,7 +284,9 @@ export function registerSalesChannelsTools() {
         handler: async ({ id }: { id: string }) => {
             const existing = await SalesChannel.findOne({ id });
             if (!existing) throw new Error('Sales channel not found');
-            await SalesChannel.destroy({ id }).fetch();
+            const refusal = checkCanDelete(existing, await getInstalledProviderAppIds());
+            if (refusal) refuse(refusal);
+            await SalesChannel.destroyChannel(existing);
             return { success: true, id };
         },
     });

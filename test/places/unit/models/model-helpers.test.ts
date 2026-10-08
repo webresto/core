@@ -1,9 +1,7 @@
 import { expect } from "chai";
 import { toId } from "../../../../lib/association-id";
-import { toPublic } from "../../../../lib/auth-provider";
 import { between } from "../../../../lib/maintenance";
 import { validateRule } from "../../../../lib/notification-rules";
-import { generateOtp } from "../../../../lib/one-time-password";
 import { assertCoordinate } from "../../../../lib/place";
 import { normalizePromotionCodeValue } from "../../../../lib/promotion-code";
 import { isInDeclaredSettings, setDeclaredSetting } from "../../../../lib/settings/declared";
@@ -18,11 +16,6 @@ describe("Helpers taken out of models", function () {
     expect(toId({})).to.equal(null);
   });
 
-  it("toPublic keeps only what a storefront may see", function () {
-    const row = { adapter: "provider-1", title: "Provider 1", config: { secret: "x" } } as any;
-    expect(toPublic(row)).to.include({ adapter: "provider-1", title: "Provider 1" }).and.not.have.property("config");
-  });
-
   it("between treats an empty bound as open", function () {
     expect(between(0, 0, 5)).to.equal(true);
     expect(between(10, 20, 5)).to.equal(false);
@@ -33,20 +26,6 @@ describe("Helpers taken out of models", function () {
       "key must be snake_case (lowercase, digits, underscores)",
       "eventKey is required",
     ]);
-  });
-
-  it("generateOtp gives six digits", function () {
-    const saved = { DEMO_MODE: process.env.DEMO_MODE, DEFAULT_OTP: process.env.DEFAULT_OTP };
-    delete process.env.DEMO_MODE;
-    delete process.env.DEFAULT_OTP;
-    try {
-      expect(generateOtp()).to.match(/^\d{6}$/);
-    } finally {
-      for (const [key, value] of Object.entries(saved)) {
-        if (value === undefined) delete process.env[key];
-        else process.env[key] = value;
-      }
-    }
   });
 
   it("assertCoordinate refuses a point off the globe", function () {

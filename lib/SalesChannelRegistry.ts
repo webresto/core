@@ -12,8 +12,13 @@
  * Design mirrors SetupChecklistRegistry / NotificationEventRegistry:
  *  - Definitions live ONLY in RAM, on a globalThis singleton (survives hot-reload).
  *  - core registers its defaults via registerCoreDefaults() (called from hook/afterHook.ts);
- *    channel-provider modules register their own types from their boot hook.
- *  - This registry never touches the DB. Configured instances are SalesChannel records.
+ *    channel-provider modules register their own types through SalesChannel.alive(adapter),
+ *    which calls registerType() with the provider's definition (replacing the core one).
+ *  - This registry never touches the DB. Configured instances are SalesChannel records;
+ *    a provider's channel record is created by SalesChannel.alive, not here.
+ *  - Core types whose provider module is not in the marketplace yet carry `comingSoon: true`:
+ *    they cannot be created or installed. The flag disappears on its own once a provider
+ *    registers the type, because its definition does not carry it.
  */
 
 export type SalesChannelCategory =
@@ -62,6 +67,11 @@ export interface SalesChannelTypeDefinition {
   settingsUrl?: string | null;
   /** Module that registered the type (diagnostics): "core", "sales-channel-line", … */
   sourceModule?: string;
+  /**
+   * No provider module exists yet (or the type needs none, like `custom`): shown as
+   * "Coming soon", channels of this type cannot be created.
+   */
+  comingSoon?: boolean;
 }
 
 const TYPES_GLOBAL_KEY = "__restoappSalesChannelTypes";
@@ -98,6 +108,18 @@ function normalizeKey(value: unknown): string {
   return String(value || "").trim();
 }
 
+/**
+ * Core defaults must not overwrite a type a provider module already registered: boot hooks
+ * run in no fixed order, and the core definition would bring `comingSoon` back.
+ */
+function withoutProviderTypes(defs: SalesChannelTypeDefinition[]): SalesChannelTypeDefinition[] {
+  const types = getTypes();
+  return defs.filter((def) => {
+    const current = types.get(def.type);
+    return !current || current.sourceModule === "core";
+  });
+}
+
 export class SalesChannelRegistry {
   // ─── Writes ────────────────────────────────────────────────────────────────
 
@@ -115,6 +137,7 @@ export class SalesChannelRegistry {
       supportsConcepts: def.supportsConcepts ?? true,
       supportsMultipleInstances: def.supportsMultipleInstances ?? true,
       settingsUrl: def.settingsUrl ?? null,
+      comingSoon: def.comingSoon === true,
     });
   }
 
@@ -127,12 +150,23 @@ export class SalesChannelRegistry {
     return getTypes().delete(normalizeKey(type));
   }
 
-  /** Merge a country → recommended-type-slugs map into the region matrix. */
+  /**
+   * Merge a country → recommended-type-slugs map into the region matrix. Types are appended
+   * to the country's list without duplicates, so a module adding its type for RU keeps the
+   * types core (or another module) already recommends there.
+   */
   static registerRegionRecommendations(matrix: Record<string, string[]>): void {
     if (!matrix || typeof matrix !== "object") return;
     const target = getRegionMatrix();
     for (const [country, types] of Object.entries(matrix)) {
-      if (Array.isArray(types)) target[String(country).toUpperCase()] = types.slice();
+      if (!Array.isArray(types)) continue;
+      const code = String(country).toUpperCase();
+      const list = Array.isArray(target[code]) ? target[code] : [];
+      for (const type of types) {
+        const slug = normalizeKey(type);
+        if (slug && !list.includes(slug)) list.push(slug);
+      }
+      target[code] = list;
     }
   }
 
@@ -168,7 +202,10 @@ export class SalesChannelRegistry {
 
   /** Register the channel types + region matrix that ship with core. Called from afterHook. */
   static registerCoreDefaults(): void {
-    this.registerTypes([
+    // Only admin-frontend ships a channel adapter today; every other type is "Coming soon"
+    // until its provider module is published and registers the type itself. `custom` has
+    // no provider by design and stays unavailable.
+    this.registerTypes(withoutProviderTypes([
       {
         type: "web-storefront",
         title: "Website",
@@ -190,6 +227,7 @@ export class SalesChannelRegistry {
         capabilities: ["orders:create", "admin:order-entry", "menu:browse"],
         supportsMultipleInstances: false,
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "telegram-bot",
@@ -201,6 +239,7 @@ export class SalesChannelRegistry {
         icon: "send",
         capabilities: ["orders:create", "menu:browse", "customers:identify", "notifications:reply", "webhooks:incoming"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "vk-miniapp",
@@ -212,6 +251,7 @@ export class SalesChannelRegistry {
         icon: "groups",
         capabilities: ["orders:create", "menu:browse", "customers:identify"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "max-bot",
@@ -223,6 +263,7 @@ export class SalesChannelRegistry {
         icon: "chat",
         capabilities: ["orders:create", "menu:browse", "customers:identify", "webhooks:incoming"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "line-oa",
@@ -234,6 +275,7 @@ export class SalesChannelRegistry {
         icon: "forum",
         capabilities: ["orders:create", "menu:browse", "customers:identify", "notifications:reply", "webhooks:incoming"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "zalo-oa",
@@ -245,6 +287,7 @@ export class SalesChannelRegistry {
         icon: "forum",
         capabilities: ["orders:create", "menu:browse", "customers:identify", "webhooks:incoming"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "whatsapp-business",
@@ -255,6 +298,7 @@ export class SalesChannelRegistry {
         icon: "chat_bubble",
         capabilities: ["orders:create", "menu:browse", "customers:identify", "notifications:reply", "webhooks:incoming"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "facebook",
@@ -266,6 +310,7 @@ export class SalesChannelRegistry {
         icon: "thumb_up",
         capabilities: ["orders:create", "menu:browse", "customers:identify", "webhooks:incoming"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "mobile-app",
@@ -276,6 +321,7 @@ export class SalesChannelRegistry {
         icon: "smartphone",
         capabilities: ["orders:create", "orders:pay", "orders:status", "menu:browse", "customers:identify"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "kiosk",
@@ -286,6 +332,7 @@ export class SalesChannelRegistry {
         icon: "point_of_sale",
         capabilities: ["orders:create", "orders:pay", "menu:browse", "customers:anonymous"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "qr-table-order",
@@ -296,6 +343,7 @@ export class SalesChannelRegistry {
         icon: "qr_code_2",
         capabilities: ["orders:create", "orders:pay", "menu:browse", "customers:anonymous"],
         sourceModule: "core",
+        comingSoon: true,
       },
       {
         type: "custom",
@@ -305,8 +353,9 @@ export class SalesChannelRegistry {
         icon: "tune",
         capabilities: ["orders:create"],
         sourceModule: "core",
+        comingSoon: true,
       },
-    ]);
+    ]));
 
     try {
       const matrix = require("./dictionaries/salesChannelRegions.json");

@@ -13,6 +13,7 @@ import { Restrictions, WorkTimeValidator } from "@webresto/worktime";
 import type { AbstractPromotionAdapter, BonusTransaction } from "../adapters";
 import { phoneValidByMask } from "../lib/phoneValidByMask";
 import { OrderHelper } from "../lib/order/OrderHelper";
+import AuthService from "../lib/AuthService";
 import {
   buildCancelPaymentDialog,
   CANCEL_PAYMENT_DIALOG_CONFIRM,
@@ -35,6 +36,7 @@ import { estimateDeliveryTime, fitsMaxWait, productFitsMaxWait, resolveOrderTimi
 import { UserRecord } from "./User";
 import { PaymentDocumentRecord } from "./PaymentDocument";
 import ToInitialize from "../hook/initialize";
+import { coreI18n } from "../hook/bindLocales";
 import { or } from "ajv/dist/compile/codegen";
 import { ProductModifier } from "../lib/ProductModifier";
 import { getAllowedOrderTransitions } from "../lib/order/OrderStateFlow";
@@ -656,8 +658,26 @@ let Model = {
 
     await Order.log({id: order.id}, "info", "core", `addDish: ${dishObj.name}`, {dishId: dishObj.id, amount, addedBy, modifiersCount: modifiers?.length || 0});
 
+    /**
+     * @setting: REQUIRE_AUTH_FOR_CART - Only an authenticated user may put dishes in a cart
+     *
+     * Checked here rather than only in the API layer: core is the one layer every integration
+     * goes through, and `order.user` is already at hand — no JWT needed.
+     *
+     * Only `addedBy: "user"` is blocked. The same function places promotion items and
+     * ORDER_INIT_PRODUCT_ID (`addedBy: "core"`, see afterCreate above); those are the server
+     * filling its own cart and must keep working.
+     *
+     * Read through `AuthService.cartRequiresAuth()`, not the raw setting: the flag only applies
+     * while somebody can actually sign in (require-auth-for-cart.md §3.5).
+     */
+    if (addedBy === "user" && !order.user && await AuthService.cartRequiresAuth()) {
+      await Order.log({id: order.id}, "warn", "core", `addDish: rejected, authorization required`, {dishId: dishObj.id});
+      throw { body: `Authorization required to add dish`, code: 1 };
+    }
+
     if (order.state === "NEW") {
-      order = await Order.doCart({ id: order.id })
+      order = await Order.doCart({ id: order.id }, { addedBy })
     }
     if (order.dishes && Array.isArray(order.dishes) && order.dishes.length > 99) throw "99 max dishes amount";
 
@@ -973,6 +993,27 @@ let Model = {
         throw {
           code: 13,
           error: "order is empty",
+        };
+      }
+
+      /**
+       * @setting: REQUIRE_AUTH_FOR_CART - and a cart that requires an account cannot be ordered
+       * without one either.
+       *
+       * addDish/doCart guard the way IN; without this one the invariant only holds for carts
+       * assembled after the flag went on. A basket filled before it, or by a promotion, or by an
+       * integration, or left anonymous on another device, still reached checkout and became an
+       * order with no account behind it (review2 §4.2). `userId` is the caller's session,
+       * `order.user` the cart's own owner — either one satisfies it.
+       *
+       * Code 20 rather than the 3 review2 proposed: 0–19 are taken, and 3 is already
+       * "customer.name is invalid", thrown from checkCustomerInfo a few lines below.
+       */
+      if (!userId && !order.user && await AuthService.cartRequiresAuth()) {
+        await Order.log({id: order.id}, "warn", "core", "check: rejected, authorization required", {});
+        throw {
+          code: 20,
+          error: "authorization required",
         };
       }
 
@@ -1351,39 +1392,47 @@ let Model = {
         sails.log.info(`RestoCore > new order with id [${orderWithRMS.shortId}] for [${orderWithRMS.customer.phone.code + orderWithRMS.customer.phone.number}] total: ${orderWithRMS.total} has rmsOrderNumber: ${orderWithRMS.rmsOrderNumber}`)
         await Order.log({id: order.id}, "info", "core", "order: RMS order created", {rmsOrderNumber: orderWithRMS.rmsOrderNumber, rmsId: orderWithRMS.rmsId});
       } catch (error) {
-        // Extract detailed error information
-        let errorMessage = error.message || '';
+        // Extract detailed error information.
+        // RMS adapters (and Adapter.getRMSAdapter itself: `throw "RMS adapter is not installed"`)
+        // may throw primitives, not Error instances. Spreading a string (`...error`) turns it into
+        // a char map {"0":"R","1":"M",...}, so primitives are stringified as-is.
+        let errorMessage: string;
+        if (error === null || typeof error !== "object") {
+          errorMessage = String(error);
+        } else {
+          errorMessage = typeof error.message === "string" ? error.message : '';
 
-        // If message is empty, try to extract more information
-        if (!errorMessage || errorMessage === '{}') {
-          // Gather all available error properties
-          const errorDetails = {
-            name: error.name,
-            code: error.code,
-            stack: error.stack,
-            ...error
-          };
-          errorMessage = JSON.stringify(errorDetails, null, 2);
+          // If message is empty, try to extract more information
+          if (!errorMessage || errorMessage === '{}') {
+            // Gather all available error properties
+            const errorDetails = {
+              name: error.name,
+              code: error.code,
+              stack: error.stack,
+              ...error
+            };
+            errorMessage = JSON.stringify(errorDetails, null, 2);
+          }
         }
 
         const orderError = {
-          rmsErrorCode: error.code ?? "Error",
+          rmsErrorCode: error?.code ?? "Error",
           rmsErrorMessage: errorMessage
         }
 
         // Enhanced logging with stack trace
         sails.log.error(`RestoCore > orderIt error:`, {
-          code: error.code,
-          message: error.message,
-          name: error.name,
-          stack: error.stack,
+          code: error?.code,
+          message: errorMessage,
+          name: error?.name,
+          stack: error?.stack,
           orderId: order.id,
           orderShortId: order.shortId,
           fullError: error
         })
 
         await Order.update({ id: order.id }, orderError)
-        await Order.log({id: order.id}, "error", "core", "order: RMS error", {code: error.code, message: error.message});
+        await Order.log({id: order.id}, "error", "core", "order: RMS error", {code: error?.code, message: errorMessage});
       }
 
       sails.log.debug("CORE > about to emit core:order-after-order, orderId:", order?.id, "emitter events count:", emitter?.events?.length, "subscribers:", emitter?.events?.map(e => `${e.name}[${e.subscribers?.length}]`).join(", "));
@@ -1468,8 +1517,11 @@ let Model = {
    * payment link so the only way forward is to register a new payment matching
    * the new basket. If there is no pending PaymentDocument, this is a no-op.
    *
-   * Errors from the underlying adapter cancel are propagated — callers MUST
-   * abort the basket mutation in that case (see addDish/removeDish/etc.).
+   * A gateway that cannot cancel does not lock the basket: the document is
+   * superseded instead, and if it still gets paid the operator is alerted
+   * (PaymentDocument.invalidate, Order.doPaidSuperseded). It throws when a pending
+   * payment turns out to be already paid — callers MUST abort the basket mutation
+   * then (see addDish/removeDish/etc.): the order is being placed with the paid basket.
    */
   async cancelOrderPayment(criteria: CriteriaQuery<OrderRecord>): Promise<void> {
     const order = await Order.findOne(criteria);
@@ -1480,6 +1532,7 @@ let Model = {
       originModelId: order.id,
       paid: false,
       status: ["NEW", "REGISTERED"],
+      supersededAt: null,
     });
 
     if (!pendingDocs.length) return;
@@ -1491,7 +1544,19 @@ let Model = {
         status: pd.status,
         amount: pd.amount,
       });
-      await PaymentDocument.cancel({ id: pd.id });
+      const result = await PaymentDocument.invalidate({ id: pd.id });
+      if (result === "PAID") {
+        await Order.log({ id: order.id }, "warn", "core", "payment: pending document is already paid, basket change aborted", {
+          paymentDocumentId: pd.id,
+        });
+        throw new Error(`Order ${order.id}: payment ${pd.id} is already paid — cart is frozen`);
+      }
+      if (result === "SUPERSEDED") {
+        await Order.log({ id: order.id }, "warn", "core", "payment: gateway did not cancel, document superseded", {
+          paymentDocumentId: pd.id,
+          externalId: pd.externalId,
+        });
+      }
     }
   },
 
@@ -1529,6 +1594,8 @@ let Model = {
       // at checkout and the caller hears why.
       sails.log.error("Order > payment: ", e);
       await Order.log({id: order.id}, "error", "core", "payment: register failed", {error: e?.message || e});
+      // Stay in CHECKOUT: there is no payment link to wait for, the customer can retry
+      // the payment or edit the basket right away.
       throw e;
     }
     await Order.next(order.id, "PAYMENT");
@@ -2327,15 +2394,22 @@ let Model = {
       if (amountMismatch) {
         await Order.log({id: order.id}, "warn", "core", "doPaid: amount mismatch", {total: order.total, paidAmount: paymentDocument.amount});
       }
+      // A payment confirmed by hand (PaymentDocument.confirm) is marked in the comment, so the
+      // operator and the kitchen see it in the RMS too
+      const manualConfirmation = (paymentDocument.data as { manualConfirmation?: { reason: string } })?.manualConfirmation;
       await Order.update(
         { id: paymentDocument.originModelId },
         {
           paid: true,
           paymentMethod: paymentDocument.paymentMethod,
           paymentMethodTitle: paymentMethodTitle,
-          ...(amountMismatch && {
-            problem: true,
-            comment: (order.comment ?? "") + "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount,
+          ...(amountMismatch && { problem: true }),
+          ...((amountMismatch || manualConfirmation) && {
+            comment: [
+              order.comment,
+              amountMismatch && "Attention, the composition of the order was changed, the bank account received:" + paymentDocument.amount,
+              manualConfirmation && `${await coreI18n("Payment confirmed manually")}: ${manualConfirmation.reason}`,
+            ].filter(Boolean).join("\n"),
           }),
         }
       ).fetch();
@@ -2384,6 +2458,34 @@ let Model = {
       throw e;
     }
   },
+
+  /**
+   * The gateway confirmed a superseded payment: the basket changed after the payment link
+   * was issued and the gateway could not cancel it (see PaymentDocument.invalidate).
+   * The money matches the old basket, not the current one, so the order is neither placed
+   * nor marked paid. It is flagged as a problem and the operator is alerted — refunding
+   * (or placing the order by hand) is a human decision.
+   */
+  async doPaidSuperseded(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocumentRecord): Promise<void> {
+    const order = await Order.findOne(criteria);
+    if (!order) throw `Order > doPaidSuperseded: order not found for payment ${paymentDocument.id}`;
+
+    sails.log.error(`Order > doPaidSuperseded: order ${order.id} received superseded payment ${paymentDocument.id} (${paymentDocument.amount}), order not placed`);
+    await Order.update({ id: order.id }, { problem: true }).fetch();
+    await Order.log({id: order.id}, "error", "core", "payment: superseded payment was paid — order not placed, refund manually", {
+      paymentDocumentId: paymentDocument.id,
+      externalId: paymentDocument.externalId,
+      paidAmount: paymentDocument.amount,
+      orderTotal: order.total,
+      state: order.state,
+    });
+    Order.emitAndLogDetached({id: order.id}, "core:order-superseded-payment-paid", order, paymentDocument);
+    await NotificationManager.sendMessageToDeliveryManager(
+      "error",
+      `${await coreI18n("Payment received for a changed basket, the order was not placed. Refund the payment manually")}: ` +
+        `${order.shortId}, ${paymentDocument.amount}, ${paymentDocument.externalId}`
+    );
+  },
   async doFinalize(criteriaOne: CriteriaQuery<OrderRecord>, state: "DONE" | "REJECT"): Promise<void> {
     let order = await Order.findOne(criteriaOne);
     await Order.log({id: order.id}, "info", "core", `doFinalize: ${state}`, {total: order.total, paid: order.paid});
@@ -2391,21 +2493,22 @@ let Model = {
     let isNewUser = false;
 
     if (state === "DONE" && !order.user) {
-      let loginFiled = await Settings.get("CORE_LOGIN_FIELD") || "phone";
-      const phone = order.customer.phone.code + order.customer.phone.number + order.customer.phone.additionalNumber;
-      const login = loginFiled === "phone" ? phone.replace(/\D/g, "") : `${phone}@localhost`;
-
-      user = await User.findOne({ login });
-
-      if (!user) {
-        user = await User.create({
-          firstName: order.customer.name,
-          phone: order.customer.phone,
-          login,
-          verified: true
-        }).fetch();
-        isNewUser = true;
-      }
+      // A guest order goes through the one and only User factory (design2 Д6). No `login`, no
+      // synthetic `<phone>@localhost`: the account is keyed by its id and reachable through an
+      // AuthIdentity(provider:"phone").
+      //
+      // That identity is deliberately created WITHOUT a proof: the number was typed into a
+      // checkout form, nobody proved anything. It holds the unique key — so the guest's next
+      // order lands in the same profile instead of forking a duplicate — but it grants no way in
+      // until its real owner passes an OTP and adopts it (extend §5.2). `verified` is a
+      // projection of that proof now, which is why nothing here sets it (design2 Д7).
+      const before = await AuthIdentity.findByExternal("phone", AuthService.normalizePhone(order.customer.phone));
+      const materialized = await AuthService.materializeUser({
+        firstName: order.customer.name,
+        phone: order.customer.phone,
+      });
+      user = materialized.user;
+      isNewUser = !before;
 
       await Order.update({ id: order.id }, { user: user.id }).fetch();
     }
@@ -2422,12 +2525,31 @@ let Model = {
     Order.emitAndLogDetached({id: order.id}, "core:order-after-done", order, user, { isNewUser });
   },
 
-  async doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord> {
+  async doCart(criteriaOne: CriteriaQuery<OrderRecord>, opts: { addedBy?: "user" | "promotion" | "core" | "custom" } = {}): Promise<OrderRecord> {
     let order = await Order.findOne(criteriaOne);
 
     if (order.state !== 'NEW') {
       sails.log.debug(`Order > doCart: Check order ${order.id} state is ${order.state}`);
       throw `Do order state the 'CART' failed: state error`
+    }
+
+    /**
+     * @setting: REQUIRE_AUTH_FOR_CART - Only an authenticated user may start a cart
+     *
+     * NEW -> CART is literally "starting a cart", so the barrier sits on the transition itself
+     * and not only on addDish: any other route into CART is closed by the same condition.
+     * Same effective flag as addDish (ignored while nobody can sign in).
+     *
+     * `addedBy` is who is starting it, and it obeys exactly the rule addDish obeys: only the
+     * customer is blocked, the server filling its own cart is not. Without it this gate fired
+     * on ORDER_INIT_PRODUCT_ID — afterCreate → addDish(…, "core") → doCart on a NEW order — and
+     * because afterCreate throws before its callback, `Order.create().fetch()` never settled at
+     * all: not an error the caller could see, a hang, on any non-GraphQL creation of an
+     * anonymous order (review2 §4.1).
+     */
+    const startedBy = opts.addedBy ?? "user";
+    if (startedBy === "user" && !order.user && await AuthService.cartRequiresAuth()) {
+      throw { body: `Authorization required to start a cart`, code: 1 };
     }
 
     // Whether an address is required at all is `addDish`'s question, asked
@@ -2573,8 +2695,9 @@ let Model = {
     // Rolling back to CART from an in-payment state means the basket is about to
     // be edited; the outstanding payment link must be invalidated first so the
     // gateway can't confirm a payment for a basket that no longer exists.
-    // If cancellation throws, the state stays where it is — caller's mutation
-    // must abort, otherwise we re-introduce the original race.
+    // If cancelOrderPayment throws (the pending payment turned out to be paid), the
+    // state stays where it is — caller's mutation must abort, otherwise we
+    // re-introduce the original race.
     if (
       nextState === "CART" &&
       (currentState === "CHECKOUT" || currentState === "PAYMENT")
@@ -2585,6 +2708,7 @@ let Model = {
             originModelId: order.id,
             paid: false,
             status: "REGISTERED",
+            supersededAt: null,
           })
         : undefined;
 

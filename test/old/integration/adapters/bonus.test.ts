@@ -34,7 +34,7 @@ describe("Bonus program adapter", function () {
       
       bonusProgram = (await BonusProgram.update({adapter: "test"},{enable: true}).fetch())[0]
 
-      user = await User.create({ id: "handletestapply-bonus-id", login: "7723555", lastName: 'TESThandleTestApply', firstName: "test", phone: { code: "77", number: "23555" } }).fetch();
+      user = await User.create({ id: "handletestapply-bonus-id", lastName: 'TESThandleTestApply', firstName: "test", phone: { code: "77", number: "23555" } }).fetch();
       bp = await BonusProgram.getAdapter("test")
       
       UBP = (await UserBonusProgram.registration(user, "test")).id;

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ProductModifier } from '../../../libs/ProductModifier';
+import { ProductModifier } from '../../../lib/ProductModifier';
 import { GroupModifier, Modifier, OrderModifier } from '../../../interfaces/Modifier';
 
 describe('ProductModifier', () => {

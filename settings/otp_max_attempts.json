@@ -1,0 +1,8 @@
+{
+  "key": "OTP_MAX_ATTEMPTS",
+  "type": "number",
+  "name": "OTP: max wrong attempts",
+  "description": "How many wrong codes are accepted before the OTP is destroyed and the user has to request a new one.",
+  "defaultValue": 5,
+  "isRequired": true
+}

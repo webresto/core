@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
-import { requireAdminApi } from './lib/admin-api';
+import { extractApiErrorMessage, requireAdminApi } from './lib/admin-api';
+import { getSchemaTypes, isIntegerSchema, validateValueBySchema } from './lib/setting-schema';
 import { ModuleToaster } from './components/notifications/shared';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
@@ -85,7 +86,7 @@ async function apiRequest(path, options = {}) {
       : await adminApi[method](url, options.body, config);
     return response.data;
   } catch (error) {
-    throw new Error(error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Request failed');
+    throw new Error(extractApiErrorMessage(error) || 'Request failed');
   }
 }
 
@@ -170,6 +171,17 @@ function getSettingValue(setting) {
   return setting?.value !== undefined && setting?.value !== null ? setting.value : setting?.defaultValue;
 }
 
+/** Setting key the address bar points at, or '' — a malformed hash names no setting. */
+function readHashKey() {
+  const raw = window.location.hash.slice(1);
+  if (!raw) return '';
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 function valuesEqual(a, b) {
   try {
     return JSON.stringify(a) === JSON.stringify(b);
@@ -183,15 +195,6 @@ function isTextEditingTarget(target) {
   const tagName = target.tagName?.toLowerCase();
   return target.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select'
     || !!target.closest?.('.vanilla-jsoneditor-react');
-}
-
-function getSchemaTypes(schema) {
-  const type = schema?.type;
-  return Array.isArray(type) ? type : type ? [type] : [];
-}
-
-function isIntegerSchema(schema) {
-  return getSchemaTypes(schema).includes('integer');
 }
 
 function enumOptionToValue(option) {
@@ -372,6 +375,19 @@ function JsonEditor({ value, schema, onChange, onValidation, readOnly }) {
 
 function EditorPanel({ selected, editValue, setEditValue, saving, saveError, saveSuccess, handleSave, handleReset, t }) {
   const [jsonHasErrors, setJsonHasErrors] = useState(false);
+  // A setting pinned by an environment variable is not editable here: the server
+  // refuses the write, because env outranks the DB when the value is read back.
+  const envPinned = !!selected?.envOverride;
+  const locked = !!selected?.readOnly || envPinned;
+  // The same jsonSchema the API validates against, checked while typing: without it the
+  // only feedback on a broken value is the API rejecting the save after the round trip.
+  // JSON values are left out — JsonEditor reports them through jsonHasErrors.
+  // A secret is write-only, so its field starts blank whether or not a value is stored:
+  // "blank" means "keep the stored one" and must not read as "the value is empty".
+  const blankSecret = !!selected?.secret && (editValue === null || editValue === undefined || editValue === '');
+  const schemaError = locked || blankSecret || selected?.type === 'json'
+    ? null
+    : validateValueBySchema(selected?.jsonSchema, editValue, t, selected?.patternHint);
   // Reset validation state when a different setting is selected
   React.useEffect(() => { setJsonHasErrors(false); }, [selected?.key]);
 
@@ -396,6 +412,7 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
           <Badge variant={typeVariant(selected.type)}>{typeLabel(selected.type, t)}</Badge>
           {selected.module && <Badge variant="secondary">{selected.module}</Badge>}
           {selected.readOnly && <Badge variant="destructive">{t('Read only')}</Badge>}
+          {envPinned && <Badge variant="destructive">{t('Set via ENV')}</Badge>}
           {selected.secret && <Badge variant="outline">{t('Secret')}</Badge>}
           {selected.restartRequired && <Badge variant="outline">{t('Restart required')}</Badge>}
         </div>
@@ -416,6 +433,14 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
       {/* Value editor */}
       <div className="flex flex-col gap-2">
         <Label>{t('Value')}</Label>
+        {envPinned && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 text-sm flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0 text-destructive" />
+            <span>{selected.envOverride.valid
+              ? t('This value comes from an environment variable and overrides the stored one. Change it where the container environment is defined.')
+              : t('The environment variable set for this setting does not match its schema, so the setting reads as empty. Fix it where the container environment is defined.')}</span>
+          </div>
+        )}
         {selected.secret && (
           <div className="bg-muted border rounded-md px-3 py-2 text-xs text-muted-foreground leading-relaxed">
             🔒 {selected.hasValue
@@ -424,16 +449,19 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
           </div>
         )}
         {selected.type === 'string' && (
-          <StringEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} schema={selected.jsonSchema} secret={selected.secret} t={t} />
+          <StringEditor value={editValue} onChange={setEditValue} readOnly={locked} schema={selected.jsonSchema} secret={selected.secret} t={t} />
         )}
         {selected.type === 'number' && (
-          <NumberEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} schema={selected.jsonSchema} t={t} />
+          <NumberEditor value={editValue} onChange={setEditValue} readOnly={locked} schema={selected.jsonSchema} t={t} />
         )}
         {selected.type === 'boolean' && (
-          <BooleanEditor value={editValue} onChange={setEditValue} readOnly={selected.readOnly} t={t} />
+          <BooleanEditor value={editValue} onChange={setEditValue} readOnly={locked} t={t} />
         )}
         {selected.type === 'json' && (
-          <JsonEditor key={selected.key} value={editValue} schema={selected.jsonSchema} onChange={setEditValue} onValidation={setJsonHasErrors} readOnly={selected.readOnly} />
+          <JsonEditor key={selected.key} value={editValue} schema={selected.jsonSchema} onChange={setEditValue} onValidation={setJsonHasErrors} readOnly={locked} />
+        )}
+        {schemaError && (
+          <span className="text-xs text-destructive">{schemaError}</span>
         )}
       </div>
 
@@ -467,10 +495,10 @@ function EditorPanel({ selected, editValue, setEditValue, saving, saveError, sav
       )}
 
       {/* Actions */}
-      {!selected.readOnly && (
+      {!locked && (
         <div className="flex gap-2 items-center mt-1">
-          <Button variant="default" size="sm" onClick={handleSave} disabled={saving || jsonHasErrors}
-            title={jsonHasErrors ? t('Fix schema errors before saving') : undefined}>
+          <Button variant="default" size="sm" onClick={handleSave} disabled={saving || jsonHasErrors || !!schemaError}
+            title={schemaError || (jsonHasErrors ? t('Fix schema errors before saving') : undefined)}>
             <Save className="w-4 h-4 mr-1" />
             {saving ? t('Saving') : t('Save')}
           </Button>
@@ -557,7 +585,8 @@ function ImportDialog({ open, onOpenChange, diff, selected, setSelected, result,
                       <Badge variant={d.status === 'changed' ? 'outline' : 'secondary'} style={{ fontSize: 10 }}>
                         {statusLabel(d.status)}
                       </Badge>
-                      {d.readOnly && <Badge variant="destructive" style={{ fontSize: 10 }}>{t('Read only')}</Badge>}
+                      {d.readOnly && !d.envOverride && <Badge variant="destructive" style={{ fontSize: 10 }}>{t('Read only')}</Badge>}
+                      {d.envOverride && <Badge variant="destructive" style={{ fontSize: 10 }}>{t('Set via ENV')}</Badge>}
                       {d.secret && <Badge variant="outline" style={{ fontSize: 10 }}>{t('Secret')}</Badge>}
                     </div>
                     {d.status === 'changed' && (
@@ -757,7 +786,7 @@ function SettingsManagerContent({ bootId }) {
       .then(data => {
         setSettings(data);
         setLoading(false);
-        const hashKey = decodeURIComponent(window.location.hash.slice(1));
+        const hashKey = readHashKey();
         if (hashKey) {
           const found = data.find(s => s.key === hashKey);
           if (found) applySelection(found);
@@ -810,6 +839,29 @@ function SettingsManagerContent({ bootId }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  });
+
+  // The hash is the address of a setting, not a bookmark read once at load: a link to
+  // /admin/settings-manager#KEY from an already-open page, or the back button, must move the
+  // editor too. `applySelection` writes the hash itself, so selecting a setting lands here as a
+  // no-op; only a hash pointing elsewhere switches anything.
+  useEffect(() => {
+    function handleHashChange() {
+      const key = readHashKey();
+      const current = selectedRef.current;
+      if (!key || key === current?.key) return;
+      const found = settings.find(s => s.key === key);
+      if (!found) return;
+      if (!canLeaveCurrentSetting()) {
+        // Declined: put the address back on the setting still in the editor.
+        if (current) window.location.hash = encodeURIComponent(current.key);
+        return;
+      }
+      applySelection(found);
+    }
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   });
 
   useEffect(() => {
@@ -877,7 +929,7 @@ function SettingsManagerContent({ bootId }) {
       document.body.removeChild(a);
       URL.revokeObjectURL(objectUrl);
     } catch (e) {
-      window.sonner?.toast.error(`${t('Export failed')}: ${e?.message || String(e)}`);
+      window.sonner?.toast.error(`${t('Export failed')}: ${extractApiErrorMessage(e) || String(e)}`);
     }
   }
 

@@ -70,6 +70,7 @@ export class BackupHandler {
       console.log(`Export process completed successfully: ${filePath}`);
     } catch (error) {
       sails.log.error('Export error:', error);
+      throw error;
     }
   }
   
@@ -156,7 +157,7 @@ export class BackupHandler {
             const ext = path.extname(image.originalFilePath) || '.webp';
             const imagePath = path.join(this.workDir, `${dish.id}__${count}${ext}`);
             console.log(`Checking and loading image: ${imagePath}`);
-            this.checkAndLoadImage(imagePath);
+            await this.checkAndLoadImage(imagePath);
             count++;
           }
         }
@@ -164,7 +165,10 @@ export class BackupHandler {
   
       console.log('Import completed successfully:', filePath);
     } catch (error) {
+      // The caller (the install wizard, an admin action) decides how to report this. Swallowing
+      // it here used to make a half-imported menu look like a completed import.
       sails.log.error('Import error:', error);
+      throw error;
     }
   }
   
@@ -239,8 +243,10 @@ export class BackupHandler {
     init[model] = dishId;
     init["sortOrder"] = sortOrder;
     
-    if(sortOrder === 0) {
-      await SelectedMediaFile.destroy({"dish": dishId}).fetch();  
+    if (sortOrder <= 1) {
+      // Images are numbered from 1, so this is the first image of the dish: drop whatever
+      // selection the previous copy of the record had.
+      await SelectedMediaFile.destroy({"dish": dishId}).fetch();
     }
     await SelectedMediaFile.create(init).fetch();
   }

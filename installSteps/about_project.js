@@ -110,7 +110,13 @@ class AboutProjectStep {
         
         for (const key of settingsToSave) {
             if (data[key]) {
-                await Settings.set(key, { value: data[key] });
+                // Settings.set does not throw: on a jsonSchema mismatch it logs and returns
+                // undefined. Without this check a rejected value would be dropped silently and
+                // the step still marked completed, leaving the setting unset for good.
+                const saved = await Settings.set(key, { value: data[key] });
+                if (!saved) {
+                    throw new Error(`Setting ${key}: value "${data[key]}" was rejected, check the format and try again`);
+                }
             }
         }
 

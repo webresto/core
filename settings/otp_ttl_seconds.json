@@ -1,0 +1,8 @@
+{
+  "key": "OTP_TTL_SECONDS",
+  "type": "number",
+  "name": "OTP: code lifetime (seconds)",
+  "description": "How long an issued code stays valid.",
+  "defaultValue": 1800,
+  "isRequired": true
+}

@@ -1,2 +1,27 @@
+# One line ending everywhere. Half this tree was checked in with CRLF, so any editor that
+# normalizes on save rewrote whole files and buried the real diff in them (review1 §4).
+# `text=auto eol=lf` makes git store LF and check LF out on every platform; after changing this
+# file the tree was renormalized in one dedicated commit.
+* text=auto eol=lf
+
+# Binary: never touched, never diffed as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.mp3 binary
+*.mp4 binary
+
+# Language stats, as before.
 *.ejs linguist-detectable=false
 *.js linguist-detectable=false

@@ -1,5 +1,5 @@
-import { NotificationDispatcher } from "../../libs/NotificationDispatcher";
-import { Channel, NotificationManager } from "../../libs/NotificationManager";
+import { NotificationDispatcher } from "../../lib/notifications/NotificationDispatcher";
+import { Channel, NotificationManager } from "../../lib/notifications/NotificationManager";
 
 const NotificationModel = () => (globalThis as any).Notification;
 
@@ -13,6 +13,7 @@ class StubChannel extends Channel {
   public failNext: boolean = false;
   public delayMs: number = 0;
   public lastData: any = null;
+  public lastUser: any = null;
 
   constructor(type: string, sortOrder: number) {
     super();
@@ -20,13 +21,14 @@ class StubChannel extends Channel {
     this.sortOrder = sortOrder;
   }
 
-  protected async send(_badge: any, _message: any, _user: any, _subject?: any, data?: any): Promise<void> {
+  protected async send(_badge: any, _message: any, user?: any, _subject?: any, data?: any): Promise<void> {
     if (this.delayMs > 0) await new Promise((resolve) => setTimeout(resolve, this.delayMs));
     if (this.failNext) {
       this.failNext = false;
       throw new Error("stub channel failure");
     }
     this.lastData = data;
+    this.lastUser = user;
     this.sendCount += 1;
   }
 }
@@ -147,6 +149,53 @@ describe("NotificationDispatcher", function () {
       }
     } finally {
       (NotificationModel() as any).create = originalCreate;
+    }
+  });
+
+  it("delivers to the address the sender pinned, not to the one on the user record", async () => {
+    // The dispatcher reloads the user from the database before a channel reads an address off
+    // it, so a notice ABOUT a change to that address would go to the address AFTER the change —
+    // to whoever just made it (AuthService.notifyIdentityChange, review3 §1.8). The snapshot is
+    // an override of single fields: everything else must still come from the record.
+    const pinned = { code: "+7", number: "9995550001" };
+
+    const notification = await NotificationDispatcher.send({
+      user: userId,
+      title: "pinned",
+      body: "pinned body",
+      channelTypes: ["stub-a"],
+      data: { recipient: { userId, address: { phone: pinned } } },
+    });
+
+    if (stubA.lastUser?.phone?.number !== pinned.number) {
+      throw new Error(`expected the pinned number, got ${JSON.stringify(stubA.lastUser?.phone)}`);
+    }
+    if (stubA.lastUser?.id !== userId) throw new Error("the rest of the user record must survive the overlay");
+    if (stubA.lastUser?.firstName !== "Dispatcher") throw new Error("the overlay must replace only the keys it carries");
+
+    // The record itself is untouched — a snapshot addresses one message, it does not edit anyone.
+    const owner = await User.findOne({ id: userId });
+    if (owner.phone?.number !== "9990001122") throw new Error(`User.phone must not be rewritten, got ${JSON.stringify(owner.phone)}`);
+
+    // And it survives a reload: recovery/retry delivery reads it back off the persisted payload.
+    const persisted = await NotificationModel().findOne({ id: notification.id });
+    const persistedData = typeof persisted.data === "string" ? JSON.parse(persisted.data) : persisted.data;
+    if (persistedData?.recipient?.address?.phone?.number !== pinned.number) {
+      throw new Error(`expected the snapshot to be persisted, got ${JSON.stringify(persistedData?.recipient)}`);
+    }
+  });
+
+  it("leaves the record's own address alone when nothing was pinned", async () => {
+    await NotificationDispatcher.send({
+      user: userId,
+      title: "unpinned",
+      body: "unpinned body",
+      channelTypes: ["stub-a"],
+      data: { recipient: { userId } },
+    });
+
+    if (stubA.lastUser?.phone?.number !== "9990001122") {
+      throw new Error(`expected the number on the record, got ${JSON.stringify(stubA.lastUser?.phone)}`);
     }
   });
 

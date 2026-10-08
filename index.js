@@ -13,7 +13,11 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthAdapter = void 0;
 process.env.UNIQUE_SLUG === undefined ? "1" : process.env.UNIQUE_SLUG;
 __exportStar(require("./models/BonusProgram"), exports);
 __exportStar(require("./models/DeliveryZone"), exports);
@@ -22,7 +26,10 @@ __exportStar(require("./models/Group"), exports);
 __exportStar(require("./models/Maintenance"), exports);
 __exportStar(require("./models/MediaFile"), exports);
 __exportStar(require("./models/Notification"), exports);
-__exportStar(require("./models/OneTimePassword"), exports);
+__exportStar(require("./models/AuthAttempt"), exports);
+__exportStar(require("./models/AuthIdentity"), exports);
+__exportStar(require("./models/AuthMethod"), exports);
+__exportStar(require("./models/AuthSendLog"), exports);
 __exportStar(require("./models/Order"), exports);
 __exportStar(require("./models/OrderDish"), exports);
 __exportStar(require("./models/PaymentDocument"), exports);
@@ -47,6 +54,10 @@ __exportStar(require("./lib/notifications/NotificationTemplateRenderer"), export
 __exportStar(require("./lib/notifications/NotificationService"), exports);
 __exportStar(require("./lib/SetupChecklistRegistry"), exports);
 __exportStar(require("./lib/SetupChecklistService"), exports);
+__exportStar(require("./lib/AuthService"), exports);
+var AuthAdapter_1 = require("./adapters/auth/AuthAdapter");
+Object.defineProperty(exports, "AuthAdapter", { enumerable: true, get: function () { return __importDefault(AuthAdapter_1).default; } });
+__exportStar(require("./adapters/auth/AuthAdapter"), exports);
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),

@@ -1,0 +1,15 @@
+{
+  "key": "AUTH_REDIRECT_ALLOWED_ORIGINS",
+  "type": "json",
+  "name": "Auth: allowed post-login redirect origins",
+  "description": "Origins (scheme://host[:port], or an app deep-link scheme such as myapp://auth) that authStart(redirectBack:) may send the browser to after an OAuth callback. Matching is exact — no subdomain wildcards. AUTH_CALLBACK_BASE_URL and the URLs of enabled sales channels are always allowed; everything else falls back to AUTH_CALLBACK_BASE_URL.",
+  "jsonSchema": {
+    "type": "array",
+    "items": {
+      "type": "string"
+    },
+    "minItems": 0
+  },
+  "defaultValue": [],
+  "isRequired": false
+}

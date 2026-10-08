@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { DialogBox } from '../../../libs/DialogBox';
+import { DialogBox } from '../../../lib/DialogBox';
 import { DialogBoxConfig } from '../../../interfaces/DialogBox';
 
 describe('DialogBox', () => {

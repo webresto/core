@@ -1,0 +1,8 @@
+{
+  "key": "AUTH_MAX_SWITCHES",
+  "type": "number",
+  "name": "Auth: max method switches per attempt",
+  "description": "How many times one attempt may be re-aimed at another method ('another way in'). Each switch builds a new step, so an unbounded count is an unbounded number of codes. 0 = unlimited.",
+  "defaultValue": 3,
+  "isRequired": true
+}

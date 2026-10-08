@@ -45,7 +45,7 @@ describe("Notifications", function () {
     NotificationManager.channels.length = 0;
     NotificationManager.registerChannel(channel1);
     NotificationManager.registerChannel(channel2);
-    user = (await User.create({ login: "15550000001", firstName: "Customer", lastName: "1", phone: { code: "1", number: "5550000001" } }).fetch()).id;
+    user = (await User.create({ firstName: "Customer", lastName: "1", phone: { code: "1", number: "5550000001" } }).fetch()).id;
   });
 
   after(function () {
@@ -72,25 +72,25 @@ describe("Notifications", function () {
       expect(channel1.sent.map((sent) => sent.message)).to.include("Message 1");
     });
 
-    it("carries a login code by SMS once its rule is on; out of the box the rule is off", async function () {
+    it("carries a login code by SMS; out of the box the rule is on, or nobody could sign in", async function () {
       const sms = new TestChannel("sms", 0);
       NotificationManager.registerChannel(sms);
       const rule = await NotificationRules.findOne({ key: "user_otp_sms" });
-      expect(rule.enabled).to.equal(false);
+      expect(rule.enabled).to.equal(true);
 
-      await NotificationRules.update({ key: "user_otp_sms" }, { enabled: true }).fetch();
       await NotificationTypeRegistry.load();
       try {
-        const otp = await (await Adapter.getOTPAdapter()).get("15550000001");
+        await AuthMethod.getAdapter("core", "sms").start(
+          { id: "attempt-1", target: "15550000001", secret: "123456", resends: 0 } as any,
+          { kind: "phone_proof", offer: "sms", mode: "enter_code", secretOrigin: "server", codeLength: 6 },
+        );
         let body = "";
         for (let attempt = 0; attempt < 20 && !body; attempt++) {
           await new Promise((resolve) => setTimeout(resolve, 50));
           body = sms.sent.map((sent) => sent.message).join(" ");
         }
-        expect(body).to.contain(otp.password);
+        expect(body).to.contain("123456");
       } finally {
-        await NotificationRules.update({ key: "user_otp_sms" }, { enabled: false }).fetch();
-        await NotificationTypeRegistry.load();
         NotificationManager.channels.splice(NotificationManager.channels.indexOf(sms), 1);
       }
     });

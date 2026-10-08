@@ -4,7 +4,7 @@ import {
   serializeModifiers,
   validateModifiers,
   summarizeModifiers,
-} from '../../../libs/adminpanel/controls/modifiersEditorHelper';
+} from '../../../lib/adminpanel/controls/modifiersEditorHelper';
 
 describe('modifiersEditorHelper', () => {
   const valid = [

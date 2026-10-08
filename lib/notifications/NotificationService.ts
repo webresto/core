@@ -15,6 +15,7 @@
  * Registering an event does not send anything; only enabled types produce notifications.
  */
 
+import { Phone } from "../../models/User";
 import { NotificationDispatcher, NotificationSendOptions } from "./NotificationDispatcher";
 import { NotificationEventRegistry } from "./NotificationEventRegistry";
 import { NotificationTypeRegistry, NotificationType } from "./NotificationTypeRegistry";
@@ -26,6 +27,16 @@ export interface NotificationRecipient {
   user?: any | null;
   locale?: string;
   timezone?: string;
+  /**
+   * Address SNAPSHOT — where to send, for the emitter that knows the address better than the
+   * database will at delivery time. The dispatcher reloads the user from the DB before any
+   * channel reads an address off it, so a notice ABOUT a change to that address would otherwise
+   * be sent to the new one: to whoever just made the change (see NotificationDispatcher._deliver
+   * and AuthService.notifyIdentityChange). Only the keys given are overlaid; the rest of the
+   * user record still comes from the database. Persisted with the notification, so a recovery
+   * or retry delivery uses the same address as the first attempt.
+   */
+  address?: { phone?: Phone | null; email?: string | null };
   [key: string]: any;
 }
 

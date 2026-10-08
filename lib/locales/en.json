@@ -3,5 +3,10 @@
   "Cancel pending payment?": "Cancel pending payment?",
   "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?": "You have an active payment link for this order. Editing the basket will cancel that payment. Do you want to continue?",
   "Cancel payment and edit basket": "Cancel payment and edit basket",
-  "Keep payment": "Keep payment"
+  "Keep payment": "Keep payment",
+  "Sent a confirmation code by SMS to": "Sent a confirmation code by SMS to",
+  "Enter it on the site to finish signing in — no need to type it here.": "Enter it on the site to finish signing in — no need to type it here.",
+  "Please enter the code on the site, in the sign-in confirmation window. I cannot accept it here.": "Please enter the code on the site, in the sign-in confirmation window. I cannot accept it here.",
+  "Payment received for a changed basket, the order was not placed. Refund the payment manually": "Payment received for a changed basket, the order was not placed. Refund the payment manually",
+  "Payment confirmed manually": "Payment confirmed manually"
 }

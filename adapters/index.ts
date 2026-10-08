@@ -1,9 +1,7 @@
 import RMSAdapter, { ConfigRMSAdapter } from "./rms/RMSAdapter";
 import CaptchaAdapter from "./captcha/CaptchaAdapter";
 import { POW } from "./captcha/default/pow";
-import { DefaultOTP } from "./otp/default/defaultOTP";
 import LocalMediaFileAdapter from "./mediafile/default/local";
-import OTPAdapter from "./otp/OTPAdapter";
 import MediaFileAdapter, { ConfigMediaFileAdapter } from "./mediafile/MediaFileAdapter";
 import PaymentAdapter from "./payment/PaymentAdapter";
 import * as fs from "fs";
@@ -14,14 +12,16 @@ import { PromotionAdapter } from "./promotion/default/promotionAdapter";
 import AbstractPromotionAdapter, { AbstractPromotionHandler } from "./promotion/PromotionAdapter";
 import MenuAdapter from "./menu/MenuAdapter";
 import { DefaultMenuAdapter } from "./menu/default/defaultMenu";
-import AuthProviderAdapter from "./auth/AuthAdapter";
+import AuthAdapter from "./auth/AuthAdapter";
 import GeoAdapter from "./geo/GeoAdapter";
 import { DefaultGeoAdapter } from "./geo/default/defaultGeo";
+export { default as SalesChannelAdapter } from "./sales-channel/SalesChannelAdapter";
+export type { SalesChannelStatusResult, SalesChannelReadiness, InitSalesChannelAdapter } from "./sales-channel/SalesChannelAdapter";
 // import DiscountAdapter from "./discount/AbstractDiscountAdapter";
 
 // Code outside `adapters/` reaches an adapter only through this file: the base
 // classes a module extends or types against, and the types they carry.
-export { GeoAdapter, DeliveryAdapter, MenuAdapter, RMSAdapter, PaymentAdapter, BonusProgramAdapter, AuthProviderAdapter, AbstractPromotionAdapter, AbstractPromotionHandler };
+export { GeoAdapter, DeliveryAdapter, MenuAdapter, RMSAdapter, PaymentAdapter, BonusProgramAdapter, AuthAdapter, AbstractPromotionAdapter, AbstractPromotionHandler };
 export type { RMSOutOfStockEventItem } from "./rms/RMSAdapter";
 export type { BonusTransaction } from "./bonusprogram/BonusProgramAdapter";
 export type { AuthFlowKind, NormalizedProfile } from "./auth/AuthAdapter";
@@ -135,28 +135,6 @@ export class Adapter {
 
   public static WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
-  public static async getOTPAdapter(adapterName?: string): Promise<OTPAdapter> {
-    if (!adapterName) {
-      adapterName = await Settings.get("DEFAULT_OTP_ADAPTER");
-    }
-
-    // Use default adapter POW (crypto-puzzle)
-    if (!adapterName || adapterName === "default") {
-      return new DefaultOTP();
-    }
-
-    let adapterLocation = WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-otp-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-otp-adapter";
-
-    try {
-      const adapter = require(adapterLocation);
-      return new adapter.OTPAdapter[adapterName]() as OTPAdapter;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter OTP > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-
   public static getPromotionAdapter(adapter?: string | PromotionAdapter, initParams?: {[key: string]:string | number | boolean}): PromotionAdapter {
 
     let adapterName: string;
@@ -250,7 +228,7 @@ export class Adapter {
 
     if (!adapterName) {
       adapterName = await Settings.get("RMS_ADAPTER");
-      if (!adapterName) throw "RMS adapter is not installed";
+      if (!adapterName) throw new Error("RMS adapter is not installed");
     }
 
     let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-rms-adapter";
@@ -313,33 +291,10 @@ export class Adapter {
   }
 
   /**
-   * returns a live Auth-provider adapter by its slug.
-   * First checks providers that already self-registered into AuthProvider.alive() (modules
-   * loaded as sails hooks, e.g. ru_auth_providers — AuthProvider is a sails global, same as
-   * Settings above, so no import/circular-dependency concern here), then falls back to
-   * requiring an `@webresto/<slug>-auth-adapter` npm module.
+   * Auth adapters are NOT resolved here. A module self-registers every offer it declares into
+   * the AuthMethod registry from its constructor, and `AuthMethod.getAdapter(adapter, offer)`
+   * hands back the live instance. A second resolution path next to that registry could only
+   * ever disagree with it about which module owns a slug — which is exactly the defect the
+   * registry's conflict check exists to kill (design2 §4.1, Д1).
    */
-  public static async getAuthAdapter(adapterName: string): Promise<AuthProviderAdapter> {
-    if (!adapterName) throw "AuthProviderAdapter name is required";
-
-    const alive = AuthProvider.getAdapter(adapterName);
-    if (alive) {
-      return alive;
-    }
-
-    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-auth-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-auth-adapter";
-
-    try {
-      const adapterModule = require(adapterLocation);
-      const instance = new adapterModule.AuthProviderAdapter() as AuthProviderAdapter;
-      // Constructing the adapter self-registers it into AuthProvider.alive(), which is the
-      // single cache getAuthAdapter reads from — no separate bookkeeping needed here.
-      await instance.wait();
-      return instance;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Auth > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
 }

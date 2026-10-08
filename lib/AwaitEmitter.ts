@@ -51,6 +51,8 @@ declare global {
     "core:payment-document-checked-document": [PaymentDocumentRecord]
     "core:payment-document-before-cancel": [PaymentDocumentRecord]
     "core:payment-document-canceled": [PaymentDocumentRecord]
+    "core:payment-document-superseded": [PaymentDocumentRecord]
+    "core:payment-document-confirmed-manually": [PaymentDocumentRecord]
     "core:order-after-order": [OrderRecord]
     "core:order-before-order": [OrderRecord]
     "core:order-order-service-type": [OrderRecord, ServiceType]
@@ -117,8 +119,17 @@ declare global {
     "core:order-set-tag": [CriteriaQuery<OrderRecord>, string],
     "core:order-set-custom-data": [CriteriaQuery<OrderRecord>, object],
     "core:order-after-remove-dish": [OrderRecord, string, DishRecord, number, boolean]
+    /**
+     * A delivery the auth ledger paid for (design2 И6). The payload carries the method and
+     * nothing about who it was aimed at: this feeds a metrics registry whose cardinality rules
+     * forbid ids, numbers and device ids as labels (send-caps.md §2).
+     */
+    "core:auth-send": [{ adapter: string; offer: string }]
+    /** An auth delivery that was refused before any money was spent, by which cap (send-caps.md §2). */
+    "core:auth-send-refused": [{ reason: import("./AuthService").AuthSendRefusal }]
     "core:notification-created": [import("../models/Notification").NotificationRecord]
     "core:notification-log": [import("../models/Notification").NotificationRecord, import("./notifications/NotificationLogHelper").NotificationLogEntry]
+    "core:notification-delivery-attempt": [import("../models/Notification").NotificationRecord, { channel: string; result: "success" | "failed" }]
     /** Collected by the admin panel link registry. Subscribers return admin page links. */
     "admin-panel:collect-links": []
   }

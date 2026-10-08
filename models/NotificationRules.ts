@@ -186,17 +186,21 @@ let Model = {
 
   /**
    * Seed the example rules (mostly disabled — registration ≠ sending; e.g. `order_on_the_way_push`
-   * ships enabled by default) when the catalog is empty. Replaces the old `NOTIFICATION_TYPES`
-   * settings `defaultValue`. Templates for existing rows are handled on read by
-   * `NotificationTypeRegistry` (parse + seed fallback), so no per-row backfill is needed here.
+   * ships enabled by default). Idempotent by `key`: a rule the catalog already has is never
+   * touched (it is the operator's now), a rule it lacks is created — so a rule that arrives with
+   * a newer core (`user_otp_sms`, the only way a login code goes out) also lands on an
+   * installation whose catalog was seeded before the rule existed (review2 §1.1). Replaces the
+   * old `NOTIFICATION_TYPES` settings `defaultValue`. Templates for existing rows are handled on
+   * read by `NotificationTypeRegistry` (parse + seed fallback), so no per-row backfill is needed.
    */
   async seedDefaults(): Promise<void> {
-    const count = await NotificationRules.count();
-    if (count > 0) return;
     const defaults = require("../seeds/notification_rules.json") as Array<Partial<NotificationRulesRecord> & { key: string; eventKey: string }>;
+    const existing = new Set((await NotificationRules.find()).map((rule) => rule.key));
     for (const rule of defaults) {
+      if (existing.has(rule.key)) continue;
       try {
         await NotificationRules.create(rule as any).fetch();
+        sails.log.info(`[NotificationRules] Seeded default rule "${rule.key}"`);
       } catch (error) {
         sails.log.warn(`[NotificationRules] Failed to seed default rule "${rule.key}":`, error);
       }

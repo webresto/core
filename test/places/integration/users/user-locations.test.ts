@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import AuthService from "../../../../lib/AuthService";
 import { wholeLine } from "../../../../lib/user-location";
 import { resetDatabase } from "../../support/reset";
 import { thrown } from "../../support/storefront";
@@ -24,8 +25,9 @@ describe("User locations", function () {
 
   beforeEach(async function () {
     await resetDatabase();
-    user1 = (await User.create({ login: "15550000001", firstName: "Customer", lastName: "1", phone: { code: "1", number: "5550000001" } }).fetch()).id;
-    user2 = (await User.create({ login: "15550000002", firstName: "Customer", lastName: "2", phone: { code: "1", number: "5550000002" } }).fetch()).id;
+    // Through the one User factory, so each number is the phone identity a guest order is matched by.
+    user1 = (await AuthService.materializeUser({ firstName: "Customer", lastName: "1", phone: { code: "1", number: "5550000001", additionalNumber: "" } })).user.id;
+    user2 = (await AuthService.materializeUser({ firstName: "Customer", lastName: "2", phone: { code: "1", number: "5550000002", additionalNumber: "" } })).user.id;
   });
 
   /** An order placed with `values`, finished as `state`. A new order is always a delivery, so the rest is written after. */

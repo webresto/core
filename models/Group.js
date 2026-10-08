@@ -134,7 +134,8 @@ let Model = {
         if (!init.concept) {
             init.concept = "origin";
         }
-        init.visible = init.visible ?? true;
+        // `visible` defaults to true and `enable` to false via `defaultsTo`: Waterline fills in missing
+        // attributes before `beforeCreate` runs, so a guard on `undefined` here never fires.
         const slugOpts = [];
         if (init.concept !== "origin" && process.env.UNIQUE_SLUG === "1") {
             slugOpts.push(init.concept);

@@ -27,6 +27,16 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	public icon: string = "bread-slice";
 	public model: string = null;
 
+	/**
+	 * Key of the admin page that renders the add/edit form, as registered in
+	 * `lib/adminpanel/models/bind.ts`. It is NOT always the Waterline model name: the catalog
+	 * fetches the form from `/model/<adminResource>/add`, and that lookup is case-insensitive,
+	 * so a raw model name can collide with a page Adminizer ships itself. Defaults to `model`.
+	 */
+	public get adminResource(): string {
+		return this.model;
+	}
+
 	public readonly actionHandlers: any[] = []
 
 	protected resolveModelId(modelId: string | number, data?: any): string | number {
@@ -65,9 +75,31 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	
 
 	public async create(data: T, catalogId: string): Promise<T> {
-		//@ts-ignore
-		data.parentGroup = data.parentId
-		let result = await sails.models[this.model].create(data).fetch()
+		const payload = data as any;
+		const parentId = payload.parentId ?? null;
+
+		// The catalog "create" dialog for `type: 'model'` items (Group, Product) saves the record
+		// itself via /admin/model/<adminResource>/add and then calls createItem with
+		// `{ record, parentId, type }`, where `record` is the already-saved row (same contract as
+		// updateModelItems/resolveModelId). Creating it again here produced a nameless duplicate
+		// group and a 500 "Missing value for required attribute `name`" for dishes.
+		const recordId = payload.record && typeof payload.record === "object" ? payload.record.id : undefined;
+		if (recordId !== undefined && recordId !== null) {
+			let record = await sails.models[this.model].findOne({ id: recordId });
+			if (!record) {
+				throw new Error(`${this.model} \`${recordId}\` was not found after the add form saved it`);
+			}
+			const currentParent = record.parentGroup && typeof record.parentGroup === "object" ? record.parentGroup.id : record.parentGroup;
+			// Place the record under the group selected in the tree, unless the form already set one
+			if (parentId && !currentParent && parentId !== record.id) {
+				record = await sails.models[this.model].updateOne({ id: recordId }).set({ parentGroup: parentId });
+			}
+			return this.toItem(record) as T;
+		}
+
+		// Plain item data (no add form involved): create the record here
+		payload.parentGroup = parentId;
+		let result = await sails.models[this.model].create(payload).fetch()
 		return this.toItem(result) as T;
 	}
 
@@ -112,15 +144,17 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 	public type = 'group'
 	public isGroup: boolean = true;
 	public model: string = "group";
-	/** Adminizer CRUD resource; distinct from the physical Sails model above. */
-	public resourceName: string = "ProductGroup";
+	/** `group` collides with the built-in Adminizer user-groups page; ours is `DishGroup`. */
+	public get adminResource(): string {
+		return "DishGroup";
+	}
 	public readonly actionHandlers: any[] = []
 
 	async getAddTemplate(req: any): Promise<any> {
 		return {
 		type: 'model',
 		data: {
-			model: this.resourceName,
+			model: this.adminResource,
 			labels: {
 				//@ts-ignore
 				title: req.i18n.__('Add Group'),
@@ -139,7 +173,7 @@ export class Group<GroupProductItem extends Item> extends BaseModelItem<GroupPro
 			item: {
 				modelId: item.id
 			},
-			model: this.resourceName,
+			model: this.adminResource,
 			labels: {
 				title: req.i18n.__('Edit Group'),
 				save: req.i18n.__('Save'),
@@ -168,7 +202,7 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 		return {
 			type: type,
 			data: {
-				model: this.model,
+				model: this.adminResource,
 				labels: {
 					//@ts-ignore
 					title: req.i18n.__('Add Product'),
@@ -185,7 +219,7 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 		return Promise.resolve({
 			type: 'model',
 			data: {
-				model: this.model,
+				model: this.adminResource,
 				item:  {
 					modelId: item.id
 				},

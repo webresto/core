@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { SetupChecklistRegistry } from "../../../../lib/SetupChecklistRegistry";
 import { SetupChecklistService } from "../../../../lib/SetupChecklistService";
+import { Channel, NotificationManager } from "../../../../lib/notifications/NotificationManager";
+import { SalesChannelAdapter, type SalesChannelStatusResult } from "../../../../adapters";
 import { resetDatabase } from "../../support/reset";
 
 /**
@@ -40,18 +42,52 @@ describe("Setup checklist", function () {
   const status = () => SetupChecklistService.getStatus(ctx);
   const item = async (key: string) => (await status()).groups.flatMap((group: any) => group.items).find((candidate: any) => candidate.key === key);
 
+  /** A provider whose channel works: a channel counts only once one reports it ready. */
+  class ChannelProvider extends SalesChannelAdapter {
+    constructor() {
+      super({
+        type: { type: "channel-type-1", title: "Channel type 1", category: "custom", providerModule: "module-1" },
+        defaults: { key: "channel-1", title: "Channel 1", platforms: [] },
+      });
+    }
+
+    async getStatus(): Promise<SalesChannelStatusResult> {
+      return { status: "ready" };
+    }
+  }
+
+  /** An SMS gateway: the login code and the sign-in notices go nowhere without one. */
+  class SmsChannel extends Channel {
+    public type = "sms";
+    public sortOrder = 0;
+    public forceSend = false;
+    public forGroupTo = ["user"];
+    public cost = 0;
+
+    protected async send(): Promise<void> {}
+  }
+  const sms = new SmsChannel();
+
+  afterEach(function () {
+    const index = NotificationManager.channels.indexOf(sms);
+    if (index !== -1) NotificationManager.channels.splice(index, 1);
+  });
+
   /** Everything required, filled in. */
   async function readyInstallation(): Promise<void> {
     for (const [key, value] of Object.entries(SETTINGS)) await Settings.set(key as any, { value } as any);
     await PaymentMethod.create({ title: "Payment 1", type: "promise", adapter: "payment-1", enable: true }).fetch();
     await DeliveryZone.create({ name: "Zone 1", polygon: [[9, 9], [11, 9], [11, 11], [9, 11], [9, 9]], deliveryCost: 100, minDeliveryTime: 30 }).fetch();
-    await SalesChannel.create({ name: "Channel 1", type: "website", enabled: true } as any).fetch();
+    await SalesChannel.alive(new ChannelProvider());
+    await SalesChannel.update({ type: "channel-type-1" }, { enabled: true }).fetch();
+    NotificationManager.registerChannel(sms);
   }
 
-  it("a fresh installation is not ready: nothing required is done", async function () {
+  it("a fresh installation is not ready: nothing required is done but the sign-in core ships", async function () {
     const current = await status();
     expect(current.overallReady).to.equal(false);
-    expect(current.counts.required.done).to.equal(0);
+    expect(current.counts.required.done).to.equal(1);
+    expect((await item("auth_login_method")).status).to.equal("done");
     expect((await item("project_name")).status).to.equal("todo");
   });
 

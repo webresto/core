@@ -20,6 +20,9 @@ jobs:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm install 2>&1 || true && npm run test:init 2>&1 || true && npm run test
+      # models/*.js|d.ts are committed build artifacts of models/*.ts (build-models.sh): a .ts
+      # edited without a rebuild is code that never runs. Fail the build on drift (review2 §3).
+      - run: npm run check:models
 
       # Publish dev builds to GitHub npm registry
       - uses: actions/setup-node@v3

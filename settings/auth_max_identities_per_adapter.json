@@ -1,0 +1,9 @@
+{
+  "key": "AUTH_MAX_IDENTITIES_PER_ADAPTER",
+  "type": "number",
+  "name": "Auth: max accounts per provider",
+  "description": "How many accounts of one provider (Telegram, MAX, VK ...) a single profile may hold. 0 = unlimited. Overridable per provider on its AuthMethod row.",
+  "defaultValue": 1,
+  "readOnly": false,
+  "isRequired": false
+}

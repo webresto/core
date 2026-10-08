@@ -1,0 +1,8 @@
+{
+  "key": "OTP_RESEND_INTERVAL_SECONDS",
+  "type": "number",
+  "name": "OTP: resend interval (seconds)",
+  "description": "Minimum pause between two deliveries of the code for the same login. Also reported to the client as nextOTPAfterSeconds.",
+  "defaultValue": 60,
+  "isRequired": true
+}
