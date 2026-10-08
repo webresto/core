@@ -9,7 +9,7 @@ import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
-import { Restrictions, WorkTimeValidator } from "@webresto/worktime";
+import { Restrictions, TimeZoneIdentifier, WorkTimeValidator } from "@webresto/worktime";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import { phoneValidByMask } from "../libs/phoneValidByMask";
 import { OrderHelper } from "../libs/helpers/OrderHelper";
@@ -2630,6 +2630,16 @@ async function getTimezone(): Promise<string | undefined> {
   return process.env.TZ || undefined;
 }
 
+/**
+ * order.date is the place wall-clock time ("yyyy-MM-dd HH:mm"), convert it to an instant
+ * using the place timezone offset. Unknown formats are parsed as is.
+ */
+function orderDateInTimezone(date: string, timezone: string): Date {
+  const match = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::\d{2})?$/.exec(date.trim());
+  if (!match) return new Date(date);
+  return new Date(`${match[1]}T${match[2]}:00${TimeZoneIdentifier.getTimeZoneGMTOffset(timezone)}`);
+}
+
 async function checkDate(order: OrderRecord) {
   const MIN_DELIVERY_TIME_MINUTES = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
 
@@ -2653,10 +2663,13 @@ async function checkDate(order: OrderRecord) {
   // Global worktime restriction via WORK_TIME settings.
   // Runs for ASAP orders too (order.date may be empty), otherwise the check below
   // — guarded by `if (order.date)` — would be skipped entirely for "as soon as possible" orders.
+  // ASAP orders are checked against the current time, orders to time — against order.date,
+  // so a customer can place an order while the place is closed for a time within work hours.
   try {
     const WORK_TIME = await Settings.get('WORK_TIME');
     if (WORK_TIME) {
-      const { workNow } = WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME } as Restrictions);
+      const checkedAt = order.date ? orderDateInTimezone(order.date, timezone) : new Date();
+      const { workNow } = WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME } as Restrictions, checkedAt);
       if (!workNow) {
         throw { code: 18, error: 'Order date is outside work time' };
       }
