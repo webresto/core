@@ -115,10 +115,11 @@ declare let attributes: {
     recommendedForGroup: GroupRecord[];
     customData: CustomData;
 };
+/** Written by the promotion adapter's `displayDish`: all three `null` when no promotion shows on the dish. */
 interface IVirtualFields {
-    discountAmount?: number;
-    discountType?: "flat" | "percentage";
-    salePrice?: number;
+    discountAmount?: number | null;
+    discountType?: "flat" | "percentage" | null;
+    salePrice?: number | null;
 }
 type attributes = typeof attributes;
 export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name" | "price">, IVirtualFields, ORM {

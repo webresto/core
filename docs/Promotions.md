@@ -45,8 +45,8 @@ Each time the baskets of the basket will take place, all previous promotions wil
 During the passage of the Chekout, promotions will be relying.
 
 **Promotions in the interface**
-`ISPUBLIC: True` when requesting a group or product, the promotion will be calculated based on Worktime, Enable
-Promotions that are displayed in the interface cannot be single, for the flag `isjoint: true` will not be taken into account even if the flag is` Ispublic: true`.
+A dish carries the promotion the basket would apply to a line of it (`PromotionAdapter.displayDish`): `salePrice` — the price of one after the discount (a flat amount off, never below zero, or the percentage of the price), `discountAmount` and `discountType` as configured. GraphQL reads them on every `Dish` and names the type `FIXED` or `PERCENT`.
+The promotion is picked by the basket's rule — one that is not joint takes the line alone, otherwise the joint ones go by `sortOrder` and the first takes it — and it is shown only when it is `isPublic: true`; otherwise, and with no promotion at all, the three fields are `null`. Worktime, enable, concept, the chosen products and groups (`*` — any) and exclusions are respected. A promotion that chooses no product and no group is the whole receipt's, applied by a promotion code, and is never shown on a dish.
 
 > ⚠️  You can use this mechanism to display the user's personal promotions, as he transfers the user when calculating the promotion
 

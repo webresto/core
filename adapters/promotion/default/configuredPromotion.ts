@@ -100,8 +100,17 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       return new Decimal(order.basketTotal ?? 0).gte(minBasketTotal);
     }
 
+    // A dish and a group are asked about first: a concept that matched used to
+    // send them down the order's branch below, where a dish has no lines and threw.
+    const kind = findModelInstanceByAttributes(arg);
+    if (kind === "Dish") return this.targeted && this.discounts(arg as DishRecord);
+    if (kind === "Group") {
+      const conceptMatches = this.concept[0] === undefined || this.concept[0] === "" || someInArray(arg.concept, this.concept);
+      return conceptMatches && someInArray(arg.id, this.config.groups ?? []);
+    }
+
     if (
-      findModelInstanceByAttributes(arg) === "Order" && 
+      kind === "Order" && 
       (this.concept[0] === undefined || this.concept[0] === "") ? 
         true : someInArray(arg.concept, this.concept)
       ) {
@@ -117,8 +126,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       // A promotion that chooses no product and no group is the whole receipt's,
       // and that is a promotion code's to apply: were it selected here, a code's
       // promotion would reach every basket. So only a targeted one can be.
-      const targeted = (this.config.dishes ?? []).length > 0 || (this.config.groups ?? []).length > 0;
-      if (targeted && orderDishes.some((orderDish) => this.discounts(orderDish.dish as DishRecord))) {
+      if (this.targeted && orderDishes.some((orderDish) => this.discounts(orderDish.dish as DishRecord))) {
         if(Array.isArray(this.config.serviceType) && this.config.serviceType.length) {
           if(!this.config.serviceType.includes(order.serviceType ?? "delivery")) {
             return false
@@ -130,19 +138,16 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       return false;
     }
 
-    if (findModelInstanceByAttributes(arg) === "Dish" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
-      someInArray(arg.concept, this.concept)) {
-      return someInArray(arg.id, this.config.dishes ?? [])
-    }
-
-    if (findModelInstanceByAttributes(arg) === "Group" && (this.concept[0] === undefined || this.concept[0] === "") ? true :
-      someInArray(arg.concept, this.concept)) {
-      return someInArray(arg.id, this.config.groups ?? [])
-    }
-
-
-
     return false
+  }
+
+  /**
+   * Whether the promotion chooses any product or group. One that chooses
+   * neither is the whole receipt's, and that is a promotion code's to apply:
+   * neither a basket nor a menu picks it up by itself.
+   */
+  private get targeted(): boolean {
+    return (this.config.dishes ?? []).length > 0 || (this.config.groups ?? []).length > 0;
   }
 
   /**
@@ -183,23 +188,32 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     return group
   }
 
+  /**
+   * What the storefront shows for a dish this promotion discounts: the price of
+   * one after the discount, and the amount and type as configured.
+   *
+   * The arithmetic `applyPromotion` does to a line of the dish alone, so the
+   * price shown is the price charged: a flat amount off the unit, or the
+   * percentage of the price. A flat amount above the price shows `0`. A
+   * promotion the customer is not told about (`isPublic: false`), one with no
+   * discount (a gift) and a free product show nothing.
+   *
+   * Which dishes it discounts is `condition`'s question, asked before this.
+   */
   public displayDish(dish: DishRecord, user?: string | UserRecord): DishRecord {
-    // TODO: user implement logic personal discount
+    const { discountType, discountAmount } = this.configDiscount ?? ({} as IconfigDiscount);
+    const price = new Decimal(dish.price ?? 0);
+    if (!this.isPublic || !discountAmount || price.lte(0)) return dish;
 
-    if (this.isJoint === true && this.isPublic === true) {
-      // 
-      dish.discountAmount = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountAmount;
-      dish.discountType = Adapter.getPromotionAdapter().promotions[this.id].configDiscount.discountType;
+    let discount: Decimal;
+    if (discountType === "flat") discount = new Decimal(discountAmount);
+    else if (discountType === "percentage") discount = price.mul(discountAmount).mul(0.01);
+    else return dish;
 
-      dish.salePrice = this.configDiscount.discountType === "flat"
-        ? new Decimal(dish.price).minus(+this.configDiscount.discountAmount).toNumber()
-        : new Decimal(dish.price)
-          .mul(+this.configDiscount.discountAmount / 100)
-          .toNumber()
-
-    }
-
-    return dish
+    dish.salePrice = Decimal.max(price.minus(discount), 0).toNumber();
+    dish.discountAmount = +discountAmount;
+    dish.discountType = discountType;
+    return dish;
   }
 
   // TODO: rewrite for argument (modificable Order);

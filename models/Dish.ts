@@ -291,10 +291,11 @@ let attributes = {
 
 };
 
+/** Written by the promotion adapter's `displayDish`: all three `null` when no promotion shows on the dish. */
 interface IVirtualFields {
-  discountAmount?: number;
-  discountType?: "flat" | "percentage"
-  salePrice?: number;
+  discountAmount?: number | null;
+  discountType?: "flat" | "percentage" | null;
+  salePrice?: number | null;
 }
 
 type attributes = typeof attributes;
@@ -489,13 +490,6 @@ let Model = {
 
   async display(criteria: CriteriaQuery<DishRecord>): Promise<DishRecord[]> {
     const dishes = await Dish.find(criteria);
-
-    // Set virtual default
-    dishes.forEach((dish) => {
-      dish.discountAmount = 0;
-      dish.discountType = null;
-      dish.salePrice = null;
-    });
 
     const promotionAdapter = Adapter.getPromotionAdapter()
     let updatedDishes = [] as DishRecord[]

@@ -400,12 +400,6 @@ let Model = {
     },
     async display(criteria) {
         const dishes = await Dish.find(criteria);
-        // Set virtual default
-        dishes.forEach((dish) => {
-            dish.discountAmount = 0;
-            dish.discountType = null;
-            dish.salePrice = null;
-        });
         const promotionAdapter = adapters_1.Adapter.getPromotionAdapter();
         let updatedDishes = [];
         for (let i = 0; i < dishes.length; i++) {

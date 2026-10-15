@@ -61,20 +61,27 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     return populatedOrder
   }
 
-  // one method to get all promotions and id's
+  /**
+   * The dish with `salePrice`, `discountAmount` and `discountType` of the
+   * promotion that would discount a line of it, or all three `null`.
+   *
+   * The one the basket would apply, not the most generous: the candidates are
+   * picked by the rule `processOrder` uses (one that is not joint alone, else
+   * the joint ones by `sortOrder`), and the first of them takes the line — the
+   * others skip a line that already has a discount. That one decides what is
+   * shown; one the customer is not told about shows nothing.
+   */
   public displayDish(dish: DishRecord): DishRecord {
+    dish.salePrice = null;
+    dish.discountAmount = null;
+    dish.discountType = null;
     try {
-      let filteredPromotion = this.filterByConcept(dish.concept);
-      let promotionByConcept: PromotionRecord[] | undefined = this.filterPromotions(filteredPromotion, dish);
-
-      if (promotionByConcept[0] === undefined) return dish;
-
-      // TODO: this should work on first condition isJoint and isPublic should be true
-
-      return this.promotions[promotionByConcept[0].id].displayDish(dish)
+      const [promotion] = this.filterPromotions(this.filterByConcept(dish.concept), dish);
+      const handler = promotion ? this.promotions[promotion.id] : undefined;
+      return handler?.displayDish ? handler.displayDish(dish) : dish;
     } catch (error) {
-
       sails.log.error("Promotion Adapter display Dish error", error);
+      return dish;
     }
   }
 

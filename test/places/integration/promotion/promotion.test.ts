@@ -103,6 +103,71 @@ describe("Promotions", function () {
     expect(await discountOf(await basket())).to.equal(5);
   });
 
+  /**
+   * What the menu shows on a dish (`displayDish`, read by GraphQL's
+   * `Dish.salePrice`, `discountAmount`, `discountType`): the price of one after
+   * the promotion the basket would apply to a line of it, chosen by the same
+   * rule, or nothing.
+   */
+  describe("the price the menu shows", function () {
+    const shown = (dish: any) => {
+      const { salePrice, discountAmount, discountType } = Adapter.getPromotionAdapter().displayDish({ ...dish });
+      return { salePrice, discountAmount, discountType };
+    };
+    const NOTHING = { salePrice: null, discountAmount: null, discountType: null };
+
+    it("without a promotion: nothing — null, not zero", async function () {
+      expect(shown(d.dish1)).to.deep.equal(NOTHING);
+    });
+
+    it("the price after the discount on what the promotion chooses, and nothing outside it", async function () {
+      await promotion("promotion-1", { discountType: "percentage", discountAmount: 10, dishes: ["*"], groups: [g.group1.id] });
+
+      expect(shown(d.dish1)).to.deep.equal({ salePrice: 9.09, discountAmount: 10, discountType: "percentage" });
+      expect(shown(d.dish2).salePrice).to.equal(13.68);
+      expect(shown(d.dish3)).to.deep.equal(NOTHING);
+    });
+
+    it("nothing on an excluded product, for another concept, or for a promotion that chooses nothing (the receipt's)", async function () {
+      await promotion("promotion-1", { discountType: "flat", discountAmount: 1, dishes: ["*"], exclude: { dishes: [d.dish1.id] } });
+      // First in order, were the concept not asked.
+      await promotion("promotion-2", { discountType: "flat", discountAmount: 2, dishes: [d.dish3.id] }, { concept: ["concept-2"], sortOrder: -1 });
+      await promotion("promotion-3", { discountType: "flat", discountAmount: 3 }, { sortOrder: -2 });
+
+      expect(shown(d.dish1)).to.deep.equal(NOTHING);
+      expect(shown(d.dish2).salePrice).to.equal(14.2);
+      expect(shown(d.dish3).salePrice).to.equal(9);
+    });
+
+    it("the promotion the basket applies to the line, not the most generous one", async function () {
+      await promotion("promotion-1", { discountType: "percentage", discountAmount: 50, dishes: [d.dish1.id] }, { sortOrder: 5 });
+      await promotion("promotion-2", { discountType: "flat", discountAmount: 1, dishes: [d.dish1.id] }, { sortOrder: 1 });
+      expect(shown(d.dish1)).to.include({ salePrice: 9.1, discountType: "flat" });
+
+      const id = await newBasket();
+      await add(id, d.dish1.id, 1);
+      expect((await Order.findOne({ id })).total).to.equal(9.1);
+
+      // One that is not joint takes the basket alone, whatever its sortOrder.
+      await promotion("promotion-3", { discountType: "flat", discountAmount: 2, dishes: [d.dish1.id] }, { isJoint: false, sortOrder: 9 });
+      expect(shown(d.dish1)).to.include({ salePrice: 8.1 });
+    });
+
+    it("nothing when the promotion that takes the line is not public", async function () {
+      await promotion("promotion-1", { discountType: "flat", discountAmount: 1, dishes: [d.dish1.id] }, { isPublic: false, sortOrder: 1 });
+      await promotion("promotion-2", { discountType: "flat", discountAmount: 2, dishes: [d.dish1.id] }, { sortOrder: 5 });
+      expect(shown(d.dish1)).to.deep.equal(NOTHING);
+    });
+
+    it("what is shown is what a line of one costs", async function () {
+      await promotion("promotion-1", { discountType: "percentage", discountAmount: 10, dishes: [d.dish2.id] });
+      const id = await newBasket();
+      await add(id, d.dish2.id, 1);
+
+      expect((await Order.findOne({ id })).total).to.equal(shown(d.dish2).salePrice);
+    });
+  });
+
   it("switched off, it leaves the basket at the next recount", async function () {
     await promotion("promotion-1", { discountType: "flat", discountAmount: 1.33, dishes: [d.dish1.id], groups: ["*"] });
     const id = await basket();
