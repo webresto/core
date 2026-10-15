@@ -127,6 +127,10 @@ describe("Soft delivery calculation", function () {
         expect(ability).to.include({ allowed: true, cost: null, message: "Message 1" });
         expect(ability.hasError).to.equal(undefined);
         expect(calculated).to.include({ allowed: true, cost: null, message: "Message 1", deliveryLocationUnrecognized: true });
+        // No zone answered, so there is no zone to name and no terms to quote.
+        for (const answer of [ability, calculated]) {
+          expect(answer).to.not.have.any.keys("zoneId", "zoneName", "minOrderTotal", "freeDeliveryFrom");
+        }
       });
     });
 

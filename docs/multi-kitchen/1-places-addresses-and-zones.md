@@ -91,7 +91,9 @@ enabled zones the first in order that contains the coordinate is taken. From
 there it is simple: the zone is closed by schedule — refused; the basket is
 below the minimum — refused, with the amount; above the threshold — free;
 otherwise — the zone's cost or its delivery product. Along with the price the
-answer says which zone answered, and carries diagnostic lines: what was tried
+answer names the zone that answered, quotes its minimum and its free-delivery
+threshold as numbers (for a storefront that shows them by the address; the
+message says the same in words), and carries diagnostic lines: what was tried
 and why it did not work.
 
 The zone is not written onto the order. It is an intermediate result of the

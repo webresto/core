@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { applyZone } from "../../../../adapters/delivery/default/zone-calculation";
+import { applyZone, describeZone } from "../../../../adapters/delivery/default/zone-calculation";
 
 /**
  * A zone's delivery terms for a basket of a given total: closed outside its
@@ -9,6 +9,7 @@ import { applyZone } from "../../../../adapters/delivery/default/zone-calculatio
 describe("Delivery zone tariff", function () {
   const zone1 = { id: "zone-1", name: "Zone 1", minDeliveryTime: 30, deliveryCost: 150, deliveryMessage: "Message 1" } as any;
   const priced = (zone: any, total: number) => applyZone({ ...zone1, ...zone }, total);
+  const NEVER = [{ dayOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"], start: "00:00", stop: "00:01" }];
 
   it("charges the zone's cost and passes on its time and message", async function () {
     expect(await priced({}, 1000)).to.include({
@@ -35,9 +36,38 @@ describe("Delivery zone tariff", function () {
   });
 
   it("is closed outside the zone's hours", async function () {
-    const never = [{ dayOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"], start: "00:00", stop: "00:01" }];
-    expect(await priced({ worktime: never }, 1000)).to.include({
+    expect(await priced({ worktime: NEVER }, 1000)).to.include({
       allowed: false, cost: 0, message: "At the moment, the delivery area does not work, try it later",
+    });
+  });
+
+  describe("the zone's name and terms as numbers", function () {
+    const terms = { minOrderTotal: 500, freeDeliveryFrom: 2000 };
+    const expected = { zoneId: "zone-1", zoneName: "Zone 1", minOrderTotal: 500, freeDeliveryFrom: 2000 };
+
+    it("ride on every answer the zone gives a basket: priced, refused, free, by product, closed", async function () {
+      for (const [zone, total] of [
+        [terms, 1000],
+        [terms, 100],
+        [terms, 2500],
+        [{ ...terms, deliveryItem: "dish-1" }, 1000],
+        [{ ...terms, worktime: NEVER }, 1000],
+      ] as const) {
+        expect(await priced(zone, total)).to.include(expected);
+      }
+    });
+
+    it("ride on the answer before any basket, with the message kept in words", async function () {
+      const delivery = await describeZone({ ...zone1, ...terms });
+      expect(delivery).to.include(expected);
+      expect(delivery.message).to.equal("Delivery cost: %s\nMinimum order price: %s\nFree delivery for orders above: %s");
+    });
+
+    it("are null when the zone sets none, zero included", async function () {
+      for (const zone of [{}, { minOrderTotal: 0, freeDeliveryFrom: 0 }, { minOrderTotal: null, freeDeliveryFrom: null }]) {
+        expect(await priced(zone, 1000)).to.include({ minOrderTotal: null, freeDeliveryFrom: null });
+        expect(await describeZone({ ...zone1, ...zone })).to.include({ minOrderTotal: null, freeDeliveryFrom: null });
+      }
     });
   });
 });

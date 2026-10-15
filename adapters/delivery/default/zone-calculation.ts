@@ -71,6 +71,24 @@ function zoneDescription(zone: DeliveryZoneRecord): { message: string; messageAr
   return { message: lines.join("\n"), messageArgs };
 }
 
+/**
+ * Which zone answered, and its terms as numbers — on every answer a matched
+ * zone gives, whatever it decided about this basket.
+ *
+ * The zone comes from `findServing`, so a layer's lent terms are already in it,
+ * the same way they are for the cost and the time. The name is the zone's own.
+ */
+function zoneTerms(zone: DeliveryZoneRecord): Pick<Delivery, "zoneId" | "zoneName" | "minOrderTotal" | "freeDeliveryFrom"> {
+  // `0` and an unset value mean the same: no minimum, no free delivery.
+  const positive = (value: number | null | undefined) => (value && value > 0 ? value : null);
+  return {
+    zoneId: zone.id as string,
+    zoneName: zone.name,
+    minOrderTotal: positive(zone.minOrderTotal),
+    freeDeliveryFrom: positive(zone.freeDeliveryFrom),
+  };
+}
+
 /** Whether the zone accepts orders right now. A switched-off zone never gets here: `findServing` drops it. */
 export function zoneIsOpen(zone: DeliveryZoneRecord): boolean {
   if (!zone.worktime || !zone.worktime.length) return true;
@@ -89,7 +107,7 @@ export async function applyZone(
   basketTotal: number,
   diagnostics: string[] = [],
 ): Promise<Delivery> {
-  const zoneId = zone.id as string;
+  const terms = zoneTerms(zone);
 
   if (!zoneIsOpen(zone)) {
     return {
@@ -98,8 +116,7 @@ export async function applyZone(
       cost: 0,
       item: undefined,
       message: "At the moment, the delivery area does not work, try it later",
-      zoneId,
-      zoneName: zone.name,
+      ...terms,
       diagnostics,
     };
   }
@@ -112,23 +129,20 @@ export async function applyZone(
       item: undefined,
       message: "Minimum order amount: %s",
       messageArgs: [String(zone.minOrderTotal)],
-      zoneId,
-      zoneName: zone.name,
+      ...terms,
       diagnostics,
     };
   }
 
-  // `0` and an unset value both mean "no free delivery", not "free from zero".
-  const freeDeliveryFrom = zone.freeDeliveryFrom && zone.freeDeliveryFrom > 0 ? zone.freeDeliveryFrom : Infinity;
-  if (basketTotal >= freeDeliveryFrom) {
+  // `null` there is "no free delivery", not "free from zero".
+  if (basketTotal >= (terms.freeDeliveryFrom ?? Infinity)) {
     return {
       allowed: true,
       deliveryTimeMinutes: zone.minDeliveryTime ?? null,
       cost: 0,
       item: undefined,
       message: "Free delivery",
-      zoneId,
-      zoneName: zone.name,
+      ...terms,
       diagnostics,
     };
   }
@@ -142,8 +156,7 @@ export async function applyZone(
       cost: undefined,
       item: zone.deliveryItem as string,
       message: zone.deliveryMessage ?? "",
-      zoneId,
-      zoneName: zone.name,
+      ...terms,
       diagnostics,
     };
   }
@@ -154,8 +167,7 @@ export async function applyZone(
     cost: zone.deliveryCost ?? 0,
     item: undefined,
     message: zone.deliveryMessage ?? "",
-    zoneId,
-    zoneName: zone.name,
+    ...terms,
     diagnostics,
   };
 }
@@ -168,8 +180,7 @@ export async function describeZone(zone: DeliveryZoneRecord, diagnostics: string
     cost: zone.deliveryCost ?? 0,
     item: zone.deliveryItem ? (zone.deliveryItem as string) : undefined,
     ...zoneDescription(zone),
-    zoneId: zone.id as string,
-    zoneName: zone.name,
+    ...zoneTerms(zone),
     diagnostics,
   };
 }

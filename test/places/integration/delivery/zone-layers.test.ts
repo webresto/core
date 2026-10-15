@@ -54,6 +54,17 @@ describe("Delivery zone layers", function () {
       expect((await DeliveryZone.findServing())[0]).to.include({ deliveryCost: 100, minOrderTotal: 0 });
     });
 
+    it("tells the storefront the layer's minimum and threshold under the zone's own name, on the form and at checkout", async function () {
+      const layer1 = await layer("Layer 1", { minOrderTotal: 900, freeDeliveryFrom: 3000 });
+      await zone("Zone 1", { parent: layer1.id, ...TERMS, minOrderTotal: 0, freeDeliveryFrom: 0 });
+      const address = { city: "City 1", formatted: "Street 1", home: "1", coordinate: { lat: 10, lon: 10 } } as any;
+      const delivery = await Adapter.get("delivery");
+
+      const expected = { zoneName: "Zone 1", minOrderTotal: 900, freeDeliveryFrom: 3000 };
+      expect(await delivery.checkAbility(address)).to.include(expected);
+      expect(await delivery.calculate({ address, basketTotal: 1000 } as any)).to.include({ ...expected, allowed: true });
+    });
+
     it("keeps the zone's own geometry and identity either way", async function () {
       const layer1 = await layer("Layer 1", { deliveryCost: 300 });
       await zone("Zone 1", { parent: layer1.id, source: "kml", externalId: "external-1" });

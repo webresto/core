@@ -49,10 +49,18 @@ export interface Delivery {
   /** The zone whose terms produced this result, when one matched. */
   zoneId?: string
   /**
-   * That zone’s name, for the operator screens. A label taken when the price was,
-   * so the screens never read the adapter’s zones themselves.
+   * That zone’s name, for the operator screens and the storefront. A label taken
+   * when the price was, so neither reads the adapter’s zones itself.
    */
   zoneName?: string
+  /**
+   * That zone’s terms as numbers, for a storefront that shows them next to the
+   * address. `message` carries the same in words; these do not replace it.
+   * `null` when the zone sets none (unset or `0` both mean "no minimum" and
+   * "no free delivery"), absent when no zone matched.
+   */
+  minOrderTotal?: number | null
+  freeDeliveryFrom?: number | null
   /**
    * The adapter has nothing to price any address with — the installation is not
    * set up, the address is not at fault. `Order.check` refuses such an order even
