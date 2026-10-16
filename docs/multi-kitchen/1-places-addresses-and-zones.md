@@ -91,10 +91,13 @@ enabled zones the first in order that contains the coordinate is taken. From
 there it is simple: the zone is closed by schedule — refused; the basket is
 below the minimum — refused, with the amount; above the threshold — free;
 otherwise — the zone's cost or its delivery product. Along with the price the
-answer names the zone that answered, quotes its minimum and its free-delivery
-threshold as numbers (for a storefront that shows them by the address; the
-message says the same in words), and carries diagnostic lines: what was tried
-and why it did not work.
+answer names the zone that answered and quotes its terms, whatever it decided
+about this basket: the minimum, the free-delivery threshold, the cost (a
+delivery product's price when the zone charges one), whether the zone is open
+now and its hours, and the operator's description (for a storefront that shows
+them by the address; the message says the same in words). The zone's time is
+the answer's delivery time. The answer also carries diagnostic lines: what was
+tried and why it did not work.
 
 The zone is not written onto the order. It is an intermediate result of the
 calculation and lives inside the delivery answer. Keeping a copy would give the

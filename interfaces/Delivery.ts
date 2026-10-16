@@ -1,9 +1,10 @@
 /**
  * What delivery exchanges with the rest of the application.
  *
- * Nothing here imports anything: contracts describe shapes, they do not reach for
- * models, settings or adapters.
+ * Nothing here imports anything but a shape: contracts describe shapes, they do
+ * not reach for models, settings or adapters.
  */
+import type { WorkTime } from "@webresto/worktime";
 
 /**
  * **Soft delivery calculation**
@@ -13,6 +14,10 @@
  */
 export interface Delivery {
   /**
+   * The delivery leg alone, in minutes. A zone answers with its
+   * `minDeliveryTime`, the floor the whole promise is built on, so the zone's
+   * time is not repeated among its terms below.
+   *
    * `null` when no promise can be made — an address outside every zone, or one
    * that could not be placed on the map. GraphQL has always exposed this field
    * as a nullable `Int`; the declaration here just caught up.
@@ -61,6 +66,20 @@ export interface Delivery {
    */
   minOrderTotal?: number | null
   freeDeliveryFrom?: number | null
+  /**
+   * What the zone charges for delivery, whatever it decided about this basket.
+   * `cost` is what this basket pays — `0` when it is refused or delivered free,
+   * absent when a product carries the price; this is the tariff quoted next to
+   * the address. A zone that charges a product quotes the product's price. `0`
+   * is a free delivery, not an unset one.
+   */
+  deliveryCost?: number
+  /** Whether the zone takes orders now, by `zoneWorktime`. */
+  zoneOpen?: boolean
+  /** When the zone takes orders. `null` — always. */
+  zoneWorktime?: WorkTime[] | null
+  /** What the operator wrote about the zone, untranslated. `null` — nothing. */
+  zoneDescription?: string | null
   /**
    * The adapter has nothing to price any address with — the installation is not
    * set up, the address is not at fault. `Order.check` refuses such an order even

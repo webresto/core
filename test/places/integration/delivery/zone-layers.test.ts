@@ -54,13 +54,15 @@ describe("Delivery zone layers", function () {
       expect((await DeliveryZone.findServing())[0]).to.include({ deliveryCost: 100, minOrderTotal: 0 });
     });
 
-    it("tells the storefront the layer's minimum and threshold under the zone's own name, on the form and at checkout", async function () {
-      const layer1 = await layer("Layer 1", { minOrderTotal: 900, freeDeliveryFrom: 3000 });
-      await zone("Zone 1", { parent: layer1.id, ...TERMS, minOrderTotal: 0, freeDeliveryFrom: 0 });
+    it("tells the storefront the layer's terms under the zone's own name and description, on the form and at checkout", async function () {
+      const group = await Group.create({ name: "Group 1", enable: true }).fetch();
+      await Dish.create({ id: "dish-1", name: "Dish 1", price: 250, enable: true, parentGroup: group.id }).fetch();
+      const layer1 = await layer("Layer 1", { minOrderTotal: 900, freeDeliveryFrom: 3000, deliveryItem: "dish-1", description: "Description 1" });
+      await zone("Zone 1", { parent: layer1.id, ...TERMS, minOrderTotal: 0, freeDeliveryFrom: 0, description: "Description 2" });
       const address = { city: "City 1", formatted: "Street 1", home: "1", coordinate: { lat: 10, lon: 10 } } as any;
       const delivery = await Adapter.get("delivery");
 
-      const expected = { zoneName: "Zone 1", minOrderTotal: 900, freeDeliveryFrom: 3000 };
+      const expected = { zoneName: "Zone 1", minOrderTotal: 900, freeDeliveryFrom: 3000, deliveryCost: 250, zoneDescription: "Description 2" };
       expect(await delivery.checkAbility(address)).to.include(expected);
       expect(await delivery.calculate({ address, basketTotal: 1000 } as any)).to.include({ ...expected, allowed: true });
     });

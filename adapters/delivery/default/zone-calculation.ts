@@ -72,13 +72,28 @@ function zoneDescription(zone: DeliveryZoneRecord): { message: string; messageAr
 }
 
 /**
- * Which zone answered, and its terms as numbers — on every answer a matched
- * zone gives, whatever it decided about this basket.
+ * What a delivery product costs, the way `Order.countCart` charges it: found by
+ * its id or its RMS id, nothing when it is not in the catalog.
+ */
+async function deliveryItemPrice(item: string): Promise<number> {
+  const deliveryItem = await Dish.findOne({ where: { or: [{ id: item }, { rmsId: item }] } });
+  return deliveryItem ? deliveryItem.price : 0;
+}
+
+type ZoneTerms = Pick<
+  Delivery,
+  "zoneId" | "zoneName" | "minOrderTotal" | "freeDeliveryFrom" | "deliveryCost" | "zoneOpen" | "zoneWorktime" | "zoneDescription"
+>;
+
+/**
+ * Which zone answered, and its terms — on every answer a matched zone gives,
+ * whatever it decided about this basket.
  *
  * The zone comes from `findServing`, so a layer's lent terms are already in it,
- * the same way they are for the cost and the time. The name is the zone's own.
+ * the same way they are for the cost and the time. The name and the
+ * description are the zone's own. Its time is `deliveryTimeMinutes`.
  */
-function zoneTerms(zone: DeliveryZoneRecord): Pick<Delivery, "zoneId" | "zoneName" | "minOrderTotal" | "freeDeliveryFrom"> {
+async function zoneTerms(zone: DeliveryZoneRecord): Promise<ZoneTerms> {
   // `0` and an unset value mean the same: no minimum, no free delivery.
   const positive = (value: number | null | undefined) => (value && value > 0 ? value : null);
   return {
@@ -86,6 +101,11 @@ function zoneTerms(zone: DeliveryZoneRecord): Pick<Delivery, "zoneId" | "zoneNam
     zoneName: zone.name,
     minOrderTotal: positive(zone.minOrderTotal),
     freeDeliveryFrom: positive(zone.freeDeliveryFrom),
+    // A delivery product and a delivery cost are alternatives, as below.
+    deliveryCost: zone.deliveryItem ? await deliveryItemPrice(zone.deliveryItem as string) : zone.deliveryCost ?? 0,
+    zoneOpen: zoneIsOpen(zone),
+    zoneWorktime: zone.worktime?.length ? zone.worktime : null,
+    zoneDescription: zone.description || null,
   };
 }
 
@@ -107,9 +127,9 @@ export async function applyZone(
   basketTotal: number,
   diagnostics: string[] = [],
 ): Promise<Delivery> {
-  const terms = zoneTerms(zone);
+  const terms = await zoneTerms(zone);
 
-  if (!zoneIsOpen(zone)) {
+  if (!terms.zoneOpen) {
     return {
       allowed: false,
       deliveryTimeMinutes: zone.minDeliveryTime ?? null,
@@ -180,7 +200,7 @@ export async function describeZone(zone: DeliveryZoneRecord, diagnostics: string
     cost: zone.deliveryCost ?? 0,
     item: zone.deliveryItem ? (zone.deliveryItem as string) : undefined,
     ...zoneDescription(zone),
-    ...zoneTerms(zone),
+    ...(await zoneTerms(zone)),
     diagnostics,
   };
 }

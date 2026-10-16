@@ -11,6 +11,16 @@ describe("Delivery zone tariff", function () {
   const priced = (zone: any, total: number) => applyZone({ ...zone1, ...zone }, total);
   const NEVER = [{ dayOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"], start: "00:00", stop: "00:01" }];
 
+  // The catalog a delivery product is priced from: one product.
+  before(function () {
+    (global as any).Dish = {
+      findOne: async ({ where }: any) => (where.or.some((key: any) => key.id === "dish-1") ? { price: 250 } : undefined),
+    };
+  });
+  after(function () {
+    delete (global as any).Dish;
+  });
+
   it("charges the zone's cost and passes on its time and message", async function () {
     expect(await priced({}, 1000)).to.include({
       allowed: true, cost: 150, deliveryTimeMinutes: 30, message: "Message 1", zoneId: "zone-1", zoneName: "Zone 1",
@@ -41,20 +51,43 @@ describe("Delivery zone tariff", function () {
     });
   });
 
-  describe("the zone's name and terms as numbers", function () {
+  describe("the zone's name and terms", function () {
     const terms = { minOrderTotal: 500, freeDeliveryFrom: 2000 };
-    const expected = { zoneId: "zone-1", zoneName: "Zone 1", minOrderTotal: 500, freeDeliveryFrom: 2000 };
+    const expected = {
+      zoneId: "zone-1", zoneName: "Zone 1", minOrderTotal: 500, freeDeliveryFrom: 2000,
+      deliveryCost: 150, zoneOpen: true, zoneWorktime: null, zoneDescription: null,
+    };
 
-    it("ride on every answer the zone gives a basket: priced, refused, free, by product, closed", async function () {
-      for (const [zone, total] of [
-        [terms, 1000],
-        [terms, 100],
-        [terms, 2500],
-        [{ ...terms, deliveryItem: "dish-1" }, 1000],
-        [{ ...terms, worktime: NEVER }, 1000],
-      ] as const) {
-        expect(await priced(zone, total)).to.include(expected);
+    it("ride on every answer the zone gives a basket: priced, refused, free", async function () {
+      for (const total of [1000, 100, 2500]) {
+        expect(await priced(terms, total)).to.include(expected);
       }
+    });
+
+    it("quote the zone's cost when this basket pays none of it: refused or free", async function () {
+      expect(await priced(terms, 100)).to.include({ allowed: false, cost: 0, deliveryCost: 150 });
+      expect(await priced(terms, 2500)).to.include({ allowed: true, cost: 0, deliveryCost: 150 });
+    });
+
+    it("quote a delivery product's price as the cost; a product not in the catalog charges nothing", async function () {
+      expect(await priced({ ...terms, deliveryItem: "dish-1" }, 1000)).to.include({ ...expected, cost: undefined, deliveryCost: 250 });
+      expect((await priced({ deliveryItem: "dish-2" }, 1000)).deliveryCost).to.equal(0);
+    });
+
+    it("quote a zero cost as a free delivery, not as none", async function () {
+      expect((await priced({ deliveryCost: 0 }, 1000)).deliveryCost).to.equal(0);
+    });
+
+    it("say a zone is closed, and when it takes orders", async function () {
+      const delivery = await priced({ ...terms, worktime: NEVER }, 1000);
+      expect(delivery).to.include({ allowed: false, zoneOpen: false });
+      expect(delivery.zoneWorktime).to.deep.equal(NEVER);
+      expect((await priced({ worktime: [] }, 1000)).zoneWorktime).to.equal(null);
+    });
+
+    it("quote the operator's description as written", async function () {
+      expect(await priced({ description: "Description 1" }, 1000)).to.include({ message: "Message 1", zoneDescription: "Description 1" });
+      expect(await describeZone({ ...zone1, description: "Description 1" })).to.include({ message: "Description 1", zoneDescription: "Description 1" });
     });
 
     it("ride on the answer before any basket, with the message kept in words", async function () {
@@ -63,7 +96,7 @@ describe("Delivery zone tariff", function () {
       expect(delivery.message).to.equal("Delivery cost: %s\nMinimum order price: %s\nFree delivery for orders above: %s");
     });
 
-    it("are null when the zone sets none, zero included", async function () {
+    it("are null when the zone sets no minimum and no threshold, zero included", async function () {
       for (const zone of [{}, { minOrderTotal: 0, freeDeliveryFrom: 0 }, { minOrderTotal: null, freeDeliveryFrom: null }]) {
         expect(await priced(zone, 1000)).to.include({ minOrderTotal: null, freeDeliveryFrom: null });
         expect(await describeZone({ ...zone1, ...zone })).to.include({ minOrderTotal: null, freeDeliveryFrom: null });
