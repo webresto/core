@@ -19,6 +19,10 @@ declare let attributes: {
      */
     type: PaymentMethodType;
     isCash: boolean;
+    /**
+     * Payment adapter name, the link between the record and the alive adapter.
+     * Optional for no-adapter types (promise, dummy): beforeCreate fills `no-adapter-<id>`
+     */
     adapter: string;
     sortOrder: number;
     description: string;
@@ -38,6 +42,7 @@ declare let Model: {
      */
     getAdapter(adapter?: string): Promise<PaymentAdapter>;
     beforeCreate: (paymentMethod: PaymentMethodRecord, cb: (err?: string) => void) => void;
+    beforeUpdate: (values: Partial<PaymentMethodRecord>, cb: (err?: string) => void) => void;
     /**
      * Returns True if the payment method is a promise of payment
      * @param  paymentMethodId
@@ -72,6 +77,6 @@ declare let Model: {
     getAdapterById(paymentMethodId: string): Promise<PaymentAdapter>;
 };
 declare global {
-    const PaymentMethod: typeof Model & ORMModel<PaymentMethodRecord, "type" | "adapter" | "enable">;
+    const PaymentMethod: typeof Model & ORMModel<PaymentMethodRecord, "type" | "enable">;
 }
 export {};

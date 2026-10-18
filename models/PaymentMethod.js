@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 let alivePaymentMethods = {};
+/** Types that work without a payment adapter: their `adapter` value is never read */
+const noAdapterTypes = ["promise", "dummy"];
 let attributes = {
     /** ID of the payment method */
     id: {
@@ -27,10 +29,13 @@ let attributes = {
     isCash: {
         type: "boolean",
     },
+    /**
+     * Payment adapter name, the link between the record and the alive adapter.
+     * Optional for no-adapter types (promise, dummy): beforeCreate fills `no-adapter-<id>`
+     */
     adapter: {
         type: "string",
         unique: true,
-        required: true,
     },
     sortOrder: "number",
     description: "string",
@@ -66,6 +71,20 @@ let Model = {
     beforeCreate: function (paymentMethod, cb) {
         if (!paymentMethod.id) {
             paymentMethod.id = (0, uuid_1.v4)();
+        }
+        if (!paymentMethod.adapter) {
+            if (!noAdapterTypes.includes(paymentMethod.type)) {
+                return cb(`PaymentMethod: adapter is required for type "${paymentMethod.type}"`);
+            }
+            // `adapter` is unique, so a no-adapter method gets its own placeholder
+            paymentMethod.adapter = `no-adapter-${paymentMethod.id}`;
+        }
+        cb();
+    },
+    beforeUpdate: function (values, cb) {
+        // An emptied field (admin form) keeps the stored adapter instead of breaking the link
+        if ("adapter" in values && !values.adapter) {
+            delete values.adapter;
         }
         cb();
     },
@@ -135,7 +154,6 @@ let Model = {
         const checkingPaymentMethod = await PaymentMethod.findOne({
             id: paymentMethodId,
         });
-        const noAdapterTypes = ["promise", "dummy"];
         if (!checkingPaymentMethod) {
             return false;
         }
