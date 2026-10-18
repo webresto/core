@@ -7,6 +7,9 @@ import { PaymentMethodType } from "../lib/enums/PaymentMethodTypes";
 
 let alivePaymentMethods = {} as {[k: string]: PaymentAdapter } ;
 
+/** Types that work without a payment adapter: their `adapter` value is never read */
+const noAdapterTypes: PaymentMethodType[] = ["promise", "dummy"];
+
 interface ExternalPayment {
   name: string;
   id: string;
@@ -40,10 +43,13 @@ let attributes = {
   isCash: {
     type: "boolean",
   } as unknown as boolean,
+  /**
+   * Payment adapter name, the link between the record and the alive adapter.
+   * Optional for no-adapter types (promise, dummy): beforeCreate fills `no-adapter-<id>`
+   */
   adapter: {
     type: "string",
     unique: true,
-    required: true,
   } as unknown as string,
   sortOrder: "number" as unknown as number,
   description: "string",
@@ -89,6 +95,21 @@ let Model = {
   beforeCreate: function (paymentMethod: PaymentMethodRecord, cb: (err?: string) => void) {
     if (!paymentMethod.id) {
       paymentMethod.id = uuid();
+    }
+    if (!paymentMethod.adapter) {
+      if (!noAdapterTypes.includes(paymentMethod.type)) {
+        return cb(`PaymentMethod: adapter is required for type "${paymentMethod.type}"`);
+      }
+      // `adapter` is unique, so a no-adapter method gets its own placeholder
+      paymentMethod.adapter = `no-adapter-${paymentMethod.id}`;
+    }
+    cb();
+  },
+
+  beforeUpdate: function (values: Partial<PaymentMethodRecord>, cb: (err?: string) => void) {
+    // An emptied field (admin form) keeps the stored adapter instead of breaking the link
+    if ("adapter" in values && !values.adapter) {
+      delete values.adapter;
     }
     cb();
   },
@@ -166,7 +187,6 @@ let Model = {
     const checkingPaymentMethod = await PaymentMethod.findOne({
       id: paymentMethodId,
     });
-    const noAdapterTypes = ["promise", "dummy"];
 
     if (!checkingPaymentMethod) {
       return false;
@@ -214,5 +234,5 @@ module.exports = {
 };
 
 declare global {
-  const PaymentMethod: typeof Model & ORMModel<PaymentMethodRecord, "type" | "adapter" | "enable">;
+  const PaymentMethod: typeof Model & ORMModel<PaymentMethodRecord, "type" | "enable">;
 }

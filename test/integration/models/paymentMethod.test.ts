@@ -61,6 +61,28 @@ describe("PaymentMethod", function () {
     // создать external PaymentMethod (enable: true / false) & paymentpromise PaymentMethod (enable: true / false), проверить результат работы метода getAvailable
     // проверить что возвращает массив.
   });
+  it("creates a no-adapter method without adapter", async function () {
+    const first = await PaymentMethod.create({ title: "Terminal", type: "promise", enable: true }).fetch();
+    const second = await PaymentMethod.create({ title: "Card on delivery", type: "promise", adapter: "", enable: true }).fetch();
+    expect(first.adapter).to.equal(`no-adapter-${first.id}`);
+    expect(second.adapter).to.equal(`no-adapter-${second.id}`);
+    expect(await PaymentMethod.checkAvailable(first.id)).to.equal(true);
+  });
+  it("requires adapter for adapter types", async function () {
+    let error = null;
+    try {
+      await PaymentMethod.create({ title: "Gateway", type: "external", enable: true }).fetch();
+    } catch (e) {
+      error = e;
+    }
+    expect(error).to.not.equal(null);
+  });
+  it("keeps adapter when update sends an empty one", async function () {
+    const method = await PaymentMethod.create({ title: "Keep", type: "promise", adapter: "keep-adapter", enable: true }).fetch();
+    const updated = await PaymentMethod.updateOne({ id: method.id }).set({ adapter: "", title: "Kept" });
+    expect(updated.adapter).to.equal("keep-adapter");
+    expect(updated.title).to.equal("Kept");
+  });
   it("checkAvailable TODO", async function () {
     //static
     // использовать заранее созданные платежные методы, проверить работоспособность метода
