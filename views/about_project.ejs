@@ -46,6 +46,19 @@
             <small class="form-text">City where your project is located</small>
         </div>
 
+        <div class="form-group">
+            <label for="project-timezone">Timezone: <span class="required">*</span></label>
+            <select
+                id="project-timezone"
+                name="TZ"
+                class="form-control"
+                required
+            >
+                <option value="">Select timezone...</option>
+            </select>
+            <small class="form-text">Timezone of the venue - auto-detected from your browser. Orders cannot be placed without it: working hours and delivery dates are counted in it</small>
+        </div>
+
         <!-- Advanced Settings Spoiler -->
         <div class="advanced-settings">
             <button type="button" class="spoiler-toggle" id="advanced-toggle">
@@ -271,6 +284,7 @@
 <script>
     // Countries data from server
     const countriesData = <%- JSON.stringify(countries || []) %>;
+    const timezonesData = <%- JSON.stringify(typeof timezones !== 'undefined' ? timezones : []) %>;
     
     // Auto-fill URLs based on current browser location
     document.addEventListener('DOMContentLoaded', function() {
@@ -491,6 +505,24 @@
             projectNameInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         
+        // Populate timezone dropdown and preselect the browser timezone when it is accepted
+        const timezoneSelect = document.getElementById('project-timezone');
+        timezonesData.forEach(zone => {
+            const option = document.createElement('option');
+            option.value = zone;
+            option.textContent = zone;
+            timezoneSelect.appendChild(option);
+        });
+        try {
+            const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (!timezoneSelect.value && timezonesData.includes(browserTimezone)) {
+                timezoneSelect.value = browserTimezone;
+                timezoneSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        } catch (e) {
+            // Leave it for the user to pick
+        }
+
         // Auto-detect Country ISO from timezone or locale
         let detectedCountryCode = 'US'; // Default fallback
         

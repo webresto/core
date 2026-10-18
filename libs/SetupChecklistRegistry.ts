@@ -293,10 +293,12 @@ export class SetupChecklistRegistry {
       "Technical identifier (slug) of this installation, not the venue's display name: lowercase latin letters, digits and hyphens, at least 3 characters"
     );
     requiredSetting("project_country", "COUNTRY_ISO", "Country", 1);
-    requiredSetting("project_currency", "DEFAULT_CURRENCY_ISO", "Default currency", 2);
-    requiredSetting("project_locale", "DEFAULT_LOCALE", "Default locale", 3);
-    requiredSetting("project_checkout_page", "FRONTEND_CHECKOUT_PAGE", "Frontend checkout page", 4);
-    requiredSetting("project_order_page", "FRONTEND_ORDER_PAGE", "Frontend order page", 5);
+    // Orders are refused without a timezone (Order checkDate), so it is required too
+    requiredSetting("project_timezone", "TZ", "Timezone", 2);
+    requiredSetting("project_currency", "DEFAULT_CURRENCY_ISO", "Default currency", 3);
+    requiredSetting("project_locale", "DEFAULT_LOCALE", "Default locale", 4);
+    requiredSetting("project_checkout_page", "FRONTEND_CHECKOUT_PAGE", "Frontend checkout page", 5);
+    requiredSetting("project_order_page", "FRONTEND_ORDER_PAGE", "Frontend order page", 6);
 
     this.registerCheckup({
       key: "has_payment_method",
@@ -304,7 +306,7 @@ export class SetupChecklistRegistry {
       severity: "required",
       titleKey: "Payment method configured",
       sourceModule: "core",
-      sortOrder: 6,
+      sortOrder: 7,
       target: { url: "/model/paymentmethod" },
       // Created ≠ ready: a method may exist but be disabled. Report that explicitly.
       check: async () => {
@@ -324,7 +326,7 @@ export class SetupChecklistRegistry {
       severity: "recommended",
       titleKey: "Sales point created",
       sourceModule: "core",
-      sortOrder: 7,
+      sortOrder: 8,
       target: { url: "/model/place" },
       // e.g. a place is created but none is enabled → still "not ready".
       check: async () => {
@@ -345,7 +347,7 @@ export class SetupChecklistRegistry {
       titleKey: "RMS adapter connected",
       descriptionKey: "Connect your POS/RMS to sync the menu and stock lists",
       sourceModule: "core",
-      sortOrder: 8,
+      sortOrder: 9,
       check: async () => {
         try {
           const adapter: any = await Adapter.getRMSAdapter();
