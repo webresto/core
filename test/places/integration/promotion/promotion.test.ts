@@ -166,6 +166,24 @@ describe("Promotions", function () {
 
       expect((await Order.findOne({ id })).total).to.equal(shown(d.dish2).salePrice);
     });
+
+    it("switched off and on, the menu follows, and a storefront is told once it does", async function () {
+      await promotion("promotion-1", { discountType: "flat", discountAmount: 1, dishes: [d.dish1.id] });
+      const told: unknown[] = [];
+      emitter.on("core:promotion-changed", "promotion-test", () => {
+        told.push(shown(d.dish1).salePrice);
+      });
+      try {
+        await Promotion.update({ id: "promotion-1" }, { enable: false }).fetch();
+        expect(shown(d.dish1)).to.deep.equal(NOTHING);
+        await Promotion.update({ id: "promotion-1" }, { enable: true }).fetch();
+        expect(shown(d.dish1).salePrice).to.equal(9.1);
+        expect(told).to.deep.equal([null, 9.1]);
+      } finally {
+        // `emitter.off` does not unsubscribe; a subscriber that does nothing replaces this one.
+        emitter.on("core:promotion-changed", "promotion-test", () => undefined);
+      }
+    });
   });
 
   it("switched off, it leaves the basket at the next recount", async function () {

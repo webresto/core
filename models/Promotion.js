@@ -95,6 +95,8 @@ let attributes = {
     },
     worktime: "json",
 };
+// The prices of the menu may change: a storefront asks it again - once the adapter and promotionRAM hold the change,
+// or it would get the old prices. One hook per name: a second one in this object replaces the first.
 let Model = {
     async afterUpdate(record, cb) {
         if (record.createdByUser) {
@@ -102,6 +104,7 @@ let Model = {
             adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
+        emitter.emit("core:promotion-changed", record);
         cb();
     },
     async afterCreate(record, cb) {
@@ -110,28 +113,17 @@ let Model = {
             adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
+        emitter.emit("core:promotion-changed", record);
         cb();
     },
     async afterDestroy(record, cb) {
         // delete promotion in adapter
         adapters_1.Adapter.getPromotionAdapter().deletePromotion(record.id);
         promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
+        emitter.emit("core:promotion-changed", record);
         cb();
     },
     beforeUpdate(init, cb) {
-        cb();
-    },
-    // the prices of the menu may change: a storefront asks it again
-    afterCreate(record, cb) {
-        emitter.emit("core:promotion-changed", record);
-        cb();
-    },
-    afterUpdate(record, cb) {
-        emitter.emit("core:promotion-changed", record);
-        cb();
-    },
-    afterDestroy(record, cb) {
-        emitter.emit("core:promotion-changed", record);
         cb();
     },
     async beforeCreate(init, cb) {

@@ -139,6 +139,8 @@ export interface PromotionRecord
     >,
     ORM {}
 
+// The prices of the menu may change: a storefront asks it again - once the adapter and promotionRAM hold the change,
+// or it would get the old prices. One hook per name: a second one in this object replaces the first.
 let Model = {
    async afterUpdate(record: PromotionRecord, cb:  (err?: string) => void) {
     if (record.createdByUser) {
@@ -147,6 +149,7 @@ let Model = {
     }
 
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
+    emitter.emit("core:promotion-changed", record);
     cb();
   },
 
@@ -157,6 +160,7 @@ let Model = {
     }
 
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
+    emitter.emit("core:promotion-changed", record);
     cb();
   },
 
@@ -164,28 +168,13 @@ let Model = {
     // delete promotion in adapter
     Adapter.getPromotionAdapter().deletePromotion(record.id)
     promotionRAM = await Promotion.find({enable: true, isDeleted: false})
+    emitter.emit("core:promotion-changed", record);
 
     cb();
   },
 
 
   beforeUpdate(init: PromotionRecord, cb:  (err?: string) => void) {
-    cb();
-  },
-
-  // the prices of the menu may change: a storefront asks it again
-  afterCreate(record: PromotionRecord, cb: (err?: string) => void) {
-    emitter.emit("core:promotion-changed", record);
-    cb();
-  },
-
-  afterUpdate(record: PromotionRecord, cb: (err?: string) => void) {
-    emitter.emit("core:promotion-changed", record);
-    cb();
-  },
-
-  afterDestroy(record: PromotionRecord, cb: (err?: string) => void) {
-    emitter.emit("core:promotion-changed", record);
     cb();
   },
 
