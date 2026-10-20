@@ -228,7 +228,14 @@ declare let Model: {
     beforeUpdate(values: Partial<OrderRecord>, cb: (err?: string) => void): void;
     afterUpdate(order: OrderRecord, cb: (err?: string) => void): Promise<void>;
     /** Add a dish into order */
-    addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
+    addDish(criteria: CriteriaQuery<OrderRecord>, dish: DishRecord | string, amount: number, modifiers: OrderModifier[], comment: string, 
+    /**
+     * user - added manually by human
+     * promotion - cleaned in each calculated promotion
+     * core - is reserved for
+     * custom - custom integration can process it
+     */
+    addedBy: "user" | "promotion" | "core" | "custom", replace?: boolean, orderDishId?: number): Promise<void>;
     removeDish(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number, stack?: boolean): Promise<void>;
     setCount(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, amount: number): Promise<void>;
     setComment(criteria: CriteriaQuery<OrderRecord>, dish: OrderDishRecord, comment: string): Promise<void>;
@@ -238,6 +245,14 @@ declare let Model: {
      * @returns new order
      */
     clone(source: CriteriaQuery<OrderRecord>): Promise<OrderRecord>;
+    /**
+     * A snapshot of the lines of an order for a link ("share the cart" of a storefront): a new order nobody owns with
+     * the lines the customer added, copied as they are. No customer, no address, no kitchen and no checks of the menu -
+     * the receiver reads it by its shortId and checks the lines against its own menu; `clone` makes a cart to order.
+     * @param source Order findOne criteria
+     * @returns the snapshot
+     */
+    share(source: CriteriaQuery<OrderRecord>): Promise<OrderRecord>;
     /**
      * Set how the customer gets the food. Use this method to change `serviceType`.
      * @param criteria

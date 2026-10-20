@@ -765,6 +765,33 @@ let Model = {
         return newOrder;
     },
     /**
+     * A snapshot of the lines of an order for a link ("share the cart" of a storefront): a new order nobody owns with
+     * the lines the customer added, copied as they are. No customer, no address, no kitchen and no checks of the menu -
+     * the receiver reads it by its shortId and checks the lines against its own menu; `clone` makes a cart to order.
+     * @param source Order findOne criteria
+     * @returns the snapshot
+     */
+    async share(source) {
+        const original = await Order.findOne(source).populate("dishes");
+        if (!original)
+            throw new Error(`Order [${JSON.stringify(source)}] not found`);
+        const snapshot = await Order.create({}).fetch();
+        for (const line of original.dishes) {
+            if (line.addedBy !== "user")
+                continue;
+            await OrderDish.create({
+                dish: line.dish,
+                order: snapshot.id,
+                amount: line.amount,
+                modifiers: line.modifiers,
+                comment: line.comment,
+                addedBy: "user",
+            }).fetch();
+        }
+        await Order.log({ id: snapshot.id }, "info", "core", `Order shared from [${original.id}]`, { sourceOrderId: original.id });
+        return snapshot;
+    },
+    /**
      * Set how the customer gets the food. Use this method to change `serviceType`.
      * @param criteria
      * @param serviceType
