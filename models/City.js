@@ -40,6 +40,14 @@ let Model = {
         }
         cb();
     },
+    afterCreate(record, cb) {
+        emitter.emit("core:city-changed", record);
+        cb();
+    },
+    afterUpdate(record, cb) {
+        emitter.emit("core:city-changed", record);
+        cb();
+    },
 };
 module.exports = {
     primaryKey: "id",

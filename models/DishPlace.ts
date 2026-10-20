@@ -95,6 +95,22 @@ let Model = {
     cb();
   },
 
+  // a storefront asks the product again at the point: its stock or stop changed
+  afterCreate(record: DishPlaceRecord, cb: (err?: string) => void) {
+    emitter.emit("core:dish-place-changed", record);
+    cb();
+  },
+
+  afterUpdate(record: DishPlaceRecord, cb: (err?: string) => void) {
+    emitter.emit("core:dish-place-changed", record);
+    cb();
+  },
+
+  afterDestroy(record: DishPlaceRecord, cb: (err?: string) => void) {
+    emitter.emit("core:dish-place-changed", record);
+    cb();
+  },
+
   /**
    * Returns the row for the pair, creating it only when a real value arrives.
    *

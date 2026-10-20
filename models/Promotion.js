@@ -121,6 +121,19 @@ let Model = {
     beforeUpdate(init, cb) {
         cb();
     },
+    // the prices of the menu may change: a storefront asks it again
+    afterCreate(record, cb) {
+        emitter.emit("core:promotion-changed", record);
+        cb();
+    },
+    afterUpdate(record, cb) {
+        emitter.emit("core:promotion-changed", record);
+        cb();
+    },
+    afterDestroy(record, cb) {
+        emitter.emit("core:promotion-changed", record);
+        cb();
+    },
     async beforeCreate(init, cb) {
         if (!init.id) {
             init.id = (0, uuid_1.v4)();

@@ -69,6 +69,14 @@ let Model = {
             cb(error instanceof Error ? error.message : String(error));
         }
     },
+    afterCreate(record, cb) {
+        emitter.emit("core:place-changed", record);
+        cb();
+    },
+    afterUpdate(record, cb) {
+        emitter.emit("core:place-changed", record);
+        cb();
+    },
 };
 module.exports = {
     primaryKey: "id",

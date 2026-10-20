@@ -209,6 +209,7 @@ let Model = {
   afterUpdate: async function (record: SettingsRecord, cb: (err?: string) => void) {
     try {
       emitter.emit(`settings:${record.key}`, record);
+      emitter.emit("core:settings-changed", record);
     } catch (error) {
       sails.log.silly(`Emitter does not exist`, error);
     }
@@ -221,6 +222,7 @@ let Model = {
   afterCreate: async function (record: SettingsRecord, cb: (err?: string) => void) {
     try {
       emitter.emit(`settings:${record.key}`, record);
+      emitter.emit("core:settings-changed", record);
     } catch (error) {
       sails.log.silly(`Emitter does not exist`, error);
     }

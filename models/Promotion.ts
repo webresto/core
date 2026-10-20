@@ -173,6 +173,22 @@ let Model = {
     cb();
   },
 
+  // the prices of the menu may change: a storefront asks it again
+  afterCreate(record: PromotionRecord, cb: (err?: string) => void) {
+    emitter.emit("core:promotion-changed", record);
+    cb();
+  },
+
+  afterUpdate(record: PromotionRecord, cb: (err?: string) => void) {
+    emitter.emit("core:promotion-changed", record);
+    cb();
+  },
+
+  afterDestroy(record: PromotionRecord, cb: (err?: string) => void) {
+    emitter.emit("core:promotion-changed", record);
+    cb();
+  },
+
   async beforeCreate(init: PromotionRecord, cb:  (err?: string) => void) {
     if (!init.id) {
       init.id = uuid();

@@ -27,6 +27,9 @@ import { OrderDishRecord } from "../models/OrderDish";
 import { OrderRecord, PaymentBack, ServiceType } from "../models/Order";
 import { MaintenanceRecord } from "../models/Maintenance";
 import { PromotionRecord } from "../models/Promotion";
+import { DishPlaceRecord } from "../models/DishPlace";
+import { PlaceRecord } from "../models/Place";
+import { CityRecord } from "../models/City";
 
 /**
  * Naming conventions can greatly enhance the readability and understanding of code, especially for those who may not be familiar with it. Using a structured approach like "module:action-before/after-read/write" can make it intuitive. Let's break down the example "core:add-dish-before-write":
@@ -93,6 +96,15 @@ declare global {
     'core:product-after-update': [DishRecord]
     'core:product-before-update': [DishRecord]
     "core:product-get-dishes": [DishRecord[]]
+    /** The stock or the stop of a product at a point changed: an operator, the RMS, an order took from it; a deleted row - no limit any more. */
+    "core:dish-place-changed": [DishPlaceRecord]
+    /** A promotion was created, changed or deleted: the prices of the menu may change. */
+    "core:promotion-changed": [PromotionRecord]
+    /** A point was created or changed: switched off, its hours, its address. */
+    "core:place-changed": [PlaceRecord]
+    "core:city-changed": [CityRecord]
+    /** Any setting was created or changed (`settings:<key>` - one of them). */
+    "core:settings-changed": [SettingsRecord]
     "dialog-box:new": [DialogBox]
     "dialog-box:answer-received": [string, string]
     "core:order-dish-changed": [OrderDishRecord],

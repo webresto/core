@@ -37,6 +37,9 @@ declare let Model: {
      * would silently split one product's stock into two competing records.
      */
     beforeCreate(record: DishPlaceRecord, cb: (err?: string) => void): Promise<void>;
+    afterCreate(record: DishPlaceRecord, cb: (err?: string) => void): void;
+    afterUpdate(record: DishPlaceRecord, cb: (err?: string) => void): void;
+    afterDestroy(record: DishPlaceRecord, cb: (err?: string) => void): void;
     /**
      * Returns the row for the pair, creating it only when a real value arrives.
      *

@@ -35,6 +35,8 @@ export interface PlaceRecord extends attributes, ORM {
 declare let Model: {
     beforeCreate(placeInit: PlaceRecord, cb: (err?: string) => void): void;
     beforeUpdate(placeUpdate: Partial<PlaceRecord>, cb: (err?: string) => void): void;
+    afterCreate(record: PlaceRecord, cb: (err?: string) => void): void;
+    afterUpdate(record: PlaceRecord, cb: (err?: string) => void): void;
 };
 declare global {
     const Place: typeof Model & ORMModel<PlaceRecord, never>;

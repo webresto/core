@@ -54,6 +54,16 @@ let Model = {
 
     cb();
   },
+
+  afterCreate(record: CityRecord, cb: (err?: string) => void) {
+    emitter.emit("core:city-changed", record);
+    cb();
+  },
+
+  afterUpdate(record: CityRecord, cb: (err?: string) => void) {
+    emitter.emit("core:city-changed", record);
+    cb();
+  },
 };
 
 module.exports = {
