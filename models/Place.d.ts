@@ -37,6 +37,7 @@ declare let Model: {
     beforeUpdate(placeUpdate: Partial<PlaceRecord>, cb: (err?: string) => void): void;
     afterCreate(record: PlaceRecord, cb: (err?: string) => void): void;
     afterUpdate(record: PlaceRecord, cb: (err?: string) => void): void;
+    afterDestroy(record: PlaceRecord, cb: (err?: string) => void): void;
 };
 declare global {
     const Place: typeof Model & ORMModel<PlaceRecord, never>;

@@ -75,6 +75,7 @@ declare let Model: {
     beforeUpdate: (record: GroupRecord, cb: (err?: string) => void) => void;
     afterUpdate: (record: GroupRecord, cb: (err?: string) => void) => void;
     afterCreate: (record: GroupRecord, cb: (err?: string) => void) => void;
+    afterDestroy: (record: GroupRecord, cb: (err?: string) => void) => void;
     /**
      * Returns an object with groups and errors of obtaining these very groups.
      * @param groupsId - array of ID groups that should be obtained

@@ -77,6 +77,10 @@ let Model = {
         emitter.emit("core:place-changed", record);
         cb();
     },
+    afterDestroy(record, cb) {
+        emitter.emit("core:place-changed", record);
+        cb();
+    },
 };
 module.exports = {
     primaryKey: "id",

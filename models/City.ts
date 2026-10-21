@@ -64,6 +64,11 @@ let Model = {
     emitter.emit("core:city-changed", record);
     cb();
   },
+
+  afterDestroy(record: CityRecord, cb: (err?: string) => void) {
+    emitter.emit("core:city-changed", record);
+    cb();
+  },
 };
 
 module.exports = {

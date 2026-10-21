@@ -12,6 +12,9 @@ import { registerAuthSetupCheckups } from "../lib/authSetupCheckups";
 import { isPrimaryWorker, workerIndex } from "../lib/cluster";
 import AuthService from "../lib/AuthService";
 import { startDefaultDelivery } from "../adapters";
+import { addHoursSubject, startHoursSweep } from "../lib/hours-sweep";
+import { hasHours, openByHours } from "../lib/hours";
+import { placeIsOpen } from "../lib/menu/cooking-place";
 
 /**
  * Initial RMS and set timezone if it was given
@@ -109,6 +112,22 @@ export default async function () {
 
     // The built-in delivery adapter's zone sync and its setup checkup.
     await startDefaultDelivery();
+
+    // Points and promotions with hours open and close with no write: the sweep tells a storefront, as it does the
+    // zones of the delivery adapter (lib/hours-sweep).
+    addHoursSubject({
+      name: "place",
+      read: async () => (await Place.find({})).filter((place) => place.enable !== false && hasHours(place.worktime)),
+      isOpen: placeIsOpen,
+      turned: (place) => emitter.emit("core:place-changed", place),
+    });
+    addHoursSubject({
+      name: "promotion",
+      read: async () => (await Promotion.find({ enable: true, isDeleted: false })).filter((promotion) => hasHours(promotion.worktime)),
+      isOpen: (promotion, at) => openByHours(promotion.worktime, at),
+      turned: (promotion) => emitter.emit("core:promotion-changed", promotion),
+    });
+    startHoursSweep();
 
     // Typed notifications: register core events (registration ≠ enabling send),
     // then seed/load the notification rules catalog (NotificationRules model) into cache.

@@ -1,4 +1,4 @@
-import { WorkTimeValidator } from "@webresto/worktime";
+import { openByHours } from "../../../lib/hours";
 import OrderAddress from "../../../interfaces/OrderAddress";
 import { Delivery } from "../../../interfaces/Delivery";
 import { Adapter } from "../../index";
@@ -109,11 +109,9 @@ async function zoneTerms(zone: DeliveryZoneRecord): Promise<ZoneTerms> {
   };
 }
 
-/** Whether the zone accepts orders right now. A switched-off zone never gets here: `findServing` drops it. */
-export function zoneIsOpen(zone: DeliveryZoneRecord): boolean {
-  if (!zone.worktime || !zone.worktime.length) return true;
-
-  return WorkTimeValidator.isWorkNow({ worktime: zone.worktime } as any).workNow !== false;
+/** Whether the zone accepts orders at a moment - by default, this one. A switched-off zone never gets here: `findServing` drops it. */
+export function zoneIsOpen(zone: DeliveryZoneRecord, at?: Date): boolean {
+  return openByHours(zone.worktime, at);
 }
 
 /**

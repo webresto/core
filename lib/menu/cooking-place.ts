@@ -1,4 +1,4 @@
-import { WorkTimeValidator } from "@webresto/worktime";
+import { openByHours } from "../hours";
 import type { MenuContext } from "../../interfaces/Menu";
 
 /**
@@ -87,17 +87,7 @@ export function isEnabledKitchen(place: any): boolean {
  */
 export function placeIsOpen(place: any, at?: Date): boolean {
   if (!place || place.enable === false) return false;
-  if (!place.worktime || !place.worktime.length) return true;
-
-  try {
-    return WorkTimeValidator.isWorkNow({ worktime: place.worktime } as any, at).workNow !== false;
-  } catch {
-    // The validator throws rather than answering when the schedule says nothing
-    // about today — a point that works Monday to Friday, asked on a Sunday.
-    // That is a closed point, not a broken one. A point with no schedule at
-    // all never reaches this line.
-    return false;
-  }
+  return openByHours(place.worktime, at);
 }
 
 /**

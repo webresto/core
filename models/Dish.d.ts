@@ -129,6 +129,7 @@ declare let Model: {
     beforeUpdate: (value: DishRecord, cb: (err?: string) => void) => Promise<void>;
     afterUpdate: (record: DishRecord, cb: (err?: string) => void) => void;
     afterCreate: (record: DishRecord, cb: (err?: string) => void) => void;
+    afterDestroy: (record: DishRecord, cb: (err?: string) => void) => void;
     /**
      * Accepts Waterline Criteria and prepares it there isDeleted = false. Thus, this function allows
      *  finding in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.

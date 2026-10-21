@@ -89,6 +89,22 @@ let Model = {
     cb();
   },
 
+  // a storefront asks the ways to pay of its order again
+  afterCreate: function (record: PaymentMethodRecord, cb: (err?: string) => void) {
+    emitter.emit("core:payment-method-changed", record);
+    cb();
+  },
+
+  afterUpdate: function (record: PaymentMethodRecord, cb: (err?: string) => void) {
+    emitter.emit("core:payment-method-changed", record);
+    cb();
+  },
+
+  afterDestroy: function (record: PaymentMethodRecord, cb: (err?: string) => void) {
+    emitter.emit("core:payment-method-changed", record);
+    cb();
+  },
+
   /**
    * Returns True if the payment method is a promise of payment
    * @param  paymentMethodId

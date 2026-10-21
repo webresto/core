@@ -30,6 +30,9 @@ import { PromotionRecord } from "../models/Promotion";
 import { DishPlaceRecord } from "../models/DishPlace";
 import { PlaceRecord } from "../models/Place";
 import { CityRecord } from "../models/City";
+import { DeliveryZoneRecord } from "../models/DeliveryZone";
+import { PaymentMethodRecord } from "../models/PaymentMethod";
+import { SelectedMediaFileRecord } from "../models/SelectedMediaFile";
 
 /**
  * Naming conventions can greatly enhance the readability and understanding of code, especially for those who may not be familiar with it. Using a structured approach like "module:action-before/after-read/write" can make it intuitive. Let's break down the example "core:add-dish-before-write":
@@ -92,17 +95,28 @@ declare global {
     "core:group-before-update": [GroupRecord]
     "core:group-after-update": [GroupRecord]
     "core:group-before-create": [GroupRecord]
+    /** A group was deleted for good (not `isDeleted`). */
+    "core:group-after-destroy": [GroupRecord]
     'core:product-after-create': [DishRecord]
     'core:product-after-update': [DishRecord]
     'core:product-before-update': [DishRecord]
+    /** A product was deleted for good (not `isDeleted`). */
+    'core:product-after-destroy': [DishRecord]
     "core:product-get-dishes": [DishRecord[]]
+    /** A photo was linked to a product or a group, or unlinked. */
+    "core:selected-media-file-changed": [SelectedMediaFileRecord]
     /** The stock or the stop of a product at a point changed: an operator, the RMS, an order took from it; a deleted row - no limit any more. */
     "core:dish-place-changed": [DishPlaceRecord]
-    /** A promotion was created, changed or deleted: the prices of the menu may change. */
+    /** A promotion was created, changed or deleted, or its hours opened or closed it (`lib/hours-sweep`): the prices of the menu may change. */
     "core:promotion-changed": [PromotionRecord]
-    /** A point was created or changed: switched off, its hours, its address. */
+    /** A point was created, changed or deleted, or its hours opened or closed it (`lib/hours-sweep`): switched off, its hours, its address. */
     "core:place-changed": [PlaceRecord]
+    /** A city was created, changed or deleted. */
     "core:city-changed": [CityRecord]
+    /** A delivery zone was created, changed or deleted, or its hours opened or closed it (`lib/hours-sweep`): the terms of an address may change. */
+    "core:delivery-zone-changed": [DeliveryZoneRecord]
+    /** A way to pay was created, changed or deleted. */
+    "core:payment-method-changed": [PaymentMethodRecord]
     /** Any setting was created or changed (`settings:<key>` - one of them). */
     "core:settings-changed": [SettingsRecord]
     "dialog-box:new": [DialogBox]

@@ -222,6 +222,11 @@ let Model = {
     return cb();
   },
 
+  afterDestroy: function (record: GroupRecord, cb:  (err?: string) => void) {
+    emitter.emit('core:group-after-destroy', record);
+    return cb();
+  },
+
   /**
    * Returns an object with groups and errors of obtaining these very groups.
    * @param groupsId - array of ID groups that should be obtained

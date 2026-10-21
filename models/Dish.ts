@@ -373,6 +373,11 @@ let Model = {
     return cb();
   },
 
+  afterDestroy: function (record: DishRecord, cb: (err?: string) => void) {
+    emitter.emit('core:product-after-destroy', record);
+    return cb();
+  },
+
   /**
    * Accepts Waterline Criteria and prepares it there isDeleted = false. Thus, this function allows
    *  finding in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.

@@ -38,6 +38,9 @@ declare let Model: {
      */
     getAdapter(adapter?: string): Promise<PaymentAdapter>;
     beforeCreate: (paymentMethod: PaymentMethodRecord, cb: (err?: string) => void) => void;
+    afterCreate: (record: PaymentMethodRecord, cb: (err?: string) => void) => void;
+    afterUpdate: (record: PaymentMethodRecord, cb: (err?: string) => void) => void;
+    afterDestroy: (record: PaymentMethodRecord, cb: (err?: string) => void) => void;
     /**
      * Returns True if the payment method is a promise of payment
      * @param  paymentMethodId

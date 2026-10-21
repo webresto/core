@@ -30,7 +30,17 @@ let Model = {
         if (imageInit.sortOrder === null || imageInit.sortOrder === undefined)
             imageInit.sortOrder = 0;
         cb();
-    }
+    },
+    // a storefront asks the product or the group again: its photos changed. Every writer of the photos (the media
+    // manager, the RMS, MCP) relinks them - a new order is new rows - so the rows are never updated
+    afterCreate(record, cb) {
+        emitter.emit("core:selected-media-file-changed", record);
+        cb();
+    },
+    afterDestroy(record, cb) {
+        emitter.emit("core:selected-media-file-changed", record);
+        cb();
+    },
 };
 module.exports = {
     primaryKey: "id",

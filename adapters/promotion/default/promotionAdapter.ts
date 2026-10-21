@@ -1,6 +1,6 @@
 import Decimal from "decimal.js";
 import AbstractPromotionAdapter, { AbstractPromotionHandler } from "../PromotionAdapter";
-import { WorkTimeValidator } from "@webresto/worktime";
+import { openByHours } from "../../../lib/hours";
 import ConfiguredPromotion from "./configuredPromotion";
 import findModelInstanceByAttributes from "../../../lib/findModelInstance";
 import { OrderRecord, PromotionState } from "../../../models/Order";
@@ -113,15 +113,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
      */
 
     let filteredPromotionsToApply: PromotionRecord[] = Object.values(promotionsByConcept)
-      .filter((record) => {
-        if (!record.worktime) return true;
-        try {
-          //@ts-ignore
-          return WorkTimeValidator.isWorkNow({ worktime: record.worktime }).workNow;
-        } catch (error) {
-          sails.log.error("Promotion > helper > error: ", error);
-        }
-      })
+      .filter((record) => openByHours(record.worktime))
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const filteredByCondition: PromotionRecord[] = this.filterByCondition(filteredPromotionsToApply, target);

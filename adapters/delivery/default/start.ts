@@ -2,6 +2,9 @@ import { Adapter } from "../../index";
 import { SetupChecklistRegistry } from "../../../lib/SetupChecklistRegistry";
 import { getServingZones } from "./zone-cache";
 import { DeliveryZoneSyncService } from "./zone-sync";
+import { zoneIsOpen } from "./zone-calculation";
+import { addHoursSubject } from "../../../lib/hours-sweep";
+import { hasHours } from "../../../lib/hours";
 
 /**
  * What the default delivery adapter needs running once core has booted: the
@@ -36,6 +39,15 @@ export async function startDefaultDelivery(): Promise<void> {
   } catch (error) {
     sails.log.error("RestoCore > delivery zone sync did not start", error);
   }
+
+  // A zone with hours opens and closes with no write: the sweep tells a storefront (`lib/hours-sweep`). The zones that
+  // can take an order, with the hours of their layer applied.
+  addHoursSubject({
+    name: "delivery-zone",
+    read: async () => (await getServingZones()).filter((zone) => hasHours(zone.worktime)),
+    isOpen: zoneIsOpen,
+    turned: (zone) => emitter.emit("core:delivery-zone-changed", zone),
+  });
 
   SetupChecklistRegistry.registerCheckup({
     key: "has_delivery_zone",

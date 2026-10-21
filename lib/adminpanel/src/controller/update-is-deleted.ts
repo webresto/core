@@ -37,8 +37,8 @@ export default async function UpdateIsDeletedController(req: any, res: any) {
 
         if (model === 'dish' && isDishEnableUpdate) {
             const before = await Dish.findOne({ id });
-            await Dish.update({ id }, { enable });
-            const after = await Dish.findOne({ id });
+            // updateOne runs the model's afterUpdate - a storefront is told
+            const after = await Dish.updateOne({ id }, { enable });
             logAuditEvent("admin.stock-manager", "dish-enable-updated", {
                 actor,
                 dishId: id,
@@ -47,8 +47,7 @@ export default async function UpdateIsDeletedController(req: any, res: any) {
             });
         } else if (model === 'dish') {
             const before = await Dish.findOne({ id });
-            await Dish.update({ id }, { isDeleted });
-            const after = await Dish.findOne({ id });
+            const after = await Dish.updateOne({ id }, { isDeleted });
             logAuditEvent("admin.stock-manager", "dish-deletion-updated", {
                 actor,
                 dishId: id,
@@ -57,8 +56,7 @@ export default async function UpdateIsDeletedController(req: any, res: any) {
             });
         } else if (model === 'group') {
             const before = await Group.findOne({ id });
-            await Group.update({ id }, { isDeleted });
-            const after = await Group.findOne({ id });
+            const after = await Group.updateOne({ id }, { isDeleted });
             logAuditEvent("admin.stock-manager", "group-deletion-updated", {
                 actor,
                 groupId: id,

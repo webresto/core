@@ -92,6 +92,11 @@ let Model = {
     emitter.emit("core:place-changed", record);
     cb();
   },
+
+  afterDestroy(record: PlaceRecord, cb: (err?: string) => void) {
+    emitter.emit("core:place-changed", record);
+    cb();
+  },
 };
 
 module.exports = {

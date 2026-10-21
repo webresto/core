@@ -324,17 +324,20 @@ let Model = {
             cb(error instanceof Error ? error.message : String(error));
         }
     },
-    // Delivery is calculated against a cached zone list; every write drops it.
+    // Delivery is calculated against a cached zone list; every write drops it. A storefront checks its address again.
     async afterCreate(record, proceed) {
         (0, zone_cache_1.invalidateDeliveryZoneCache)();
+        emitter.emit("core:delivery-zone-changed", record);
         proceed();
     },
     async afterUpdate(record, proceed) {
         (0, zone_cache_1.invalidateDeliveryZoneCache)();
+        emitter.emit("core:delivery-zone-changed", record);
         proceed();
     },
     async afterDestroy(record, proceed) {
         (0, zone_cache_1.invalidateDeliveryZoneCache)();
+        emitter.emit("core:delivery-zone-changed", record);
         proceed();
     },
     /**

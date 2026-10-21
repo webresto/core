@@ -14,10 +14,11 @@ export default async function UpdateVisibilityController(req: any, res: any) {
             return res.status(400).json({ error: t('Invalid parameters') });
         }
 
+        // updateOne runs the model's afterUpdate - a storefront is told
         if (model === 'dish') {
-            await Dish.update({ id }, { visible });
+            await Dish.updateOne({ id }, { visible });
         } else if (model === 'group') {
-            await Group.update({ id }, { visible });
+            await Group.updateOne({ id }, { visible });
         } else {
             return res.status(400).json({ error: t('Invalid model type') });
         }

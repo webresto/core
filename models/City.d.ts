@@ -32,6 +32,7 @@ declare let Model: {
     beforeCreate(streetInit: CityRecord, cb: (err?: string) => void): void;
     afterCreate(record: CityRecord, cb: (err?: string) => void): void;
     afterUpdate(record: CityRecord, cb: (err?: string) => void): void;
+    afterDestroy(record: CityRecord, cb: (err?: string) => void): void;
 };
 declare global {
     const City: typeof Model & ORMModel<CityRecord, never>;
