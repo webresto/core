@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import type { WorkTime } from "@webresto/worktime";
 import { resetDatabase } from "../../support/reset";
 import UpdateIsDeletedController from "../../../../lib/adminpanel/src/controller/update-is-deleted";
 import UpdateVisibilityController from "../../../../lib/adminpanel/src/controller/update-visibility";
@@ -25,9 +26,9 @@ describe("Storefront events", function () {
     "core:payment-method-changed",
     "core:promotion-changed",
   ] as const;
-  const EVERY_DAY = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-  const HOURS = [{ dayOfWeek: EVERY_DAY, start: "10:00", stop: "20:00" }];
-  const ZONE = [[9, 9], [11, 9], [11, 11], [9, 11], [9, 9]];
+  const EVERY_DAY: WorkTime["dayOfWeek"] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const HOURS: WorkTime[] = [{ dayOfWeek: EVERY_DAY, start: "10:00", stop: "20:00" }];
+  const ZONE: [number, number][] = [[9, 9], [11, 9], [11, 11], [9, 11], [9, 9]];
 
   let told: string[] = [];
   const r: Record<string, any> = {};
@@ -49,14 +50,14 @@ describe("Storefront events", function () {
     // the sweep of the clock would tell between the steps of a test; a test sweeps at the moments it names
     stopHoursSweep();
     await resetDatabase();
-    for (const event of EVENTS) emitter.on(event, "storefront-events-test", (record: any) => { told.push(`${event} ${record?.id}`); });
+    for (const event of EVENTS) emitter.on(event, "storefront-events-test", (...args: unknown[]) => { told.push(`${event} ${(args[0] as { id?: unknown } | undefined)?.id}`); });
 
     r.city = await City.create({ name: "City 1" }).fetch();
     r.kitchen1 = await Place.create({ title: "Kitchen 1", city: r.city.id, enable: true, isCookingPoint: true, worktime: HOURS as any }).fetch();
     r.kitchen2 = await Place.create({ title: "Kitchen 2", city: r.city.id, enable: true, isCookingPoint: true }).fetch();
     r.group1 = await Group.create({ name: "Group 1", enable: true }).fetch();
     r.dish1 = await Dish.create({ name: "Dish 1", price: 100, enable: true, parentGroup: r.group1.id }).fetch();
-    r.zone1 = await DeliveryZone.create({ name: "Zone 1", polygon: ZONE, deliveryCost: 100, minDeliveryTime: 30, worktime: HOURS }).fetch();
+    r.zone1 = await DeliveryZone.create({ name: "Zone 1", polygon: ZONE, deliveryCost: 100, minDeliveryTime: 30, worktime: HOURS } as any).fetch();
     await Promotion.createOrUpdate({
       id: "promotion-1", name: "Promotion 1", badge: "badge-1", description: "Description 1", externalId: "promotion-1",
       isJoint: true, isPublic: true, createdByUser: true, concept: ["origin"], worktime: HOURS,
@@ -104,10 +105,10 @@ describe("Storefront events", function () {
     const dish = await Dish.create({ name: "Dish 2", price: 100, enable: true, parentGroup: group.id }).fetch();
     told = [];
 
-    await Dish.destroyOne({ id: dish.id });
-    await Group.destroyOne({ id: group.id });
-    await Place.destroyOne({ id: place.id });
-    await City.destroyOne({ id: city.id });
+    await Dish.destroy({ id: dish.id }).fetch();
+    await Group.destroy({ id: group.id }).fetch();
+    await Place.destroy({ id: place.id }).fetch();
+    await City.destroy({ id: city.id }).fetch();
 
     expect(told).to.deep.equal([
       `core:product-after-destroy ${dish.id}`,
@@ -128,10 +129,10 @@ describe("Storefront events", function () {
   });
 
   it("a zone created, changed, deleted tells", async function () {
-    const zone = await DeliveryZone.create({ name: "Zone 2", polygon: ZONE, deliveryCost: 100, minDeliveryTime: 30 }).fetch();
+    const zone = await DeliveryZone.create({ name: "Zone 2", polygon: ZONE, deliveryCost: 100, minDeliveryTime: 30 } as any).fetch();
     // as the zones manager writes it: the row id with the terms
     await DeliveryZone.updateOne({ id: zone.id }, { id: zone.id, deliveryCost: 200 });
-    await DeliveryZone.destroyOne({ id: zone.id });
+    await DeliveryZone.destroy({ id: zone.id }).fetch();
 
     expect(told).to.deep.equal(Array(3).fill(`core:delivery-zone-changed ${zone.id}`));
   });
@@ -139,7 +140,7 @@ describe("Storefront events", function () {
   it("a way to pay created, changed, deleted tells", async function () {
     const method = await PaymentMethod.create({ title: "Way 1", type: "promise", adapter: "way-1", enable: true }).fetch();
     await PaymentMethod.updateOne({ id: method.id }, { title: "Way 1 again" });
-    await PaymentMethod.destroyOne({ id: method.id });
+    await PaymentMethod.destroy({ id: method.id }).fetch();
 
     expect(told).to.deep.equal(Array(3).fill(`core:payment-method-changed ${method.id}`));
   });

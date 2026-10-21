@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { resetDatabase } from "../../support/reset";
+import { add, lines, newBasket } from "../../support/storefront";
 
 /**
  * The models that assemble a menu read it through the menu adapter's context,
@@ -102,6 +103,33 @@ describe("Menu models", function () {
 
       const renamed = await Dish.createOrUpdate({ ...values, name: "Dish 5 renamed" });
       expect(renamed).to.include({ id: "dish-5", name: "Dish 5 renamed" });
+    });
+  });
+  describe("hidden (visible: false)", function () {
+    afterEach(async function () {
+      await Dish.update({ id: d.dish1.id }, { visible: true }).fetch();
+      await Group.update({ id: { in: [g.group2.id, g.group3.id] } }, { visible: true }).fetch();
+    });
+
+    it("a hidden product is not in the menu", async function () {
+      await Dish.update({ id: d.dish1.id }, { visible: false }).fetch();
+      expect(names(await Dish.getDishes({ parentGroup: g.group1.id }, await contextAt(k.kitchen1)))).to.include("Dish 2").and.not.include("Dish 1");
+    });
+
+    it("a hidden group is not among the groups of the menu, the child groups, the tree of the menu", async function () {
+      await Group.update({ id: { in: [g.group2.id, g.group3.id] } }, { visible: false }).fetch();
+      expect((await Group.getMenuGroups()).map((group) => group.name)).to.include("Group 1").and.not.include("Group 3");
+      const [group] = (await Group.getGroups([g.group1.id], { cookingPoints: [k.kitchen1] } as any)).groups as any[];
+      expect(group.childGroups.map((child: any) => child.id)).to.not.include(g.group2.id);
+      expect(await Group.getMenuTree([g.group1] as any)).to.include(g.group1.id).and.not.include(g.group2.id);
+    });
+
+    it("a basket keeps a hidden product: its recount does not ask the menu", async function () {
+      const id = await newBasket();
+      await add(id, d.dish1.id, 2);
+      await Dish.update({ id: d.dish1.id }, { visible: false }).fetch();
+      await Order.countCart({ id });
+      expect(await lines(id)).to.include({ "Dish 1": 2 });
     });
   });
 });

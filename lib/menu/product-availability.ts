@@ -52,6 +52,8 @@ export interface AvailabilityProduct {
   id?: string | number | null;
   type?: string | null;
   enable?: boolean | null;
+  /** `false` - hidden: the menu does not offer it (`MenuAdapter.filterProducts`) */
+  visible?: boolean | null;
   cookingTimeMax?: number | null;
 }
 
