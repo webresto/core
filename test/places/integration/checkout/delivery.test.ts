@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { KITCHEN_LOG } from "../../../../lib/order/kitchen-assignment";
-import { nominatim } from "../../support/nominatim";
+import { geocoder } from "../../support/geocoder";
 import { resetDatabase, withSettings } from "../../support/reset";
 import { add, checkout, deliverTo, lines, newBasket, thrown, updateOrder } from "../../support/storefront";
 
@@ -142,7 +142,7 @@ describe("checkout: delivery", function () {
     const order = await deliverTo(id, at(null));
 
     expect(order.cookingPoints).to.deep.equal([]);
-    expect(nominatim.requests.map((request) => request.path)).to.include("search");
+    expect(geocoder.requests.map((request) => request.method)).to.include("house");
     expect(await thrown(checkout(id))).to.equal(null);
     expect(await Order.findOne({ id })).to.deep.include({ state: "CHECKOUT" });
     expect((await Order.findOne({ id })).delivery).to.include({ allowed: true, cost: null });

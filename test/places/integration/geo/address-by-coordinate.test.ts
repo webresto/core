@@ -1,157 +1,164 @@
 import { expect } from "chai";
-import { nominatim } from "../../support/nominatim";
+import { geocoder } from "../../support/geocoder";
 import { resetDatabase } from "../../support/reset";
 
 /**
- * "Detect my location": what Nominatim says is at the coordinate, matched
- * against the city's catalog; failing that the catalog's nearest point, then
- * Nominatim's own words as free text, then nothing.
+ * A click on the map: a place of the city's catalog, ours or cached, closer than
+ * 10 m is landed on; else the house the geocoder finds nearest, cached so the
+ * next click takes it from the catalog; else nothing, and the customer types
+ * the address.
  *
  *   City 1: Street 1 with houses 145 and 145a and block 1–99; Street 2 (alias
- *           "Alias 2") with house 97; Place 1 with a point.
- *   City 2: Street 3 and no points at all.
- *   City 3: Place 2, standing exactly where City 1's house 145 is.
+ *           "Alias 2") with house 97; Place 1 with a point; Street 5 and
+ *           Avenue 5, which the line "Street 5 Avenue" could both be.
+ *   City 2: Place 2, standing exactly where City 1's house 145 is.
  */
 describe("Address by coordinate", function () {
   const n: Record<string, any> = {};
   let city1: string;
   let city2: string;
-  const nearHouse145 = { lat: 56.84211, lon: 60.66401 };
+  const HOUSE_145 = { lat: 56.8421, lon: 60.664 };
+  /** About 5 m north of house 145. */
+  const NEAR_145 = { lat: 56.842145, lon: 60.664 };
 
   before(async function () {
     await resetDatabase();
     city1 = (await City.create({ name: "City 1" }).fetch()).id;
     city2 = (await City.create({ name: "City 2" }).fetch()).id;
-    const city3 = (await City.create({ name: "City 3" }).fetch()).id;
 
     const node = async (key: string, values: Record<string, unknown>) => {
       n[key] = await Address.create({ city: city1, ...values }).fetch();
     };
     await node("street1", { type: "street", name: "Street 1" });
-    await node("house145", { parent: n.street1.id, type: "house", name: "145", point: { lat: 56.8421, lon: 60.664 } });
+    await node("house145", { parent: n.street1.id, type: "house", name: "145", point: HOUSE_145 });
     await node("house145a", { parent: n.street1.id, type: "house", name: "145a", point: { lat: 56.8423, lon: 60.6645 } });
     await node("block1", { parent: n.street1.id, type: "range", name: "1–99", lo: 1, hi: 99, point: { lat: 56.836, lon: 60.61 } });
     await node("street2", { type: "street", name: "Street 2", names: ["Alias 2"] });
     await node("house97", { parent: n.street2.id, type: "house", name: "97", point: { lat: 56.8429, lon: 60.6408 } });
     await node("place1", { type: "place", name: "Place 1", point: { lat: 56.9, lon: 60.7 } });
+    await node("street5", { type: "street", name: "Street 5" });
+    await node("avenue5", { type: "street", name: "Avenue 5" });
 
-    await Address.create({ city: city2, type: "street", name: "Street 3" }).fetch();
-    await Address.create({ city: city3, type: "place", name: "Place 2", point: nearHouse145 }).fetch();
+    n.place2 = await Address.create({ city: city2, type: "place", name: "Place 2", point: HOUSE_145 }).fetch();
   });
 
   afterEach(function () {
-    nominatim.reply = undefined;
+    geocoder.around = undefined;
+    geocoder.requests = [];
   });
-
-  /** Nominatim's reverse answer: a street, a house number, a city. */
-  function reverseSays(address: Record<string, string>, displayName?: string) {
-    nominatim.reply = (path) => (path === "reverse" ? { address, display_name: displayName } : undefined);
-  }
 
   const lookUp = async (coordinate: { lat: number; lon: number }, city: string) =>
     (await Adapter.get("geo")).addressByCoordinate(coordinate, city);
+  /** The geocoder finds one house around any point. */
+  const finds = (street: string, home: string, point: { lat: number; lon: number }) => {
+    geocoder.around = () => [{ street, home, point }];
+  };
+  const asked = () => geocoder.requests.filter((request) => request.method === "housesAround");
+  const cached = async (id: string | null | undefined) => await Address.findOne({ id: id! });
 
-  describe("Nominatim answered and the catalog knows it", function () {
-    it("gives the house node, its line and its point", async function () {
-      reverseSays({ road: "Street 1 Avenue", house_number: "145" });
+  describe("a place of the catalog closer than 10 m", function () {
+    it("is landed on: its node, its line and its point, and no geocoder is asked", async function () {
+      finds("Street 9", "1", { lat: 56.85, lon: 60.7 });
 
-      expect(await lookUp({ lat: 56.85, lon: 60.7 }, city1)).to.deep.equal({
-        node: n.house145.id,
-        formatted: "Street 1, 145",
-        home: undefined,
-        coordinate: { lat: 56.8421, lon: 60.664 },
-      });
-      expect(nominatim.requests.at(-1)).to.deep.include({ path: "reverse" });
-      expect(nominatim.requests.at(-1)!.query).to.include({ lat: "56.85", lon: "60.7", zoom: "18" });
+      expect(await lookUp(NEAR_145, city1)).to.deep.equal({ node: n.house145.id, formatted: "Street 1, 145", home: undefined, coordinate: HOUSE_145 });
+      expect(asked()).to.deep.equal([]);
     });
 
-    it("finds the street by an alias as well as by its name", async function () {
-      reverseSays({ road: "Alias 2 Avenue", house_number: "97" });
-      expect((await lookUp(nearHouse145, city1))?.node).to.equal(n.house97.id);
+    it("is a place as well as a house", async function () {
+      expect(await lookUp({ lat: 56.90004, lon: 60.7 }, city1)).to.deep.include({ node: n.place1.id, formatted: "Place 1" });
     });
 
-    it("tells a house with a letter from the one without", async function () {
-      reverseSays({ road: "Street 1 Avenue", house_number: "145 A" });
-      expect((await lookUp(nearHouse145, city1))?.node).to.equal(n.house145a.id);
+    it("is the clicked city's own", async function () {
+      expect((await lookUp(HOUSE_145, city2))?.node).to.equal(n.place2.id);
+      expect((await lookUp(HOUSE_145, city1))?.node).to.equal(n.house145.id);
     });
 
-    it("gives a block with Nominatim's number when the house itself is not in the catalog", async function () {
-      reverseSays({ road: "Street 1 Avenue", house_number: "45" });
-
-      expect(await lookUp(nearHouse145, city1)).to.deep.equal({
-        node: n.block1.id,
-        formatted: "Street 1, 45",
-        home: "45",
-        coordinate: { lat: 56.836, lon: 60.61 },
-      });
-    });
-
-    it("gives the street with Nominatim's number when nothing under it covers the house", async function () {
-      reverseSays({ road: "Street 2 Avenue", house_number: "12" });
-      const asked = { lat: 56.84, lon: 60.61 };
-
-      // A street has no point of its own: the coordinate asked about stands in.
-      expect(await lookUp(asked, city1)).to.deep.equal({ node: n.street2.id, formatted: "Street 2, 12", home: "12", coordinate: asked });
+    it("is not a block: a range of numbers is not a place to land on", async function () {
+      expect(await lookUp({ lat: 56.836, lon: 60.61 }, city1)).to.equal(null);
+      expect(asked()).to.have.length(1);
     });
   });
 
-  describe("the catalog does not know what Nominatim said", function () {
-    it("gives the nearest node with a point, however far, and only from its own city", async function () {
-      // City 3's Place 2 stands exactly at the coordinate; it is not City 1's.
-      reverseSays({ road: "Street 9", house_number: "1" });
+  describe("further: the geocoder", function () {
+    it("is asked for the houses within 100 m; the nearest is landed on, cached under our street, and the next click takes it from the catalog", async function () {
+      const house = { lat: 56.8445, lon: 60.664 };
+      const click = { lat: 56.8446, lon: 60.664 };
+      finds("Street 1", "201", house);
 
-      const address = await lookUp(nearHouse145, city1);
+      const address = await lookUp(click, city1);
 
-      expect(address?.node).to.equal(n.house145.id);
-      expect(address?.coordinate).to.deep.equal({ lat: 56.8421, lon: 60.664 });
+      expect(address).to.deep.include({ formatted: "Street 1, 201", home: undefined, coordinate: house });
+      expect(await cached(address?.node)).to.deep.include({ parent: n.street1.id, type: "house", name: "201", point: house, cache: { source: "test", street: "Street 1" } });
+      expect(asked()).to.deep.equal([{ method: "housesAround", point: click, radiusMeters: 100 }]);
+
+      // About 5 m from the cached house: the catalog answers.
+      expect((await lookUp({ lat: 56.84455, lon: 60.664 }, city1))?.node).to.equal(address?.node);
+      expect(asked()).to.have.length(1);
     });
 
-    it("does the same for a street named without a house number", async function () {
-      reverseSays({ road: "Street 1 Avenue" });
+    it("finds our street by an alias as well as by its name", async function () {
+      finds("Alias 2", "99", { lat: 56.8432, lon: 60.6408 });
+      expect((await cached((await lookUp({ lat: 56.8433, lon: 60.6408 }, city1))?.node))?.parent).to.equal(n.street2.id);
+    });
 
-      const address = await lookUp({ lat: 56.9, lon: 60.71 }, city1);
+    it("hangs the houses of a street the catalog has not under one cached street", async function () {
+      finds("Street 9", "1", { lat: 56.85, lon: 60.7 });
+      const first = await lookUp({ lat: 56.8501, lon: 60.7 }, city1);
+      finds("Street 9", "3", { lat: 56.851, lon: 60.7 });
+      const second = await lookUp({ lat: 56.8511, lon: 60.7 }, city1);
 
-      expect(address?.node).to.equal(n.place1.id);
-      expect(address?.formatted).to.equal("Place 1");
+      const street = await cached((await cached(first?.node))?.parent);
+      expect(first?.formatted).to.equal("Street 9, 1");
+      expect(street).to.deep.include({ parent: null, type: "street", name: "Street 9", cache: { source: "test", street: "Street 9" } });
+      expect((await cached(second?.node))?.parent).to.equal(street.id);
+    });
+
+    it("hangs a house under a cached street when two of our streets could be its line", async function () {
+      finds("Street 5 Avenue", "1", { lat: 56.86, lon: 60.7 });
+
+      const street = await cached((await cached((await lookUp({ lat: 56.8601, lon: 60.7 }, city1))?.node))?.parent);
+
+      expect(street).to.deep.include({ name: "Street 5 Avenue", cache: { source: "test", street: "Street 5 Avenue" } });
+    });
+
+    it("takes our house of that number rather than caching a twin", async function () {
+      const before = await Address.count({ city: city1 });
+      finds("Street 1", "145", { lat: 56.87, lon: 60.67 });
+
+      expect((await lookUp({ lat: 56.8701, lon: 60.67 }, city1))?.node).to.equal(n.house145.id);
+      expect(await Address.count({ city: city1 })).to.equal(before);
+    });
+
+    it("takes our place closer than 10 m to the house found, whatever the geocoder calls it", async function () {
+      finds("Street 77", "5", { lat: 56.84291, lon: 60.6408 });
+      expect((await lookUp({ lat: 56.8431, lon: 60.6408 }, city1))?.node).to.equal(n.house97.id);
+    });
+
+    it("takes nothing but a house with its number", async function () {
+      finds("Street 1", "", { lat: 56.88, lon: 60.7 });
+      expect(await lookUp({ lat: 56.8801, lon: 60.7 }, city1)).to.equal(null);
     });
   });
 
-  describe("Nominatim had nothing to say", function () {
-    it("gives the nearest node with a point", async function () {
-      const address = await lookUp({ lat: 56.836, lon: 60.61 }, city1);
+  describe("nothing found", function () {
+    it("is null, and the same spot is not asked again for a while", async function () {
+      geocoder.around = () => [];
+      const spot = { lat: 56.89, lon: 60.6 };
 
-      expect(address?.node).to.equal(n.block1.id);
-      expect(address?.home).to.equal(undefined);
+      expect(await lookUp(spot, city1)).to.equal(null);
+      expect(await lookUp(spot, city1)).to.equal(null);
+      expect(asked()).to.have.length(1);
     });
 
-    it("treats a Nominatim that is down as one that had nothing to say", async function () {
-      nominatim.reply = () => {
+    it("from a geocoder that is down is null too, and it is asked again the next time", async function () {
+      geocoder.around = () => {
         throw new Error("down");
       };
-      expect((await lookUp(nearHouse145, city1))?.node).to.equal(n.house145.id);
-    });
-  });
+      const spot = { lat: 56.89, lon: 60.65 };
 
-  describe("a catalog without points", function () {
-    it("gives Nominatim's address as free text at the coordinate asked about", async function () {
-      reverseSays({ city: "City 2", road: "Street 5", house_number: "3" });
-      const asked = { lat: 55, lon: 37 };
-
-      // A line and a house number, the way the storefront sends free text.
-      expect(await lookUp(asked, city2)).to.deep.equal({ node: null, formatted: "Street 5", home: "3", coordinate: asked });
-    });
-
-    it("gives the whole line when Nominatim knows no street", async function () {
-      reverseSays({}, "Park 1");
-
-      const address = await lookUp({ lat: 55, lon: 37 }, city2);
-
-      expect(address?.node).to.equal(null);
-      expect(address?.formatted).to.equal("Park 1");
-    });
-
-    it("is null when Nominatim is silent too", async function () {
-      expect(await lookUp({ lat: 55, lon: 37 }, city2)).to.equal(null);
+      expect(await lookUp(spot, city1)).to.equal(null);
+      expect(await lookUp(spot, city1)).to.equal(null);
+      expect(asked()).to.have.length(2);
     });
   });
 });

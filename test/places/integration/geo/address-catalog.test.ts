@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { formatAddressPath } from "../../../../lib/address/format";
-import { nominatim } from "../../support/nominatim";
+import { geocoder } from "../../support/geocoder";
 import { resetDatabase } from "../../support/reset";
 import { thrown } from "../../support/storefront";
 
@@ -198,9 +198,9 @@ describe("Address catalog", function () {
     });
 
     it("geocodes an entrance by the house it is in, not by its own name", async function () {
-      nominatim.requests = [];
+      geocoder.requests = [];
       await (await geo()).locate({ node: n["street3-10-entrance2"].id } as any);
-      expect(nominatim.requests.map((request) => request.query.q)).to.deep.equal(["Street 3, 10"]);
+      expect(geocoder.requests).to.deep.equal([{ method: "house", city: "", street: "Street 3", home: "10" }]);
     });
   });
 

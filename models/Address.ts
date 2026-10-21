@@ -4,7 +4,7 @@ import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { CityRecord } from "./City";
 import { ADDRESS_SEARCH_LIMIT, ADDRESS_TYPES, ROOT_SEARCHABLE } from "../adapters/geo/default/defaultGeo";
-import { AddressPoint } from "../interfaces/Geo";
+import { AddressCache, AddressPoint } from "../interfaces/Geo";
 import { compareAddressNames } from "../lib/address/compare";
 import { leadingNumber, rangeCovers } from "../lib/address/range";
 import { isValidCoordinate } from "../lib/address/coordinate";
@@ -98,6 +98,17 @@ let attributes = {
     type: "string",
     allowNull: true,
   } as unknown as string | null,
+
+  /**
+   * A node a geocoder found, not one of ours: which geocoder, and its street line. `null` for our
+   * own — a file, the admin panel, an RMS. The default geo adapter writes it for a house the catalog
+   * did not know, so the same click or the same typed address is not paid for twice, and for the
+   * street such a house hangs under when the catalog has none of that name. An upload deletes only
+   * our nodes and hangs the cached houses under its streets by `street`.
+   */
+  cache: {
+    type: "json",
+  } as unknown as AddressCache | null,
 };
 
 type attributes = typeof attributes;
@@ -135,16 +146,18 @@ async function assertNode(values: Partial<AddressRecord>): Promise<void> {
   // Two identical names of one type under one parent are a data entry mistake:
   // the list would show the same word twice and the customer would take
   // whichever came first. Two streets of one name in a city are fine — under
-  // two different districts, which is exactly what tells them apart.
+  // two different districts, which is exactly what tells them apart. A cached
+  // twin does not stop one of ours: an upload brings the street a geocoder's
+  // house hung under, and `relinkCache` moves the house to ours right after.
   const city = toId(values.city);
   if (city && values.type && values.name) {
-    const twin = await Address.findOne({
+    const twin = (await Address.find({
       city,
       parent: parentId ?? null,
       type: values.type,
       name: values.name,
-    });
-    if (twin && twin.id !== values.id) {
+    })).find((one) => one.id !== values.id && (values.cache || !one.cache));
+    if (twin) {
       throw new Error(`Address "${values.name}" of type "${values.type}" already exists here`);
     }
   }

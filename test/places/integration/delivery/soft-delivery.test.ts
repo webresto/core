@@ -2,7 +2,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { softDeliveryFallback, softDeliveryMessage } from "../../../../lib/delivery/soft-delivery";
 import { locationUnrecognized, outsideDeliveryArea } from "../../../../adapters/delivery/default/zone-calculation";
-import { nominatim } from "../../support/nominatim";
+import { geocoder } from "../../support/geocoder";
 import { resetDatabase, withSettings } from "../../support/reset";
 
 /**
@@ -19,7 +19,7 @@ describe("Soft delivery calculation", function () {
   const ZONE_1 = [[9, 9], [11, 9], [11, 11], [9, 11], [9, 9]];
   const INSIDE = { city: "City 1", formatted: "Street 1", home: "1", coordinate: { lat: 10, lon: 10 } } as any;
   const OUTSIDE = { city: "City 1", formatted: "Street 2", home: "1", coordinate: { lat: 50, lon: 50 } } as any;
-  /** A street and a house the catalog has no point for: the adapter asks Nominatim. */
+  /** A street and a house the catalog has no point for: the adapter asks the geocoder. */
   const TYPED = { city: "City 1", formatted: "Street 3", home: "9" } as any;
   const SOFT = { SOFT_DELIVERY_CALCULATION: true, SOFT_DELIVERY_CALCULATION_MESSAGE: "Message 1" };
   const HARD = { SOFT_DELIVERY_CALCULATION: false };
@@ -34,11 +34,11 @@ describe("Soft delivery calculation", function () {
 
   afterEach(function () {
     sinon.restore();
-    nominatim.reply = undefined;
+    geocoder.house = undefined;
   });
 
-  const nominatimDown = () => {
-    nominatim.reply = () => {
+  const geocoderDown = () => {
+    geocoder.house = () => {
       throw new Error("down");
     };
   };
@@ -151,8 +151,8 @@ describe("Soft delivery calculation", function () {
       });
     });
 
-    it("Nominatim down, soft: handed to the operator on both", async function () {
-      nominatimDown();
+    it("the geocoder down, soft: handed to the operator on both", async function () {
+      geocoderDown();
       await withSettings(SOFT, async () => {
         const ability = await delivery.checkAbility(TYPED);
         const calculated = await delivery.calculate({ address: TYPED, basketTotal: 1000 });
@@ -163,8 +163,8 @@ describe("Soft delivery calculation", function () {
       });
     });
 
-    it("Nominatim down, off: refused on the form", async function () {
-      nominatimDown();
+    it("the geocoder down, off: refused on the form", async function () {
+      geocoderDown();
       await withSettings(HARD, async () => {
         expect(await delivery.checkAbility(TYPED)).to.include({ allowed: false, message: "Coordinates not found" });
       });

@@ -1,8 +1,8 @@
-import { nominatim } from "./nominatim";
+import { geocoder } from "./geocoder";
 
 /**
  * A clean installation for the next test file: no rows, settings as they were
- * right after boot, no promotion handlers, a Nominatim that knows nothing.
+ * right after boot, no promotion handlers, a geocoder that knows nothing.
  *
  * Called from a file's top-level `before`, so the file builds its own data and
  * nothing leaks from the file that ran before it.
@@ -44,8 +44,9 @@ export async function resetDatabase(): Promise<void> {
   // file set up would otherwise discount the next file's baskets.
   Adapter.getPromotionAdapter().deleteAllPromotions();
 
-  nominatim.reply = undefined;
-  nominatim.requests = [];
+  geocoder.around = undefined;
+  geocoder.house = undefined;
+  geocoder.requests = [];
 }
 
 /** Runs `run` with `values` set, and puts back what they were, whatever `run` does. */

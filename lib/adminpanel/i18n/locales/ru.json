@@ -1073,5 +1073,6 @@
   "Working": "Работает",
   "{count} enabled, but the provider module is not installed: {modules}": "Включено: {count}, но модуль-провайдер не установлен: {modules}",
   "{count} of {total} working": "Работает {count} из {total}",
-  "{count} ready, none enabled": "Готово: {count}, но ни один не включён"
+  "{count} ready, none enabled": "Готово: {count}, но ни один не включён",
+  "Found by a geocoder": "Найден геокодером"
 }

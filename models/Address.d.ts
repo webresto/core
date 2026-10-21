@@ -1,7 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { CityRecord } from "./City";
-import { AddressPoint } from "../interfaces/Geo";
+import { AddressCache, AddressPoint } from "../interfaces/Geo";
 /**
  * The address catalog of a city: one flat table, one row per node.
  *
@@ -44,6 +44,14 @@ declare let attributes: {
     hi: number | null;
     /** Id of the street in an RMS. Null for everything entered here or imported from a file. */
     externalId: string | null;
+    /**
+     * A node a geocoder found, not one of ours: which geocoder, and its street line. `null` for our
+     * own — a file, the admin panel, an RMS. The default geo adapter writes it for a house the catalog
+     * did not know, so the same click or the same typed address is not paid for twice, and for the
+     * street such a house hangs under when the catalog has none of that name. An upload deletes only
+     * our nodes and hangs the cached houses under its streets by `street`.
+     */
+    cache: AddressCache | null;
 };
 type attributes = typeof attributes;
 export interface AddressRecord extends attributes, ORM {

@@ -869,5 +869,6 @@
   "Working": "Working",
   "{count} enabled, but the provider module is not installed: {modules}": "{count} enabled, but the provider module is not installed: {modules}",
   "{count} of {total} working": "{count} of {total} working",
-  "{count} ready, none enabled": "{count} ready, none enabled"
+  "{count} ready, none enabled": "{count} ready, none enabled",
+  "Found by a geocoder": "Found by a geocoder"
 }

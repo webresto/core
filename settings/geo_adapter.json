@@ -2,7 +2,7 @@
   "key": "GEO_ADAPTER",
   "type": "string",
   "name": "Geo adapter",
-  "description": "Geocoder that turns an address into a coordinate and a coordinate into an address. Empty means the built-in one: the address catalog, with Nominatim at NOMINATIM_URL for what the catalog does not know.",
+  "description": "What turns an address into a coordinate and a coordinate into an address. Empty means the built-in one: the address catalog, with the geocoders modules attach for what the catalog does not know (a house they find is cached in the catalog); with none attached, such an address stays text.",
   "defaultValue": "",
   "isRequired": false,
   "restartRequired": true

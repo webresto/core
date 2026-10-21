@@ -1,5 +1,6 @@
 import { AddressPoint } from "../../../interfaces/Geo";
 import { ADDRESS_TYPES } from "./defaultGeo";
+import { relinkCache } from "./address-cache";
 
 /**
  * Loading an address catalog from a file.
@@ -13,7 +14,9 @@ import { ADDRESS_TYPES } from "./defaultGeo";
  * the same file loaded twice stops at the first node that already exists. With
  * `replace` the catalog of the city is emptied right before the file is written,
  * so the same file loaded twice gives the same catalog. That includes the streets
- * an RMS brought (they come back with its next sync). The file is checked in full
+ * an RMS brought (they come back with its next sync), but not what geocoders
+ * found: the cached houses stay and hang under the file's streets
+ * (`relinkCache`), unless the file has the house itself. The file is checked in full
  * before anything is deleted, but there is no transaction: a database that fails
  * halfway leaves the city with part of the file, and loading the file again with
  * `replace` repairs it.
@@ -117,13 +120,14 @@ export async function importAddresses(params: {
   const ordered = byDepth(params.nodes);
   if (!ordered) return { created: 0, deleted: 0, errors: ["Some nodes reference each other in a circle"] };
 
-  const deleted: unknown[] = params.replace ? await Address.destroy({ city: params.city }).fetch() : [];
+  // Ours only: what geocoders found is not in the file and was paid for.
+  const deleted: unknown[] = params.replace ? await Address.destroy!({ city: params.city, cache: null }).fetch() : [];
 
   const ids = new Map<string, string>();
   let created = 0;
 
   for (const node of ordered) {
-    const row = await Address.create({
+    const row = await Address.create!({
       city: params.city,
       parent: node.parent ? ids.get(node.parent) : null,
       type: node.type,
@@ -138,5 +142,6 @@ export async function importAddresses(params: {
     created++;
   }
 
+  await relinkCache(params.city);
   return { created, deleted: deleted.length, errors: [] };
 }

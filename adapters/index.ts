@@ -28,6 +28,9 @@ export type { AuthFlowKind, NormalizedProfile } from "./auth/AuthAdapter";
 export type { ResolvedCaptcha } from "./captcha/CaptchaAdapter";
 // Core's boot starts what its own delivery adapter keeps running.
 export { startDefaultDelivery } from "./delivery/default/start";
+// A module attaches its geocoder to the default geo adapter: asked for what the catalog does not know.
+export { registerGeocoder } from "./geo/default/geocoders";
+export type { Geocoder, GeocodedHouse } from "../interfaces/Geo";
 // The default adapters' "from a file" imports — the admin panel's buttons, and
 // a stand seed that builds the same catalog without an operator.
 export { parseGeoJson } from "./delivery/default/geojson";

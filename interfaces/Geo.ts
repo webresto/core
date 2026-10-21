@@ -37,6 +37,40 @@ export interface AddressNode {
   ancestors: string[];
 }
 
+/** A house a geocoder knows exactly: its street, its number and the point of the house itself. */
+export interface GeocodedHouse {
+  /** The street line as the geocoder writes it, with its type word ("Lenina street"). */
+  street: string;
+  /** The house number, letters and blocks included ("12a", "5 bldg 2"). */
+  home: string;
+  point: AddressPoint;
+}
+
+/**
+ * A geocoder outside core, attached to the default geo adapter by a module (`registerGeocoder`).
+ *
+ * Asked only for what the catalog does not know, in ascending `priority`, until one answers. It
+ * answers houses only, and only those whose point is the house itself: a street or a town is not
+ * an answer — cached, it would pull every click towards the middle of a street. A request that
+ * failed throws; the next geocoder is asked.
+ */
+export interface Geocoder {
+  /** The geocoder's name: in the logs and in the cache mark of what it found. */
+  name: string;
+  /** The smaller is asked first. */
+  priority: number;
+  /** The houses around a point, the nearest first. */
+  housesAround(point: AddressPoint, radiusMeters: number): Promise<GeocodedHouse[]>;
+  /** The house at a street and a number of a city; `null` when it is not known exactly. */
+  house(parts: { city: string; street: string; home: string }): Promise<GeocodedHouse | null>;
+}
+
+/** The mark of a catalog node a geocoder found: which geocoder, and the street line it gave. */
+export interface AddressCache {
+  source: string;
+  street: string;
+}
+
 /** What an order's address reads as, and whether it still needs a house number. */
 export interface AddressDescription {
   /** The line an operator and a courier read. */

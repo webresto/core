@@ -89,6 +89,64 @@ describe("Address import", function () {
     expect(row).to.not.have.property("parity");
   });
 
+  describe("what geocoders found stays", function () {
+    const mark = (street: string) => ({ source: "test", street });
+    const ourStreet = async (name: string) => await Address.findOne({ city, type: "street", name, cache: null });
+    /** A house a geocoder found under `parent`, at `point`. */
+    const cachedHouse = async (parent: string, name: string, point: { lat: number; lon: number }, street = "Street 1") =>
+      await Address.create({ city, parent, type: "house", name, point, cache: mark(street) }).fetch();
+
+    it("a replace deletes ours only and hangs a cached house under the file's street of its name", async function () {
+      await importAddresses({ city, nodes: [street1, house12] });
+      const house14 = await cachedHouse((await ourStreet("Street 1")).id, "14", { lat: 56.84, lon: 60.6 });
+
+      expect(await importAddresses({ city, nodes: [street1, house12], replace: true })).to.deep.equal({ created: 2, deleted: 2, errors: [] });
+
+      expect(await Address.findOne({ id: house14.id })).to.deep.include({ parent: (await ourStreet("Street 1")).id, cache: mark("Street 1") });
+    });
+
+    it("a replace drops a cached house the file has now: its number under the street, or a place closer than 10 m", async function () {
+      await importAddresses({ city, nodes: [street1] });
+      const street = (await ourStreet("Street 1")).id;
+      const house14 = await cachedHouse(street, "14", { lat: 56.84, lon: 60.6 });
+      const house15 = await cachedHouse(street, "15", { lat: 56.85, lon: 60.6 });
+
+      await importAddresses({
+        city,
+        replace: true,
+        nodes: [
+          street1,
+          { parent: "street-1", type: "house", name: "14", point: { lat: 56.841, lon: 60.6 } },
+          { parent: "street-1", type: "house", name: "15a", point: { lat: 56.85004, lon: 60.6 } },
+        ],
+      });
+
+      expect(await Address.findOne({ id: house14.id })).to.equal(undefined);
+      expect(await Address.findOne({ id: house15.id })).to.equal(undefined);
+      expect((await rows()).map((row: any) => row.name).sort()).to.deep.equal(["14", "15a", "Street 1"]);
+    });
+
+    it("a cached house whose street the file has not hangs under a cached street of that name", async function () {
+      await importAddresses({ city, nodes: [{ type: "street", name: "Street 9" }] });
+      const house3 = await cachedHouse((await ourStreet("Street 9")).id, "3", { lat: 56.86, lon: 60.6 }, "Street 9");
+
+      await importAddresses({ city, nodes: [street1], replace: true });
+
+      const street = await Address.findOne({ id: (await Address.findOne({ id: house3.id })).parent });
+      expect(street).to.deep.include({ type: "street", name: "Street 9", parent: null, cache: mark("Street 9") });
+    });
+
+    it("a load without replace brings our street for a cached one: its houses move under ours, the cached street goes", async function () {
+      const cachedStreet = await Address.create({ city, type: "street", name: "Street 8", cache: mark("Street 8") }).fetch();
+      const house2 = await cachedHouse(cachedStreet.id, "2", { lat: 56.87, lon: 60.6 }, "Street 8");
+
+      await importAddresses({ city, nodes: [{ type: "street", name: "Street 8 " }] });
+
+      expect((await Address.findOne({ id: house2.id })).parent).to.equal((await ourStreet("Street 8")).id);
+      expect(await Address.findOne({ id: cachedStreet.id })).to.equal(undefined);
+    });
+  });
+
   describe("a file with a mistake writes nothing", function () {
     it("a parent the file does not define", async function () {
       const result = await importAddresses({ city, nodes: [street1, { parent: "nowhere", type: "house", name: "12" }] });

@@ -79,14 +79,22 @@ more name — `single-place` for the menu — not a second class.
   The exceptions are the owner of a model: the model file and the admin pages of
   a default implementation import that implementation. Core's boot starts what
   the default delivery adapter keeps running through `startDefaultDelivery`,
-  exported by `index.ts`.
+  exported by `index.ts`; a module attaches its geocoder to the default geo
+  adapter through `registerGeocoder`, exported there too.
 
 ## The three kinds
 
 **geo.** Contract: `locate`, `addressByCoordinate`, `search`, `path` and
 `describe` (the line `Order` saves and whether it still needs a house number).
 Default: the `Address` catalog, its node type lists (`ADDRESS_TYPES` and the
-rest, read by `Address` itself) and Nominatim.
+rest, read by `Address` itself), and the geocoders modules attach
+(`registerGeocoder`, the `Geocoder` shape of `interfaces/Geo.ts`) for what the
+catalog does not know: asked by `priority`, houses only; a house found is kept in
+the catalog as a cached node (`Address.cache`), and an upload keeps it. A click
+lands on a place of the catalog closer than 10 m, else on the house a geocoder
+finds; with no geocoder attached an unknown address stays text. The list of
+geocoders is the default's own state, not a registry next to `Adapter`: another
+geo adapter geocodes its own way.
 
 **delivery.** Contract: `calculate`, `checkAbility`; with a body — `estimateTravel`,
 `resolvePlaceForCoordinate` (`null`: the kitchen chain moves on). What

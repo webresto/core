@@ -303,6 +303,11 @@ export const models = {
     model: 'address',
     title: 'Addresses',
     icon: 'location_on',
+    fields: {
+      // A house a geocoder found, kept so it is not paid for twice: the operator
+      // tells it from ours here and deletes a wrong one like any row.
+      cache: 'Found by a geocoder',
+    },
     list: {
       // The catalog arrives by the thousand, so the list toolbar carries the
       // way to load one. Adminizer's global list actions are links, so the

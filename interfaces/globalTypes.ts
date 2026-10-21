@@ -61,8 +61,6 @@ declare global {
     DELIVERY_ADAPTER: string
     /** Configured geo adapter; empty means the built-in default. */
     GEO_ADAPTER: string
-    /** Server of the default geo adapter. */
-    NOMINATIM_URL: string
     /** Allows the scheduled zone sync. Off unless an operator turns it on. */
     DELIVERY_ZONE_SYNC_ENABLED: boolean
     /** Zone sync interval; anything below 300 seconds is raised to 300. */

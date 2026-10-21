@@ -69,11 +69,15 @@ enough.
 
 Turning an address into a coordinate and back is the geo adapter's job. The
 built-in one first takes the coordinate from the address itself, then the
-point of the node or of its ancestors, and only when there is nothing asks
-Nominatim, sending the path down to the house and the number (apartments and
-entrances only confuse a geocoder). The other way, from a coordinate to an
-address, it goes through the reverse geocoder, the catalog and the nearest
-node, and at worst returns free text.
+point of the node or of its ancestors, then the house of that street and number
+among the catalog's own and cached houses, and only when there is nothing asks
+the geocoders a module attached, sending the path down to the house and the
+number (apartments and entrances only confuse a geocoder). The other way, from
+a coordinate to an address, a click lands on a place of the catalog closer than
+10 m, else on the house a geocoder finds nearby, and at worst there is nothing
+and the customer types the address. A house a geocoder found is cached in the
+catalog, so the same question is not asked, and paid for, twice; with no
+geocoder attached the catalog is all there is.
 
 A customer's saved addresses appear on their own: when a delivery order is
 completed, its address is remembered for the user unless they already have it.

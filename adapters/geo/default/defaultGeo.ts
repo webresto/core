@@ -1,12 +1,12 @@
-import axios from "axios";
 import GeoAdapter from "../GeoAdapter";
 import OrderAddress from "../../../interfaces/OrderAddress";
-import { AddressDescription, AddressLocation, AddressNode, AddressPoint, GeoAddress } from "../../../interfaces/Geo";
+import { AddressDescription, AddressLocation, AddressNode, AddressPoint, GeocodedHouse } from "../../../interfaces/Geo";
 import type { AddressRecord } from "../../../models/Address";
 import { formatAddressLine, formatAddressPath } from "../../../lib/address/format";
-import { leadingNumber, rangeCovers } from "../../../lib/address/range";
 import { coordinateFromAddress, isValidCoordinate } from "../../../lib/address/coordinate";
-import { distanceKm } from "../../../lib/geo/utils";
+import { findCityId } from "../../../lib/menu/cooking-place";
+import { attachedGeocoders, isRecentMiss, rememberMiss } from "./geocoders";
+import { cacheHouse, knownHouse, placeAt, sameHouse } from "./address-cache";
 
 /**
  * The node types of an address graph.
@@ -48,14 +48,17 @@ export const SELF_ADDRESSED: readonly string[] = ["house", "building", "entrance
 /** How many suggestions one query returns. */
 export const ADDRESS_SEARCH_LIMIT = 20;
 
-/** What a geocoder's street can be in the catalog. */
-const STREET_TYPES = ["street", "alley"];
+/** How far from a click a geocoder looks for a house when the catalog has none within `SNAP_METERS`. */
+const AROUND_METERS = 100;
 
 /**
- * The geo adapter core ships: the `Address` catalog, with Nominatim for what
- * the catalog does not know.
+ * The geo adapter core ships: the `Address` catalog, and the geocoders modules
+ * attach (`registerGeocoder`) for what the catalog does not know.
  *
- * `NOMINATIM_URL` says which server; the public one when it is unset.
+ * A house a geocoder finds is kept in the catalog as a cached node
+ * (`address-cache.ts`), so the same question is not asked — and not paid for —
+ * twice. With no geocoder attached the catalog is all there is, and an address
+ * it does not know stays the text the customer typed.
  */
 export class DefaultGeoAdapter extends GeoAdapter {
   /**
@@ -64,7 +67,10 @@ export class DefaultGeoAdapter extends GeoAdapter {
    * 1. the coordinate the address already carries;
    * 2. the `point` of the catalog node the customer chose, or of the nearest node
    *    above it that has one;
-   * 3. the geocoder, on the node's path plus the house number.
+   * 3. the house of the street and number among the catalog's own and cached
+   *    houses — under the chosen street, or under the street the text names;
+   * 4. the geocoders, on the node's path plus the house number; a house found is
+   *    cached.
    *
    * The point is inherited because that is what the graph already says: a table on
    * a food court, a cabin in a hotel, a doorway of a house are all at the place
@@ -72,15 +78,15 @@ export class DefaultGeoAdapter extends GeoAdapter {
    * coordinate would be the same fact written twice, and the second copy is the
    * one that goes stale.
    *
-   * The catalog comes before the geocoder because it is the only one of the three
-   * that gives the same answer twice. A house entered in the catalog is a fact an
-   * operator put there; a geocoder's answer for the same words is a guess that can
-   * change between two recounts of one basket.
+   * The catalog comes before the geocoders because it is the only one that gives
+   * the same answer twice. A house entered in the catalog is a fact an operator
+   * put there; a geocoder's answer for the same words is a guess that can change
+   * between two recounts of one basket — and it costs money.
    *
-   * The last step is skipped unless both halves are known. A street without a
-   * house number points at a line on the map, and a house number without a street
-   * is meaningless — geocoding either one puts the order somewhere plausible and
-   * wrong.
+   * The last two steps are skipped unless both halves are known. A street without
+   * a house number points at a line on the map, and a house number without a
+   * street is meaningless — geocoding either one puts the order somewhere
+   * plausible and wrong.
    */
   public async locate(address: OrderAddress | undefined | null): Promise<AddressLocation> {
     const diagnostics: string[] = [];
@@ -105,7 +111,7 @@ export class DefaultGeoAdapter extends GeoAdapter {
       }
     }
 
-    // The words to geocode. With a node they are its path up to the house the
+    // The words to look up. With a node they are its path up to the house the
     // node stands in — the house carries its number in its own name, so it
     // becomes `home` and leaves the street behind it. What hangs below a house,
     // an entrance or a flat, is not on any map and drops out. So does a range: a
@@ -129,75 +135,75 @@ export class DefaultGeoAdapter extends GeoAdapter {
       return { coordinate: null, diagnostics };
     }
 
-    // The customer's city, and only theirs. Qualifying a street name with an
-    // installation-wide city is what sends it to the wrong town.
-    const city = trimmed(address?.city);
+    // The customer's city, and only theirs: its catalog, and its name for a
+    // geocoder. Qualifying a street with an installation-wide city is what
+    // sends it to the wrong town.
+    const cityId = await findCityId(address?.city);
 
-    let geocoded: AddressPoint | null;
-    try {
-      geocoded = await this.geocode({ street, home, city });
-    } catch (error) {
-      diagnostics.push(`geocoder failed: ${error instanceof Error ? error.message : String(error)}`);
+    if (cityId) {
+      const nodes: AddressRecord[] = await Address.find!({ city: cityId });
+      // A chosen street knows its houses by id; a typed one by its words.
+      const chosen = path.length && house < 0 ? path[path.length - 1] : null;
+      const known = chosen
+        ? nodes.find((one) => toParent(one) === chosen.id && one.type === "house" && sameHouse(one.name, home!))
+        : knownHouse(nodes, street, home);
+      if (known && isValidCoordinate(known.point)) {
+        diagnostics.push(`address point source: address-node (${known.type} "${known.name}"${known.cache ? `, cached from ${known.cache.source}` : ""})`);
+        return { coordinate: known.point, diagnostics };
+      }
+    }
+
+    const cityName = cityId ? (await City.findOne!({ id: cityId }))?.name : undefined;
+    const miss = `house:${cityId ?? ""}:${street.toLowerCase()}:${home.toLowerCase()}`;
+    if (isRecentMiss(miss)) {
+      diagnostics.push(`geocoders found nothing for "${street} ${home}" a moment ago`);
       return { coordinate: null, diagnostics };
     }
 
-    if (!isValidCoordinate(geocoded)) {
-      diagnostics.push(`geocoder found nothing for "${street} ${home}"`);
+    const asked = await askGeocoders((geocoder) => geocoder.house({ city: cityName ?? "", street, home }).then((found) => (found ? [found] : [])));
+    diagnostics.push(...asked.diagnostics);
+    if (!asked.house) {
+      if (!asked.failed) rememberMiss(miss);
+      diagnostics.push(`geocoders found nothing for "${street} ${home}"`);
       return { coordinate: null, diagnostics };
     }
 
+    if (cityId) await cacheHouse(cityId, asked.house, asked.source);
     diagnostics.push(
-      `geocoder placed "${street} ${home}"${city ? ` (${city})` : ""} at ${geocoded.lat}, ${geocoded.lon}`,
+      `${asked.source} placed "${street} ${home}"${cityName ? ` (${cityName})` : ""} at ${asked.house.point.lat}, ${asked.house.point.lon}`,
       "address point source: geocoder",
     );
-    return { coordinate: geocoded, diagnostics };
+    return { coordinate: asked.house.point, diagnostics };
   }
 
   /**
-   * The address a customer is standing at. In this order:
+   * The address a customer clicked or is standing at. In this order:
    *
-   * 1. the reverse geocoder, matched against the city's catalog: the street by
-   *    its words, then the house by its number;
-   * 2. the nearest catalog node with a point, however far;
-   * 3. the reverse geocoder as free text, when the city's catalog has no points;
-   * 4. `null`.
+   * 1. a place of the catalog, ours or cached, closer than `SNAP_METERS`: the
+   *    point lands on it;
+   * 2. the house a geocoder finds nearest within `AROUND_METERS`, cached and
+   *    landed on;
+   * 3. `null`: the customer types the address.
    *
    * The catalog wins whenever it can answer, for the reason it wins in `locate`:
    * a node is a fact an operator entered, and delivery prices it without asking a
    * geocoder again.
    */
   public async addressByCoordinate(coordinate: AddressPoint, city: string): Promise<OrderAddress | null> {
-    let reversed: GeoAddress | null = null;
-    try {
-      reversed = await this.reverse(coordinate);
-    } catch (error) {
-      // A geocoder that is down leaves the catalog, which still has an answer.
-      sails.log.warn("CORE > addressByCoordinate > reverse geocoding failed", error);
-    }
-
-    // The whole city in one read. Matching needs the geocoder's words to contain
-    // the catalog's, which no criteria expresses, and the nearest point needs
-    // every point anyway.
     const nodes: AddressRecord[] = await Address.find!({ city });
+    const near = placeAt(nodes, coordinate);
+    if (near) return await catalogAnswer(near, coordinate);
 
-    const matched = reversed ? matchCatalog(nodes, reversed) : null;
-    if (matched) return await catalogAnswer(matched.node, matched.home, coordinate);
+    // A point is remembered to about ten meters: the same field clicked again.
+    const miss = `around:${city}:${coordinate.lat.toFixed(4)}:${coordinate.lon.toFixed(4)}`;
+    if (isRecentMiss(miss)) return null;
 
-    const nearest = nearestWithPoint(nodes, coordinate);
-    if (nearest) return await catalogAnswer(nearest, undefined, coordinate);
-
-    if (reversed) {
-      // Free text travels as a line and a house number, the way the storefront
-      // sends an address typed without choosing from the list.
-      return {
-        node: null,
-        formatted: reversed.street ?? reversed.formatted,
-        home: reversed.home,
-        coordinate,
-      };
+    const asked = await askGeocoders((geocoder) => geocoder.housesAround(coordinate, AROUND_METERS));
+    if (!asked.house) {
+      if (!asked.failed) rememberMiss(miss);
+      return null;
     }
-
-    return null;
+    return await catalogAnswer(await cacheHouse(city, asked.house, asked.source), coordinate);
   }
 
   /**
@@ -215,7 +221,7 @@ export class DefaultGeoAdapter extends GeoAdapter {
 
     return await Promise.all(
       found.map(async (node) => {
-        const parent = parentOf(node);
+        const parent = toParent(node);
         if (!parent) return asNode(node, []);
 
         let names = paths.get(parent);
@@ -249,43 +255,28 @@ export class DefaultGeoAdapter extends GeoAdapter {
       selfAddressed: Boolean(leaf && SELF_ADDRESSED.includes(leaf.type)),
     };
   }
+}
 
-  /**
-   * The coordinate of a street and house number. `null` when nothing matched; a
-   * request that failed throws.
-   *
-   * The parts come separately rather than as one string so a caller cannot pass
-   * an organization name here by accident.
-   */
-  protected async geocode(parts: { street: string; home: string; city?: string }): Promise<AddressPoint | null> {
-    const query = [parts.city, parts.street, parts.home].filter(Boolean).join(", ");
-    const results = await nominatim("search", { q: query, limit: 1 });
-    return Array.isArray(results) ? pointOf(results[0]) : null;
+/**
+ * The attached geocoders in their order, until one finds a house. `failed` —
+ * every geocoder asked threw, so "nothing" is not an answer to remember.
+ */
+async function askGeocoders(
+  ask: (geocoder: ReturnType<typeof attachedGeocoders>[number]) => Promise<GeocodedHouse[]>,
+): Promise<{ house: GeocodedHouse | null; source: string; failed: boolean; diagnostics: string[] }> {
+  const diagnostics: string[] = [];
+  let answered = false;
+  for (const geocoder of attachedGeocoders()) {
+    try {
+      const house = (await ask(geocoder)).find((one) => isValidCoordinate(one?.point) && trimmed(one.street) && trimmed(one.home));
+      answered = true;
+      if (house) return { house, source: geocoder.name, failed: false, diagnostics };
+    } catch (error) {
+      diagnostics.push(`geocoder ${geocoder.name} failed: ${error instanceof Error ? error.message : String(error)}`);
+      sails.log.warn(`CORE > geocoder "${geocoder.name}" failed`, error);
+    }
   }
-
-  /**
-   * The building at a coordinate, or the nearest thing Nominatim has.
-   *
-   * The city is read off the answer, not assumed: a point on a city's edge can
-   * belong to the next municipality.
-   */
-  protected async reverse(coordinate: AddressPoint): Promise<GeoAddress | null> {
-    // Zoom 18 is the building level: coarser answers stop at the street and
-    // carry no house number.
-    const result = (await nominatim("reverse", { lat: coordinate.lat, lon: coordinate.lon, zoom: 18 })) as NominatimResult | null;
-    if (!result || result.error) return null;
-
-    const address = result.address ?? {};
-    const street = address.road ?? address.pedestrian ?? address.footway ?? undefined;
-    const home = address.house_number ?? undefined;
-    const city = address.city ?? address.town ?? address.village ?? address.municipality ?? undefined;
-    // "<street>, <house>" rather than the whole display name down to the
-    // postcode and the country.
-    const formatted = street ? formatAddressPath([street, home]) : result.display_name;
-    if (!formatted) return null;
-
-    return { city, street, home, formatted };
-  }
+  return { house: null, source: "", failed: !answered && attachedGeocoders().length > 0, diagnostics };
 }
 
 /** A catalog row as the storefront reads it: the parent is an id, never an object. */
@@ -294,62 +285,18 @@ function asNode(node: AddressRecord, ancestors: string[]): AddressNode {
     id: node.id,
     type: node.type,
     name: node.name,
-    parent: parentOf(node),
+    parent: toParent(node),
     point: node.point,
     ancestors,
   };
 }
 
-/**
- * The catalog node for what the geocoder said, or `null` when the catalog does
- * not know the street or the geocoder named no house.
- *
- * A catalog street matches when every word of its name, or of one of its
- * aliases, is in the geocoder's street, so a catalog name without the "street"
- * or "avenue" word still matches the geocoder's full one. Under it, a house by
- * its exact name wins, then a range that covers the number; with neither, the
- * street itself carries the number, as if the customer had typed it.
- */
-function matchCatalog(nodes: AddressRecord[], reversed: GeoAddress): { node: AddressRecord; home?: string } | null {
-  const home = reversed.home?.trim();
-  if (!reversed.street || !home) return null;
-
-  const said = new Set(words(reversed.street));
-  const streets = nodes.filter(
-    (node) =>
-      STREET_TYPES.includes(node.type) &&
-      [node.name, ...(node.names ?? [])].some((name) => {
-        const own = words(name);
-        return own.length > 0 && own.every((word) => said.has(word));
-      }),
-  );
-  if (!streets.length) return null;
-
-  const under = (street: AddressRecord) => nodes.filter((node) => parentOf(node) === street.id);
-  const sameHouse = (name: string) => name.replace(/\s+/g, "").toLowerCase() === home.replace(/\s+/g, "").toLowerCase();
-
-  for (const street of streets) {
-    const house = under(street).find((node) => node.type === "house" && sameHouse(node.name));
-    if (house) return { node: house };
-  }
-
-  const number = leadingNumber(home);
-  if (number !== null) {
-    for (const street of streets) {
-      const range = under(street).find((node) => node.type === "range" && rangeCovers(node, number));
-      if (range) return { node: range, home };
-    }
-  }
-
-  return { node: streets[0], home };
-}
-
 /** A node as an order carries it: its path as the line, its point when it has one. */
-async function catalogAnswer(node: AddressRecord, home: string | undefined, requested: AddressPoint): Promise<OrderAddress> {
+async function catalogAnswer(node: AddressRecord, requested: AddressPoint): Promise<OrderAddress> {
   return {
     node: node.id,
-    formatted: formatAddressLine(await Address.path(node.id), home, SELF_ADDRESSED),
-    home,
+    formatted: formatAddressLine(await Address.path(node.id), undefined, SELF_ADDRESSED),
+    home: undefined,
     coordinate: isValidCoordinate(node.point) ? node.point : requested,
   };
 }
@@ -358,71 +305,6 @@ function trimmed(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
 }
 
-/** Lower-cased letter and digit runs: "Word 8 Word" → ["word", "8", "word"]. */
-function words(text: string | undefined | null): string[] {
-  return (text ?? "").toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
-}
-
-function parentOf(node: AddressRecord): string | null {
+function toParent(node: AddressRecord): string | null {
   return typeof node.parent === "string" ? node.parent : node.parent?.id ?? null;
-}
-
-function nearestWithPoint(nodes: AddressRecord[], coordinate: AddressPoint): AddressRecord | null {
-  let nearest: AddressRecord | null = null;
-  let nearestKm = Infinity;
-
-  for (const node of nodes) {
-    if (!isValidCoordinate(node.point)) continue;
-    const km = distanceKm(coordinate, node.point);
-    if (km < nearestKm) {
-      nearest = node;
-      nearestKm = km;
-    }
-  }
-
-  return nearest;
-}
-
-interface NominatimResult {
-  lat?: string;
-  lon?: string;
-  display_name?: string;
-  address?: Record<string, string>;
-  /** Set instead of everything else when `/reverse` finds nothing. */
-  error?: string;
-}
-
-const DEFAULT_BASE_URL = "https://nominatim.openstreetmap.org";
-const DEFAULT_TIMEOUT_MS = 10000;
-
-async function nominatimBaseUrl(): Promise<string> {
-  const configured = await Settings.get("NOMINATIM_URL");
-  const url = typeof configured === "string" && configured.trim() ? configured.trim() : DEFAULT_BASE_URL;
-  return url.replace(/\/+$/, "");
-}
-
-async function nominatim(path: string, params: Record<string, string | number>): Promise<unknown> {
-  const base = await nominatimBaseUrl();
-  const search = new URLSearchParams({ format: "json", addressdetails: "1", ...params } as any);
-
-  const response = await axios.get(`${base}/${path}?${search.toString()}`, {
-    timeout: DEFAULT_TIMEOUT_MS,
-    headers: {
-      // Nominatim's usage policy requires an identifying User-Agent.
-      "User-Agent": `webresto-core/${process.env.npm_package_version ?? "1.0"}`,
-      "Accept-Language": (await Settings.get("DEFAULT_LOCALE")) || "en",
-    },
-  });
-
-  return response.data;
-}
-
-function pointOf(result: NominatimResult | undefined): AddressPoint | null {
-  if (!result?.lat || !result?.lon) return null;
-
-  const lat = parseFloat(result.lat);
-  const lon = parseFloat(result.lon);
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-
-  return { lat, lon };
 }
