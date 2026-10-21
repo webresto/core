@@ -1,12 +1,28 @@
 declare const mcp: any;
 
+/**
+ * The position of a point on the map. Not validated here: `Place` refuses a
+ * coordinate that is not a latitude and a longitude, and its message is what the
+ * caller gets back.
+ */
+const COORDINATE_SCHEMA = {
+    type: 'object',
+    description: 'Position on the map: { lat, lon } in degrees. What tells the nearest kitchen and the delivery zone the kitchen stands in.',
+    properties: {
+        lat: { type: 'number', description: 'Latitude, -90..90.', example: 56.8389 },
+        lon: { type: 'number', description: 'Longitude, -180..180.', example: 60.6057 },
+    },
+    required: ['lat', 'lon'],
+    example: { lat: 56.8389, lon: 60.6057 },
+};
+
 export function registerPlacesTools() {
     if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
 
     mcp.registerTool({
         name: 'place-list',
         group: 'places',
-        description: 'Returns all restaurant/pickup locations with address, phone, working hours and type flags (isPickupPoint, isCookingPoint, hasDiningArea).',
+        description: 'Returns all restaurant/pickup locations with address, coordinate, phone, working hours and type flags (isPickupPoint, isCookingPoint, hasDiningArea).',
         mode: 'protected',
         schema: { type: 'object', properties: {} },
         handler: async () => {
@@ -48,6 +64,7 @@ export function registerPlacesTools() {
                 isCookingPoint: { type: 'boolean', description: 'Has a kitchen.', example: true },
                 hasDiningArea:  { type: 'boolean', description: 'Has a room to eat in; takes dine-in orders.', example: true },
                 city:           { type: 'string',  description: 'City ID this point is listed in.', example: 'abc123' },
+                coordinate:     COORDINATE_SCHEMA,
                 worktime:       { type: 'object',  description: 'Operating hours (WorkTime format).', example: {} },
                 customData:     { type: 'object',  description: 'Arbitrary JSON for frontend.', example: {} },
             },
@@ -76,6 +93,7 @@ export function registerPlacesTools() {
                 isCookingPoint: { type: 'boolean', example: false },
                 hasDiningArea:  { type: 'boolean', example: true },
                 city:           { type: 'string',  description: 'City ID this point is listed in.', example: 'abc123' },
+                coordinate:     { ...COORDINATE_SCHEMA, description: COORDINATE_SCHEMA.description + ' Pass null to clear it.' },
                 worktime:       { type: 'object',  description: 'New worktime schedule.', example: {} },
                 customData:     { type: 'object',  description: 'New customData.', example: {} },
             },
