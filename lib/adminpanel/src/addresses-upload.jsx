@@ -20,9 +20,10 @@ function MaterialIcon({ name, size = 20, style }) {
  * The city is asked here because this page has none of its own — the list it
  * came from shows every city at once.
  *
- * The upload creates rows and matches nothing: the same file twice makes the
- * same nodes twice. Said in the toast rather than guarded against — the list is
- * where a duplicate is seen and deleted.
+ * The upload adds rows and matches nothing: the same file twice makes the same
+ * nodes twice. The checkbox makes it replace the catalog of the city instead —
+ * its rows are deleted and the file is written. Off by default, since there is
+ * no way back.
  */
 function AddressesUploadContent({ cities, listUrl }) {
   const { t } = useTranslation();
@@ -31,6 +32,7 @@ function AddressesUploadContent({ cities, listUrl }) {
   // into the wrong city is not something a default should be able to do.
   const [cityId, setCityId] = useState(() => (cities.length === 1 ? cities[0].id : ''));
   const [busy, setBusy] = useState(false);
+  const [replace, setReplace] = useState(false);
 
   const upload = async (event) => {
     const file = event.target.files?.[0];
@@ -42,7 +44,7 @@ function AddressesUploadContent({ cities, listUrl }) {
     setBusy(true);
     const { ok, payload } = await api('/core/addresses-upload', {
       method: 'POST',
-      body: JSON.stringify({ city: cityId, content: await file.text() }),
+      body: JSON.stringify({ city: cityId, replace, content: await file.text() }),
     });
     setBusy(false);
 
@@ -50,7 +52,9 @@ function AddressesUploadContent({ cities, listUrl }) {
       toast('error', payload?.error || t('Could not read the file'));
       return;
     }
-    toast('success', `${t('Addresses created')}: ${payload.created}`);
+    toast('success', replace
+      ? `${t('Addresses created')}: ${payload.created}, ${t('Addresses deleted')}: ${payload.deleted}`
+      : `${t('Addresses created')}: ${payload.created}`);
     // Back to the rows that were just created, which is also how the list is
     // refreshed — it being the page this started from.
     router.visit(listUrl);
@@ -83,6 +87,11 @@ function AddressesUploadContent({ cities, listUrl }) {
             )}
           </div>
 
+          <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
+            <input type="checkbox" checked={replace} onChange={(e) => setReplace(e.target.checked)} />
+            <span>{t('Delete all the addresses of the city before loading')}</span>
+          </label>
+
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <Button disabled={!cityId || busy} onClick={() => inputRef.current?.click()}>
               <MaterialIcon name="upload_file" size={16} style={{ marginRight: 6 }} />
@@ -95,7 +104,7 @@ function AddressesUploadContent({ cities, listUrl }) {
           </div>
 
           <span style={styles.help}>
-            {t('Loading the same file twice creates the same nodes twice — this is not a synchronisation.')}
+            {t('Without the checkbox the file is added to what the city has: loading the same file twice creates the same nodes twice.')}
           </span>
         </section>
       </div>

@@ -9,10 +9,14 @@ import { ADDRESS_TYPES } from "./defaultGeo";
  * once a node is created its children are attached by the id it got, and the key
  * is forgotten. That is what lets a file list a house before its street.
  *
- * Like the zone upload, this is not a synchronisation. There is no matching
- * against what is already there and no `externalId`: the same file loaded twice
- * stops at the first node that already exists, and there is no transaction —
- * the nodes created before a failure stay.
+ * By default a load only adds: nothing is matched against what the city has, so
+ * the same file loaded twice stops at the first node that already exists. With
+ * `replace` the catalog of the city is emptied right before the file is written,
+ * so the same file loaded twice gives the same catalog. That includes the streets
+ * an RMS brought (they come back with its next sync). The file is checked in full
+ * before anything is deleted, but there is no transaction: a database that fails
+ * halfway leaves the city with part of the file, and loading the file again with
+ * `replace` repairs it.
  */
 
 /** One line of the file. `key` is only ever the target of another node's `parent`. */
@@ -30,6 +34,8 @@ export interface AddressImportNode {
 
 export interface AddressImportResult {
   created: number;
+  /** Nodes of the city deleted before the file was written; 0 unless `replace`. */
+  deleted: number;
   /** Non-empty means nothing was written at all. */
   errors: string[];
 }
@@ -98,16 +104,20 @@ function byDepth(nodes: AddressImportNode[]): AddressImportNode[] | null {
   return ordered;
 }
 
-/** Creates the catalog of one city. Nothing is written if the file has an error. */
+/** Loads the catalog of one city, emptying it first when `replace`. Nothing is deleted or written if the file has an error. */
 export async function importAddresses(params: {
   city: string;
   nodes: AddressImportNode[];
+  /** Delete every address of the city before the file is written. Off unless asked. */
+  replace?: boolean;
 }): Promise<AddressImportResult> {
   const errors = validateAddressNodes(params.nodes, ADDRESS_TYPES);
-  if (errors.length) return { created: 0, errors };
+  if (errors.length) return { created: 0, deleted: 0, errors };
 
   const ordered = byDepth(params.nodes);
-  if (!ordered) return { created: 0, errors: ["Some nodes reference each other in a circle"] };
+  if (!ordered) return { created: 0, deleted: 0, errors: ["Some nodes reference each other in a circle"] };
+
+  const deleted: unknown[] = params.replace ? await Address.destroy({ city: params.city }).fetch() : [];
 
   const ids = new Map<string, string>();
   let created = 0;
@@ -128,5 +138,5 @@ export async function importAddresses(params: {
     created++;
   }
 
-  return { created, errors: [] };
+  return { created, deleted: deleted.length, errors: [] };
 }

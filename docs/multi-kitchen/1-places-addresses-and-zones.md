@@ -53,9 +53,11 @@ node may have a point on the map; a node without one takes the nearest
 ancestor that has it. A range of houses ("1–50") stores its bounds and is used
 where a street is long and its parts lie in different zones.
 
-Nodes are created by hand in the admin panel, from a file (the address upload
-page checks the whole file and shows every error at once), or arrive from the
-RMS as streets.
+Nodes are created by hand in the admin panel, from a file, or arrive from the
+RMS as streets. The upload page checks the whole
+file and shows every error at once. A file is added to the catalog of its city;
+with the "delete all the addresses of the city before loading" checkbox it
+replaces it instead (RMS streets are deleted too, they return with its next sync).
 
 On an order the address is one flat shape: the node the customer chose, a
 ready line "Lenina, 12" for the operator and the courier, the city, the house

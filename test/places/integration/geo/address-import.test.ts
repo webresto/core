@@ -30,11 +30,36 @@ describe("Address import", function () {
   };
 
   it("creates a parent before the child that names it, whatever the file's order", async function () {
-    expect(await importAddresses({ city, nodes: [house12, street1] })).to.deep.equal({ created: 2, errors: [] });
+    expect(await importAddresses({ city, nodes: [house12, street1] })).to.deep.equal({ created: 2, deleted: 0, errors: [] });
 
     const [street, house] = await rows();
     expect(street).to.include({ name: "Street 1", parent: null });
     expect(house).to.include({ name: "12", parent: street.id });
+  });
+
+  it("with replace, deletes what the city had: loading the same file twice leaves one catalog", async function () {
+    await importAddresses({ city, nodes: [street1, house12] });
+
+    expect(await importAddresses({ city, nodes: [street1, house12], replace: true })).to.deep.equal({ created: 2, deleted: 2, errors: [] });
+    expect(await rows()).to.have.length(2);
+  });
+
+  it("without replace, adds to what the city has and deletes nothing", async function () {
+    await importAddresses({ city, nodes: [street1] });
+
+    const result = await importAddresses({ city, nodes: [{ type: "street", name: "Street 2" }] });
+
+    expect(result).to.deep.equal({ created: 1, deleted: 0, errors: [] });
+    expect(await rows()).to.have.length(2);
+  });
+
+  it("deletes only the city it loads", async function () {
+    const other = (await City.create({ name: "City 2" }).fetch()).id;
+    await importAddresses({ city: other, nodes: [street1] });
+
+    await importAddresses({ city, nodes: [house12, street1], replace: true });
+
+    expect(await Address.find({ city: other })).to.have.length(1);
   });
 
   it("carries the city, the aliases and the point onto every node", async function () {
@@ -71,6 +96,15 @@ describe("Address import", function () {
       expect(result.created).to.equal(0);
       expect(result.errors[0]).to.contain("does not define");
       expect(await rows()).to.deep.equal([]);
+    });
+
+    it("the catalog the city had stays", async function () {
+      await importAddresses({ city, nodes: [street1] });
+
+      const result = await importAddresses({ city, nodes: [{ parent: "nowhere", type: "house", name: "12" }], replace: true });
+
+      expect(result.deleted).to.equal(0);
+      expect(await rows()).to.have.length(1);
     });
 
     it("nodes that name each other in a circle", async function () {
