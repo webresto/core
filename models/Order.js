@@ -2752,13 +2752,17 @@ async function checkDate(order) {
             '╚════════════════════════════════════════════════════════════════════╝');
         throw { code: 19, error: 'Server timezone is not configured, ordering is disabled' };
     }
-    // Global worktime restriction via WORK_TIME settings.
-    // Runs for ASAP orders too (order.date may be empty), otherwise the check below
-    // — guarded by `if (order.date)` — would be skipped entirely for "as soon as possible" orders.
+    // Global worktime restriction via WORK_TIME settings, at the moment the order is
+    // for: now for "as soon as possible", the chosen time for an order by time — a
+    // restaurant closed at night still takes an order for the morning. Runs for ASAP
+    // orders too (order.date is empty), which the checks below, guarded by
+    // `if (order.date)`, skip. `order.date` is the restaurant's local time, and the
+    // process runs in its timezone (`TZ`), so `new Date` reads it right.
     try {
         const WORK_TIME = await Settings.get('WORK_TIME');
         if (WORK_TIME) {
-            const { workNow } = worktime_1.WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME });
+            const at = order.date ? new Date(order.date) : undefined;
+            const { workNow } = worktime_1.WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME }, at);
             if (!workNow) {
                 throw { code: 18, error: 'Order date is outside work time' };
             }
