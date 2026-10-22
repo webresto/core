@@ -104,13 +104,61 @@ describe("Promotion codes", function () {
     expect((await apply(id, "CODE1")).discountTotal).to.equal(11.13);
   });
 
-  it("honours the promotion's minimum basket total", async function () {
+  it("honours the promotion's minimum basket total; below it, the order says from which sum", async function () {
     await Promotion.update({ id: "promotion-1" }, { configDiscount: { discountType: "flat", discountAmount: 1.45, dishes: [], groups: [], excludeModifiers: true, minBasketTotal: 200 } }).fetch();
     const id = await basket();
 
-    expect((await apply(id, "CODE1")).discountTotal).to.equal(0);
+    const below = await apply(id, "CODE1");
+    expect(below).to.include({ promotionCode: "code-1", discountTotal: 0 });
+    expect(below.promotionState).to.deep.include({
+      type: "promocode-min-basket-total",
+      message: "The promo code works from a basket total of 200",
+      state: { promotionId: "promotion-1", minBasketTotal: 200, basketTotal: 111.3 },
+    });
     await add(id, dish2, 6);
-    expect((await Order.findOne({ id })).discountTotal).to.equal(1.45);
+    expect(await Order.findOne({ id }))
+      .to.include({ discountTotal: 1.45 })
+      .and.to.have.property("promotionState").that.satisfies((states: unknown) => !JSON.stringify(states).includes("promocode-min-basket-total"));
+  });
+
+  describe("its dates and hours", function () {
+    const day = (offset: number) => {
+      const date = new Date();
+      date.setDate(date.getDate() + offset);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    };
+    const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const terms = (values: Record<string, unknown>) => PromotionCode.updateOne({ id: "code-1" }).set(values);
+
+    it("works from its start day to its stop day, both in", async function () {
+      await terms({ startDate: day(0), stopDate: day(0) });
+      expect((await apply(await basket(), "CODE1")).discountTotal).to.equal(1.45);
+    });
+
+    it("before its start day, or after its stop day, cannot be applied", async function () {
+      await terms({ startDate: day(1) });
+      expect(await apply(await basket(), "CODE1")).to.include({ promotionCode: null, discountTotal: 0 });
+
+      await terms({ startDate: "", stopDate: day(-1) });
+      expect(await apply(await basket(), "CODE1")).to.include({ promotionCode: null, discountTotal: 0 });
+    });
+
+    it("out of its hours, cannot be applied; within them, it can", async function () {
+      const today = DAYS[new Date().getDay()];
+      await terms({ workTime: { dayOfWeek: DAYS.filter((name) => name !== today), start: "00:00", stop: "23:59" } });
+      expect(await apply(await basket(), "CODE1")).to.include({ promotionCode: null, discountTotal: 0 });
+
+      await terms({ workTime: { dayOfWeek: [today], start: "00:00", stop: "23:59" } });
+      expect((await apply(await basket(), "CODE1")).discountTotal).to.equal(1.45);
+    });
+
+    it("ended after it was applied, leaves the basket at the next recount", async function () {
+      const id = await basket();
+      await apply(id, "CODE1");
+      await terms({ stopDate: day(-1) });
+
+      expect(await Order.countCart({ id })).to.include({ promotionCode: null, discountTotal: 0 });
+    });
   });
 
   it("is saved upper-cased, code and prefix", async function () {

@@ -1,4 +1,5 @@
-import { hasAccess, toNumber, dayKey, promotionCodeStatus } from "./marketing-helpers";
+import { hasAccess, toNumber, dayKey } from "./marketing-helpers";
+import { promotionCodeStatus } from "../../../promotion-code";
 
 const DEFAULT_RANGE_DAYS = 30;
 const MAX_RANGE_DAYS = 365;

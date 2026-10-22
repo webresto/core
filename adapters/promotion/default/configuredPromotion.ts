@@ -53,6 +53,11 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
    * guest sees it in the receipt — dish price plus the selected modifiers.
    * `true` discounts the dish price only, so a paid modifier is sold full price.
    */
+  /** The least basket total its promotion code applies it at (see `condition`); 0 - any. */
+  public get codeMinBasketTotal(): number {
+    return this.config.gift?.minBasketTotal ?? this.config.minBasketTotal ?? 0;
+  }
+
   private get excludeModifiers(): boolean {
     return (this.configDiscount?.excludeModifiers ?? this.config?.excludeModifiers) === true;
   }
@@ -96,8 +101,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
      */
     if (viaPromocode && findModelInstanceByAttributes(arg) === "Order") {
       const order = arg as OrderRecord;
-      const minBasketTotal = this.config.gift?.minBasketTotal ?? this.config.minBasketTotal ?? 0;
-      return new Decimal(order.basketTotal ?? 0).gte(minBasketTotal);
+      return new Decimal(order.basketTotal ?? 0).gte(this.codeMinBasketTotal);
     }
 
     // A dish and a group are asked about first: a concept that matched used to

@@ -31,7 +31,8 @@ declare let Model: {
     beforeCreate(promotionCodeInit: PromotionCodeRecord, cb: (err?: string) => void): void;
     beforeUpdate(values: Partial<PromotionCodeRecord>, cb: (err?: string) => void): void;
     /**
-     * Check promocode is work now
+     * The code that applies now - switched on, within its dates and its hours (`promotionCodeWorks`); null - none.
+     * Asked at the apply and at every recount, so a code that ends or closes leaves the baskets that had it.
      */
     getValidPromotionCode(promotionCodeString: string): Promise<PromotionCodeRecord | null>;
 };

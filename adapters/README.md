@@ -92,7 +92,9 @@ rest, read by `Address` itself), and the geocoders modules attach
 catalog does not know: asked by `priority`, houses only; a house found is kept in
 the catalog as a cached node (`Address.cache`), and an upload keeps it. A click
 lands on a place of the catalog closer than 10 m, else on the house a geocoder
-finds; with no geocoder attached an unknown address stays text. The list of
+finds; a number typed under a chosen street the catalog has no house of is asked
+of the geocoders by `search`, and the house comes back in the list; with no
+geocoder attached an unknown address stays text. The list of
 geocoders is the default's own state, not a registry next to `Adapter`: another
 geo adapter geocodes its own way.
 

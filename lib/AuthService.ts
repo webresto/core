@@ -1349,6 +1349,11 @@ export class AuthService {
         );
         if (identity) await AuthIdentity.updateOne({ id: identity.id }, { lastUsedAt: Date.now() });
         await this.syncUserProjections(user.id as string);
+        // After the projections: a bonus system knows the customer by the phone. Its failure
+        // (an external system down) leaves the customer out of the program, not out of the account.
+        await User.checkRegisteredInBonusPrograms(user.id as string).catch((error) =>
+          sails.log.error(`AuthService > the bonus programs of user [${user.id}] are not checked`, error)
+        );
         // `ticket` is not written again here: the claim above already put it on the row.
         return await AuthAttempt.updateOne({ id: live.id }, {
           status: "done",

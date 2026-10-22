@@ -125,8 +125,6 @@ let attributes = {
     worktime: "json",
     customData: "json",
 };
-/** a hidden group (`visible: false`) is not in the menu, nor are its child groups and products */
-const isShown = (group) => group.visible !== false;
 let Model = {
     beforeCreate: async function (init, cb) {
         emitter.emit('core:group-before-create', init);
@@ -201,7 +199,7 @@ let Model = {
             .populate("dishes")
             .populate("images");
         const errors = {};
-        for await (let group of groups.filter(isShown)) {
+        for await (let group of groups) {
             const reason = (0, checkExpression_1.default)(group);
             if (!reason) {
                 menu[group.id] = group;
@@ -222,7 +220,7 @@ let Model = {
                         .populate("childGroups")
                         .populate("dishes")
                         .populate("images");
-                    for await (let cg of cgs.filter(isShown)) {
+                    for await (let cg of cgs) {
                         try {
                             // The same order all the way down: a child group read without it
                             // would be filtered by another context than its parent.
@@ -333,7 +331,7 @@ let Model = {
         for (let group of menu) {
             const groupId = group.id;
             const initialGroup = (await Group.find({ id: groupId, isDeleted: false, enable: true }).sort('createdAt DESC')).shift();
-            if (initialGroup && isShown(initialGroup)) {
+            if (initialGroup) {
                 allGroups.push(initialGroup);
                 const childGroups = await getAllChildGroups(groupId);
                 allGroups = allGroups.concat(childGroups);
@@ -341,7 +339,7 @@ let Model = {
             }
         }
         async function getAllChildGroups(groupId) {
-            let childGroups = (await Group.find({ parentGroup: groupId, isDeleted: false, enable: true })).filter(isShown);
+            let childGroups = await Group.find({ parentGroup: groupId, isDeleted: false, enable: true });
             let allChildGroups = [];
             for (let group of childGroups) {
                 allChildGroups.push(group);
@@ -409,8 +407,6 @@ let Model = {
             }
         }
         groups = groups.filter(group => {
-            if (!isShown(group))
-                return false;
             if (!group.worktime)
                 return true;
             //@ts-ignore

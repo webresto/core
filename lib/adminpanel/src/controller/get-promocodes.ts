@@ -1,4 +1,5 @@
-import { hasAccess, parseJsonArray, parseJsonObject, promotionCodeStatus, discountSummary } from "./marketing-helpers";
+import { hasAccess, parseJsonArray, parseJsonObject, discountSummary } from "./marketing-helpers";
+import { promotionCodeStatus } from "../../../promotion-code";
 
 const PAGE_SIZE_DEFAULT = 50;
 const PAGE_SIZE_MAX = 200;

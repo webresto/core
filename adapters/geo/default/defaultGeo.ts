@@ -153,27 +153,8 @@ export class DefaultGeoAdapter extends GeoAdapter {
       }
     }
 
-    const cityName = cityId ? (await City.findOne!({ id: cityId }))?.name : undefined;
-    const miss = `house:${cityId ?? ""}:${street.toLowerCase()}:${home.toLowerCase()}`;
-    if (isRecentMiss(miss)) {
-      diagnostics.push(`geocoders found nothing for "${street} ${home}" a moment ago`);
-      return { coordinate: null, diagnostics };
-    }
-
-    const asked = await askGeocoders((geocoder) => geocoder.house({ city: cityName ?? "", street, home }).then((found) => (found ? [found] : [])));
-    diagnostics.push(...asked.diagnostics);
-    if (!asked.house) {
-      if (!asked.failed) rememberMiss(miss);
-      diagnostics.push(`geocoders found nothing for "${street} ${home}"`);
-      return { coordinate: null, diagnostics };
-    }
-
-    if (cityId) await cacheHouse(cityId, asked.house, asked.source);
-    diagnostics.push(
-      `${asked.source} placed "${street} ${home}"${cityName ? ` (${cityName})` : ""} at ${asked.house.point.lat}, ${asked.house.point.lon}`,
-      "address point source: geocoder",
-    );
-    return { coordinate: asked.house.point, diagnostics };
+    const geocoded = await geocodeHouse(cityId, street, home, diagnostics);
+    return { coordinate: geocoded?.house.point ?? null, diagnostics };
   }
 
   /**
@@ -214,9 +195,16 @@ export class DefaultGeoAdapter extends GeoAdapter {
    * them and the graph is shallow, which is cheaper than an `ancestors` column
    * that has to be rewritten every time a district is renamed. The path of one
    * parent serves every child in the list, so it is read once.
+   *
+   * A house number typed under a chosen street that the catalog has no house of
+   * is asked of the geocoders, as `locate` asks them; the house they find is
+   * cached and offered first, like one of the catalog's own — what a click on the
+   * map gets.
    */
   public async search(params: { city: string; parent?: string | null; query: string }): Promise<AddressNode[]> {
     const found = await Address.search(params);
+    const typed = await typedHouse(params, found);
+    if (typed) found.unshift(typed);
     const paths = new Map<string, string[]>();
 
     return await Promise.all(
@@ -277,6 +265,59 @@ async function askGeocoders(
     }
   }
   return { house: null, source: "", failed: !answered && attachedGeocoders().length > 0, diagnostics };
+}
+
+/**
+ * The house of a street line and a number by the geocoders, cached when the city is known; `null` when
+ * they find nothing now or found nothing a moment ago. What happened goes into the diagnostics.
+ */
+async function geocodeHouse(
+  cityId: string | null,
+  street: string,
+  home: string,
+  diagnostics: string[],
+): Promise<{ house: GeocodedHouse; node: AddressRecord | null } | null> {
+  const cityName = cityId ? (await City.findOne!({ id: cityId }))?.name : undefined;
+  const miss = `house:${cityId ?? ""}:${street.toLowerCase()}:${home.toLowerCase()}`;
+  if (isRecentMiss(miss)) {
+    diagnostics.push(`geocoders found nothing for "${street} ${home}" a moment ago`);
+    return null;
+  }
+
+  const asked = await askGeocoders((geocoder) => geocoder.house({ city: cityName ?? "", street, home }).then((found) => (found ? [found] : [])));
+  diagnostics.push(...asked.diagnostics);
+  if (!asked.house) {
+    if (!asked.failed) rememberMiss(miss);
+    diagnostics.push(`geocoders found nothing for "${street} ${home}"`);
+    return null;
+  }
+
+  const node = cityId ? await cacheHouse(cityId, asked.house, asked.source) : null;
+  diagnostics.push(
+    `${asked.source} placed "${street} ${home}"${cityName ? ` (${cityName})` : ""} at ${asked.house.point.lat}, ${asked.house.point.lon}`,
+    "address point source: geocoder",
+  );
+  return { house: asked.house, node };
+}
+
+/**
+ * The house a number typed under a chosen node names, when the catalog has no house of that number:
+ * the geocoders' house, cached under that node. Only a number with a digit and only under a chosen
+ * node — a number alone is not an address. A house the geocoders put elsewhere, or under another
+ * number, is not what was typed.
+ */
+async function typedHouse(params: { city: string; parent?: string | null; query: string }, found: AddressRecord[]): Promise<AddressRecord | null> {
+  const parent = trimmed(params.parent);
+  const home = trimmed(params.query);
+  if (!parent || !home || !/\d/.test(home)) return null;
+  if (found.some((node) => node.type === "house" && sameHouse(node.name, home))) return null;
+
+  const path = await Address.path(parent);
+  if (!path.length) return null;
+  const street = formatAddressPath(path.filter((step) => step.type !== "range").map((step) => step.name));
+  const node = (await geocodeHouse(params.city, street, home, []))?.node;
+  if (!node || toParent(node) !== parent || !sameHouse(node.name, home) || found.some((one) => one.id === node.id)) return null;
+  return node;
 }
 
 /** A catalog row as the storefront reads it: the parent is an id, never an object. */

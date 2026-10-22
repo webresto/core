@@ -115,8 +115,11 @@ declare let Model: {
      */
     authDevice(userId: string, deviceId: string, deviceName: string, userAgent: string, IP: string, identityId?: string): Promise<UserDeviceRecord>;
     /**
-      check all active bonus programs for user
-    */
+     * Puts the user into the working bonus programs (`BonusProgram.getAvailable`), on login: one
+     * whose system already knows the user gets the user's row in core; one with
+     * `automaticUserRegistration` registers the user; others wait for the user to join. The balance
+     * of every active membership is synced.
+     */
     checkRegisteredInBonusPrograms(userId: string): Promise<void>;
 };
 declare global {

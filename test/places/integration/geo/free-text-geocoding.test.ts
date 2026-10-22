@@ -125,4 +125,47 @@ describe("Free-text geocoding", function () {
 
     expect((await locate({ city: city1, formatted: "Street 1", home: "37" })).coordinate).to.equal(null);
   });
+
+  // the list of a chosen street while the number is typed: what a click on the map gets
+  describe("a number typed under a chosen street", function () {
+    const search = async (query: string, parent: string | null = street1) => (await Adapter.get("geo")).search({ city: city1, parent, query });
+    const HOUSE_12 = { lat: 57.152, lon: 65.53 };
+
+    it("offers the geocoder's house first when the street has none of that number, cached for the next time", async function () {
+      knows("Street 1", "12", HOUSE_12);
+
+      const [first] = await search("12");
+
+      expect(first).to.deep.include({ name: "12", parent: street1, point: HOUSE_12, ancestors: ["Street 1"] });
+      expect(asked()).to.deep.equal([{ method: "house", city: "City 1", street: "Street 1", home: "12" }]);
+      expect(await Address.findOne({ id: first.id })).to.deep.include({ cache: { source: "test", street: "Street 1" } });
+
+      geocoder.house = undefined;
+      expect((await search("12")).map((node) => node.id)).to.deep.equal([first.id]);
+      expect(asked()).to.have.length(1);
+    });
+
+    it("asks nobody when the street has the house", async function () {
+      knows("Street 1", "10", { lat: 0, lon: 0 });
+
+      expect((await search("10")).map((node) => node.name)).to.deep.equal(["10"]);
+      expect(asked()).to.deep.equal([]);
+    });
+
+    it("asks nobody for a number with no street chosen, or for words without a digit", async function () {
+      knows("Street 1", "14", { lat: 57.154, lon: 65.53 });
+
+      await search("14", null);
+      await search("корпус");
+
+      expect(asked()).to.deep.equal([]);
+    });
+
+    it("offers nothing when the geocoder puts the house on another street", async function () {
+      knows("Street 9", "15", { lat: 57.155, lon: 65.53 });
+
+      expect(await search("15")).to.deep.equal([]);
+      expect(asked()).to.have.length(1);
+    });
+  });
 });

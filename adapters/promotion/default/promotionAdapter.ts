@@ -9,6 +9,9 @@ import { DishRecord } from "../../../models/Dish";
 import { GroupRecord } from "../../../models/Group";
 import { PromotionCodeRecord } from "../../../models/PromotionCode";
 
+/** `PromotionState.type` of a code's promotion waiting for a bigger basket: `state` - `{ promotionId, minBasketTotal, basketTotal }` */
+const PROMOCODE_MIN_BASKET_TOTAL = "promocode-min-basket-total";
+
 export class PromotionAdapter extends AbstractPromotionAdapter {
 
   public readonly promotions: { [key: string]: AbstractPromotionHandler; } = {};
@@ -53,6 +56,7 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     }
 
     // --- CALCULATE DISCOUNTS END --- //
+    promotionStates.push(...this.codeWaitsForBasket(populatedOrder, promotionByConcept));
     populatedOrder.promotionState = promotionStates;
     populatedOrder.promotionErrors = promotionErrors;
 
@@ -104,6 +108,30 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     let modifiedConcept: string[];
     typeof concept === "string" ? (modifiedConcept = [concept]) : (modifiedConcept = concept);
     return Promotion.getAllByConcept(modifiedConcept);
+  }
+
+  /**
+   * The promotions of the order's code that wait for a bigger basket: below its `codeMinBasketTotal` a code's
+   * promotion gives nothing, and the state says from which sum - a storefront tells the customer how much is
+   * missing instead of showing a code that does nothing.
+   */
+  private codeWaitsForBasket(order: OrderRecord, applied: PromotionRecord[]): PromotionState[] {
+    const promotionCode = order.promotionCode as PromotionCodeRecord | null;
+    if (!promotionCode || !Array.isArray(promotionCode.promotion)) return [];
+    const basketTotal = new Decimal(order.basketTotal ?? 0);
+    return (promotionCode.promotion as PromotionRecord[]).flatMap((promotion) => {
+      if (typeof promotion !== "object" || promotion === null) return [];
+      if (applied.some((item) => item?.id === promotion.id)) return [];
+      const handler = this.promotions[promotion.id];
+      if (!(handler instanceof ConfiguredPromotion)) return [];
+      const minBasketTotal = handler.codeMinBasketTotal;
+      if (basketTotal.gte(minBasketTotal)) return [];
+      return [{
+        type: PROMOCODE_MIN_BASKET_TOTAL,
+        message: `The promo code works from a basket total of ${minBasketTotal}`,
+        state: { promotionId: promotion.id, minBasketTotal, basketTotal: basketTotal.toNumber() },
+      }];
+    });
   }
 
   public filterPromotions(promotionsByConcept: PromotionRecord[], target: GroupRecord | DishRecord | OrderRecord): PromotionRecord[] {

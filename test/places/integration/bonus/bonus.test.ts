@@ -1,4 +1,7 @@
 import { expect } from "chai";
+import AuthService from "../../../../lib/AuthService";
+import { Channel, NotificationManager } from "../../../../lib/notifications/NotificationManager";
+import { NotificationTypeRegistry } from "../../../../lib/notifications/NotificationTypeRegistry";
 import { resetDatabase } from "../../support/reset";
 import { startBonusSystem, TestBonusSystem } from "../../support/bonus";
 import { add, CUSTOMER, newBasket, pickUpAt, thrown } from "../../support/storefront";
@@ -92,5 +95,52 @@ describe("Bonuses", function () {
     } finally {
       await BonusProgram.update({ id: bonusProgram }, { enable: true }).fetch();
     }
+  });
+
+  // A login by the fixed code of the stand, the code carried by a channel of this file
+  describe("a login", function () {
+    class SmsChannel extends Channel {
+      public type = "sms";
+      public forceSend = false;
+      public forGroupTo = ["user"];
+      public sortOrder = 0;
+      public cost = 0;
+      protected async send(): Promise<void> {}
+    }
+    const sms = new SmsChannel();
+
+    before(async function () {
+      process.env.DEFAULT_OTP = "123456";
+      NotificationManager.registerChannel(sms);
+      await NotificationTypeRegistry.load();
+    });
+    after(function () {
+      delete process.env.DEFAULT_OTP;
+      NotificationManager.channels.splice(NotificationManager.channels.indexOf(sms), 1);
+    });
+
+    async function login(phone: string): Promise<string> {
+      const deviceId = `device-${phone}`;
+      const started = await AuthService.start({ purpose: "login", login: phone, deviceId });
+      const done = await AuthService.submit(started.id as string, (started.step as any).id, "123456", { deviceId });
+      expect(done.status).to.equal("done");
+      return done.user as string;
+    }
+
+    it("puts the customer into a program with automatic registration, with the system's balance", async function () {
+      const customer = await login("15550000002");
+      expect(await UserBonusProgram.findOne({ user: customer, bonusProgram })).to.include({ isActive: true, balance: 0 });
+      expect(system.balances.has(customer)).to.equal(true);
+    });
+
+    it("leaves the customer out of a program without it", async function () {
+      await BonusProgram.update({ id: bonusProgram }, { automaticUserRegistration: false }).fetch();
+      try {
+        const customer = await login("15550000003");
+        expect(await UserBonusProgram.findOne({ user: customer, bonusProgram })).to.equal(undefined);
+      } finally {
+        await BonusProgram.update({ id: bonusProgram }, { automaticUserRegistration: true }).fetch();
+      }
+    });
   });
 });

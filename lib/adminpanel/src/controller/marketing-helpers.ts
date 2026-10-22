@@ -53,23 +53,6 @@ export function dayKey(ms: number): string {
   return `${year}-${month}-${day}`;
 }
 
-/** A promotion code is "valid now" when the current date is within its start/stop window. */
-export function promotionCodeStatus(code: any, now: Date = new Date()): "active" | "disabled" | "scheduled" | "expired" {
-  if (code?.enable === false) return "disabled";
-  const start = parseDateLoose(code?.startDate);
-  const stop = parseDateLoose(code?.stopDate);
-  const ts = now.getTime();
-  if (start && ts < start) return "scheduled";
-  if (stop && ts > stop) return "expired";
-  return "active";
-}
-
-function parseDateLoose(value: any): number | null {
-  if (!value) return null;
-  const ms = Date.parse(String(value));
-  return Number.isNaN(ms) ? null : ms;
-}
-
 /**
  * Compact, locale-agnostic structured summary of a promotion's discount, derived from
  * `configDiscount`. The frontend formats currency/percent and translates the scope label.

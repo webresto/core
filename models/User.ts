@@ -219,14 +219,6 @@ let Model = {
 
   async afterCreate(record: UserRecord, cb:  (err?: string) => void) {
     emitter.emit('core:user-after-create', record);
-
-//    It was commented because it broke tests, after login it called, this reason for comment it here
-//    try {
-//      User.checkRegisteredInBonusPrograms(record.id);
-//    } catch (error) {
-//      sails.log.error(error)
-//    }
-
     return cb();
   },
 
@@ -325,43 +317,34 @@ let Model = {
   },
 
   /**
-    check all active bonus programs for user
-  */
+   * Puts the user into the working bonus programs (`BonusProgram.getAvailable`), on login: one
+   * whose system already knows the user gets the user's row in core; one with
+   * `automaticUserRegistration` registers the user; others wait for the user to join. The balance
+   * of every active membership is synced.
+   */
   async checkRegisteredInBonusPrograms(userId: string): Promise<void> {
-    let user = await User.findOne({id: userId})
-    if (!user) throw `User not found`
-    const bps = await BonusProgram.getAvailable()
-    for (let bp of bps) {
-      let adapter = await BonusProgram.getAdapter(bp.adapter);
-      const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bp.id});
-
-      // If all works
-      if (adapter.isRegistered(user) && userBonusProgram && userBonusProgram.isActive) {
-        // Not need await finish sync
-        UserBonusProgram.sync(userId, bp.id);
-
-      // If not registered in internal storage
-      } else if(adapter.isRegistered(user) && !userBonusProgram) {
-        let exUser = await adapter.getUserInfo(user);
-        await UserBonusProgram.create({
-          user: user.id,
-          balance: exUser.balance,
-          externalId: exUser.externalId,
-          isActive: true,
-          isDeleted: false,
-          bonusProgram: adapter.id,
-          syncedToTime: "0"
-        }).fetch();
-
-        // If not registered but needed
-      } else if(!adapter.isRegistered(user) && bp.automaticUserRegistration) {
-        // Registration if Bonus program has an automatic registration option
-        await UserBonusProgram.registration(user, bp.adapter);
-
-      // if not need register
-      } else {
-        sails.log.debug(`User should register manual: user[${user.id}], bonusProgram: [${bp.name}]`)
+    const user = await User.findOne({ id: userId });
+    if (!user) throw `User not found`;
+    for (const bp of await BonusProgram.getAvailable()) {
+      const adapter = await BonusProgram.getAdapter(bp.adapter);
+      let userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: bp.id });
+      if (await adapter.isRegistered(user)) {
+        if (!userBonusProgram) {
+          const external = await adapter.getUserInfo(user);
+          userBonusProgram = await UserBonusProgram.create({
+            user: user.id,
+            balance: external.balance,
+            externalId: external.externalId,
+            isActive: true,
+            isDeleted: false,
+            bonusProgram: bp.id,
+            syncedToTime: "0"
+          }).fetch();
+        }
+      } else if (bp.automaticUserRegistration && !userBonusProgram) {
+        userBonusProgram = await UserBonusProgram.registration(user, bp.adapter);
       }
+      if (userBonusProgram?.isActive) await UserBonusProgram.sync(user, bp);
     }
   },
 };

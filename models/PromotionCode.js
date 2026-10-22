@@ -76,17 +76,16 @@ let Model = {
         cb();
     },
     /**
-     * Check promocode is work now
+     * The code that applies now - switched on, within its dates and its hours (`promotionCodeWorks`); null - none.
+     * Asked at the apply and at every recount, so a code that ends or closes leaves the baskets that had it.
      */
     async getValidPromotionCode(promotionCodeString) {
         const normalizedCode = (0, promotion_code_1.normalizePromotionCodeValue)(promotionCodeString);
         if (!normalizedCode) {
             return null;
         }
-        // `enable` was added after promo codes already existed. Treat records without
-        // the flag as enabled so a deploy does not silently disable existing codes.
         const promotionCode = await PromotionCode.findOne({ code: normalizedCode }).populate("promotion");
-        return promotionCode?.enable === false ? null : promotionCode;
+        return promotionCode && (0, promotion_code_1.promotionCodeWorks)(promotionCode) ? promotionCode : null;
     }
 };
 module.exports = {

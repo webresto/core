@@ -3,7 +3,7 @@ import { toId } from "../../../../lib/association-id";
 import { between } from "../../../../lib/maintenance";
 import { validateRule } from "../../../../lib/notification-rules";
 import { assertCoordinate } from "../../../../lib/place";
-import { normalizePromotionCodeValue } from "../../../../lib/promotion-code";
+import { normalizePromotionCodeValue, promotionCodeStatus } from "../../../../lib/promotion-code";
 import { isInDeclaredSettings, setDeclaredSetting } from "../../../../lib/settings/declared";
 import { syncToEnv } from "../../../../lib/settings/env-mirror";
 import { cleanValue, parseBoolean } from "../../../../lib/settings/value";
@@ -36,6 +36,17 @@ describe("Helpers taken out of models", function () {
   it("normalizePromotionCodeValue compares codes trimmed and upper-cased", function () {
     expect(normalizePromotionCodeValue(" sale10 ")).to.equal("SALE10");
     expect(normalizePromotionCodeValue("  ")).to.equal(null);
+  });
+
+  it("a promo code's days are of the process timezone, its stop day in", function () {
+    const at = (day: number, hour: number) => new Date(2026, 9, day, hour, 0);
+    const code = { startDate: "2026-10-20", stopDate: "2026-10-22" };
+    expect(promotionCodeStatus(code, at(19, 23))).to.equal("scheduled");
+    expect(promotionCodeStatus(code, at(20, 0))).to.equal("active");
+    expect(promotionCodeStatus(code, at(22, 23))).to.equal("active");
+    expect(promotionCodeStatus(code, at(23, 0))).to.equal("expired");
+    expect(promotionCodeStatus({ ...code, enable: false }, at(21, 12))).to.equal("disabled");
+    expect(promotionCodeStatus({ startDate: "", stopDate: "" }, at(21, 12))).to.equal("active");
   });
 
   it("a declared setting is known after it is declared", function () {

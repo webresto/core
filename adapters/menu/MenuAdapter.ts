@@ -132,11 +132,10 @@ export default abstract class MenuAdapter {
   /**
    * Narrows a product list to what the context can offer.
    *
-   * A hidden product (`visible: false`) is never offered, whatever the adapter:
-   * not in the menu, its options or the recommendations. A basket that holds it
-   * keeps it - its recount does not ask the menu. Then the order's step: with
-   * `maxWaitMinutes` set, a product that alone takes longer to cook is hidden.
-   * Then the adapter's `filterSellable`.
+   * The order's step first: with `maxWaitMinutes` set, a product that alone
+   * takes longer to cook is hidden, whatever the adapter. Then the adapter's
+   * `filterSellable`. A hidden product (`visible: false`) stays: whether to
+   * show it is the storefront's decision.
    */
   public async filterProducts<T extends AvailabilityProduct>(
     products: T[],
@@ -145,7 +144,7 @@ export default abstract class MenuAdapter {
     if (context.code === "PLACE_CLOSED" && !(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) return [];
     const maxWaitMinutes = context.order?.maxWaitMinutes;
     return this.filterSellable(
-      products.filter((product) => product.visible !== false && productFitsMaxWait(product, maxWaitMinutes)),
+      products.filter((product) => productFitsMaxWait(product, maxWaitMinutes)),
       context,
     );
   }

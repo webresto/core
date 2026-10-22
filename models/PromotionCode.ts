@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 import { PromotionRecord } from "./Promotion";
 import { WorkTime } from "@webresto/worktime/lib/worktime.validator";
 
-import { normalizePromotionCodeValue } from "../lib/promotion-code";
+import { normalizePromotionCodeValue, promotionCodeWorks } from "../lib/promotion-code";
 
 let attributes = {
 
@@ -105,7 +105,8 @@ let Model = {
   },
 
   /**
-   * Check promocode is work now
+   * The code that applies now - switched on, within its dates and its hours (`promotionCodeWorks`); null - none.
+   * Asked at the apply and at every recount, so a code that ends or closes leaves the baskets that had it.
    */
   async getValidPromotionCode(promotionCodeString: string): Promise<PromotionCodeRecord | null> {
     const normalizedCode = normalizePromotionCodeValue(promotionCodeString);
@@ -113,10 +114,8 @@ let Model = {
       return null;
     }
 
-    // `enable` was added after promo codes already existed. Treat records without
-    // the flag as enabled so a deploy does not silently disable existing codes.
     const promotionCode = await PromotionCode.findOne({code: normalizedCode}).populate("promotion");
-    return promotionCode?.enable === false ? null : promotionCode;
+    return promotionCode && promotionCodeWorks(promotionCode) ? promotionCode : null;
   }
 };
 

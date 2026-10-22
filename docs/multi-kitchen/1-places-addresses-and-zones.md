@@ -75,7 +75,9 @@ the geocoders a module attached, sending the path down to the house and the
 number (apartments and entrances only confuse a geocoder). The other way, from
 a coordinate to an address, a click lands on a place of the catalog closer than
 10 m, else on the house a geocoder finds nearby, and at worst there is nothing
-and the customer types the address. A house a geocoder found is cached in the
+and the customer types the address. A typed house number goes the same way: when
+the chosen street has no house of it, the search of the catalog asks the
+geocoders and offers the house they find. A house a geocoder found is cached in the
 catalog, so the same question is not asked, and paid for, twice; with no
 geocoder attached the catalog is all there is.
 
