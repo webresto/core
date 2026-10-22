@@ -105,4 +105,40 @@ export function registerPlacesTools() {
             return updated;
         },
     });
+
+    mcp.registerTool({
+        name: 'place-delete',
+        group: 'places',
+        description:
+            'Deletes a place that no order has used: neither as its pickup point nor among the kitchens that cooked it. '
+            + 'Its stock rows (DishPlace) go with it. A place orders point at is refused - switch it off with place-update enable=false.',
+        mode: 'protected',
+        schema: {
+            type: 'object',
+            properties: {
+                id: { type: 'string', description: 'Place ID.', example: 'abc123' },
+            },
+            required: ['id'],
+        },
+        handler: async ({ id }: { id: string }) => {
+            const place = await Place.findOne({ id });
+            if (!place) throw new Error('Place not found');
+
+            const pickups = await Order.count({ pickupPoint: id });
+            // Only an order created after the place can have cooked there, which keeps this
+            // a short scan for a new place and an honest one for an old place.
+            const later = await Order.find({ createdAt: { '>=': place.createdAt ?? 0 } } as any);
+            const cooked = later.filter((order: any) => JSON.stringify(order.cookingPoints ?? null).includes(id)).length;
+            if (pickups || cooked) {
+                throw new Error(
+                    `Orders point at this place (${pickups} as pickup point, ${cooked} as a kitchen): `
+                    + 'it cannot be deleted. Switch it off with place-update enable=false.',
+                );
+            }
+
+            const stock = await DishPlace.destroy({ place: id }).fetch();
+            await Place.destroyOne({ id } as any);
+            return { deleted: true, id, stockRowsRemoved: stock.length };
+        },
+    });
 }

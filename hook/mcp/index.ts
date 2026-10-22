@@ -10,6 +10,10 @@ import { registerOrderTools } from './order';
 import { registerNotificationTools } from './notifications';
 import { registerPromotionsTools } from './promotions';
 import { registerSalesChannelsTools } from './sales-channels';
+import { registerDeliveryTools } from './delivery';
+import { registerCitiesTools } from './cities';
+import { registerStockTools } from './stock';
+import { registerAddressTools, registerDeliveryZoneTools } from '../../adapters';
 
 declare const mcp: any;
 
@@ -31,6 +35,10 @@ const CORE_GROUPS: Array<{ name: string; description: string }> = [
     { name: 'notifications',  description: 'Manage push/admin notifications: list, send, configure channels.' },
     { name: 'promotions',     description: 'Manage promotions and discounts: list, get, create and update.' },
     { name: 'sales-channels', description: 'Manage sales channels: list, get, create and update channels.' },
+    { name: 'delivery-zones', description: 'Delivery zones and their terms: list, update one or many, run the map synchronisation, check delivery to an address.' },
+    { name: 'cities',         description: 'Cities the places, zones and address catalogs belong to: list, create, update.' },
+    { name: 'addresses',      description: 'Address catalog of a city: load a file by URL in the background, statistics, search as the storefront does.' },
+    { name: 'stock',          description: 'Stock of dishes per place: list what limits a kitchen, set a balance, a stop or a switch.' },
 ];
 
 export function registerCoreMcpTools() {
@@ -52,4 +60,10 @@ export function registerCoreMcpTools() {
     registerNotificationTools();
     registerPromotionsTools();
     registerSalesChannelsTools();
+    registerDeliveryTools();
+    registerCitiesTools();
+    registerStockTools();
+    // The zones and the address catalog are the default adapters' models, so their tools live there.
+    registerDeliveryZoneTools();
+    registerAddressTools();
 }

@@ -36,6 +36,9 @@ export type { Geocoder, GeocodedHouse } from "../interfaces/Geo";
 export { parseGeoJson } from "./delivery/default/geojson";
 export { importLocalZones } from "./delivery/default/zone-import";
 export { importAddresses } from "./geo/default/address-import";
+// The MCP tools of the default adapters' models: the zones page and the address upload, for an agent.
+export { registerDeliveryZoneTools } from "./delivery/default/mcp";
+export { registerAddressTools } from "./geo/default/mcp";
 
 const WEBRESTO_MODULES_PATH = process.env.WEBRESTO_MODULES_PATH === undefined ? "@webresto" : process.env.WEBRESTO_MODULES_PATH;
 
