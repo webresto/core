@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
 const Countries = require("../lib/dictionaries/countries.json");
 const AuthService_1 = __importDefault(require("../lib/AuthService"));
+const user_profile_1 = require("../lib/user-profile");
 let attributes = {
     /** User model ID — the account key. Nothing else identifies a user (extend_user_account §3.1):
      *  every way in is a row in AuthIdentity, found by (provider, externalId). */
@@ -17,12 +18,14 @@ let attributes = {
     firstName: {
         type: 'string',
         allowNull: true,
-        isNotEmptyString: true
+        isNotEmptyString: true,
+        maxLength: user_profile_1.NAME_MAX_LENGTH
     },
     lastName: {
         type: 'string',
         allowNull: true,
-        isNotEmptyString: true
+        isNotEmptyString: true,
+        maxLength: user_profile_1.NAME_MAX_LENGTH
     },
     sex: {
         type: 'number',
@@ -67,10 +70,10 @@ let attributes = {
             return true;
         }
     },
+    /** `YYYY-MM-DD` from 1900 to today; an empty string - none (`lib/user-profile.ts`) */
     birthday: {
         type: 'string',
-        // isAfter: new Date('Sat Jan 1 1900 00:00:00 GMT-0000'),
-        // isBefore: new Date().setFullYear(new Date().getFullYear()-10)
+        custom: user_profile_1.isBirthday
     },
     favorites: {
         collection: 'dish',

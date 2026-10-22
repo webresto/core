@@ -7,6 +7,7 @@ import { normalizePromotionCodeValue, promotionCodeStatus } from "../../../../li
 import { isInDeclaredSettings, setDeclaredSetting } from "../../../../lib/settings/declared";
 import { syncToEnv } from "../../../../lib/settings/env-mirror";
 import { cleanValue, parseBoolean } from "../../../../lib/settings/value";
+import { isBirthday } from "../../../../lib/user-profile";
 
 /** The pure parts of the models, which live in `lib/` so a model is attributes, hooks and methods. */
 describe("Helpers taken out of models", function () {
@@ -75,5 +76,11 @@ describe("Helpers taken out of models", function () {
       if (saved === undefined) delete process.env.JWT_SECRET;
       else process.env.JWT_SECRET = saved;
     }
+  });
+
+  it("isBirthday takes a real day from 1900 to today, or an empty string", function () {
+    const now = new Date(2026, 9, 23, 12, 0);
+    expect(["", "1990-05-14", "1900-01-01", "2026-10-23", "2024-02-29"].map((value) => isBirthday(value, now))).to.deep.equal([true, true, true, true, true]);
+    expect(["2026-10-24", "1899-12-31", "2023-02-29", "1990-13-01", "14.05.1990", "1990-5-14", null, 19900514].map((value) => isBirthday(value, now)).some(Boolean)).to.equal(false);
   });
 });

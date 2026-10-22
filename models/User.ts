@@ -10,6 +10,7 @@ import { UserBonusProgramRecord } from "./UserBonusProgram";
 import { DishRecord } from "./Dish";
 const Countries: Country[] = require("../lib/dictionaries/countries.json")
 import AuthService from "../lib/AuthService";
+import { isBirthday, NAME_MAX_LENGTH } from "../lib/user-profile";
 export type Phone = {
   code: string
   number: string
@@ -29,13 +30,15 @@ let attributes = {
   firstName: {
     type: 'string',
     allowNull: true,
-    isNotEmptyString: true
+    isNotEmptyString: true,
+    maxLength: NAME_MAX_LENGTH
   } as unknown as string,
 
   lastName: {
     type: 'string',
     allowNull: true,
-    isNotEmptyString: true
+    isNotEmptyString: true,
+    maxLength: NAME_MAX_LENGTH
   } as unknown as string,
 
   sex: {
@@ -84,10 +87,10 @@ let attributes = {
     }
   } as unknown as Phone,
 
+  /** `YYYY-MM-DD` from 1900 to today; an empty string - none (`lib/user-profile.ts`) */
   birthday: {
     type: 'string',
-    // isAfter: new Date('Sat Jan 1 1900 00:00:00 GMT-0000'),
-    // isBefore: new Date().setFullYear(new Date().getFullYear()-10)
+    custom: isBirthday
   } as unknown as string,
 
   favorites: {

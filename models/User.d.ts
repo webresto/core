@@ -32,6 +32,7 @@ declare let attributes: {
      * anywhere else, and read the number through `primaryPhone` in new code.
      */
     phone: Phone;
+    /** `YYYY-MM-DD` from 1900 to today; an empty string - none (`lib/user-profile.ts`) */
     birthday: string;
     favorites: DishRecord[];
     bonusProgram: UserBonusProgramRecord[];
