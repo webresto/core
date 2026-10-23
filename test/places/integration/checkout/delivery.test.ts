@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { KITCHEN_LOG } from "../../../../lib/order/kitchen-assignment";
+import { deliveryForAddress, KITCHEN_LOG } from "../../../../lib/order/kitchen-assignment";
 import { geocoder } from "../../support/geocoder";
 import { resetDatabase, withSettings } from "../../support/reset";
 import { add, checkout, deliverTo, lines, newBasket, thrown, updateOrder } from "../../support/storefront";
@@ -148,6 +148,14 @@ describe("checkout: delivery", function () {
     expect((await Order.findOne({ id })).delivery).to.include({ allowed: true, cost: null });
   });
 
+  it("with soft calculation the answer about an address does not ask the kitchens: an operator finds one", async function () {
+    await withKitchens({ [kitchen1]: { enable: false }, [kitchen2]: { enable: false } }, async () => {
+      const delivery = await deliveryForAddress(at(IN_ZONE_2));
+      expect(delivery.allowed).to.equal(true);
+      expect(delivery).to.not.have.property("kitchenOpensAt");
+    });
+  });
+
   describe("soft calculation off", function () {
     before(async function () {
       await Settings.set("SOFT_DELIVERY_CALCULATION", { value: false });
@@ -208,6 +216,24 @@ describe("checkout: delivery", function () {
       await withKitchens({ [kitchen1]: { worktime: LATER }, [kitchen2]: { worktime: LATER } }, async () => {
         await updateOrder(id, { date: `${day} ${time}` });
         expect((await deliverTo(id, at(IN_ZONE_2))).cookingPoints).to.deep.equal([kitchen2]);
+      });
+    });
+
+    it("the answer about an address says when its kitchen opens, and refuses one no kitchen takes within a week", async function () {
+      // two hours away from now either way: closed now, open later - today, or tomorrow at night
+      const afternoon = new Date().getHours() < 12;
+      const [start, stop] = afternoon ? ["14:00", "16:00"] : ["03:00", "05:00"];
+      const opens = new Date();
+      if (!afternoon) opens.setDate(opens.getDate() + 1);
+      const day = `${opens.getFullYear()}-${String(opens.getMonth() + 1).padStart(2, "0")}-${String(opens.getDate()).padStart(2, "0")}`;
+      const LATER = [{ dayOfWeek: CLOSED[0].dayOfWeek, start, stop }];
+
+      expect((await deliveryForAddress(at(IN_ZONE_2))).kitchenOpensAt).to.equal(null);
+      await withKitchens({ [kitchen1]: { worktime: LATER }, [kitchen2]: { worktime: LATER } }, async () => {
+        expect(await deliveryForAddress(at(IN_ZONE_2))).to.include({ allowed: true, kitchenOpensAt: `${day} ${start}` });
+      });
+      await withKitchens({ [kitchen1]: { enable: false }, [kitchen2]: { enable: false } }, async () => {
+        expect(await deliveryForAddress(at(IN_ZONE_2))).to.include({ allowed: false, message: "No kitchen delivers to this address now" });
       });
     });
 

@@ -1,8 +1,10 @@
 import { Adapter } from "../../adapters";
-import { DeliveryCoordinate } from "../../interfaces/Delivery";
+import { Delivery, DeliveryCoordinate } from "../../interfaces/Delivery";
+import OrderAddress from "../../interfaces/OrderAddress";
 import { OrderRecord } from "../../models/Order";
 import { primaryCookingPoint, toPlaceId } from "../menu/cooking-place";
 import { KitchenResolution } from "../../interfaces/Menu";
+import type { WorkTime } from "@webresto/worktime";
 
 /**
  * Giving an order its kitchen.
@@ -82,4 +84,58 @@ export async function assignOrderCookingPlace(order: OrderRecord): Promise<Cooki
     coordinate,
     resolution,
   };
+}
+
+/** `WorkTime.dayOfWeek` by `Date.getDay()` */
+const WEEK = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+/** "YYYY-MM-DD HH:mm" by the process clock (the restaurant's): the format of `Order.date` */
+function orderDate(moment: Date): string {
+  const two = (value: number) => String(value).padStart(2, "0");
+  return `${moment.getFullYear()}-${two(moment.getMonth() + 1)}-${two(moment.getDate())} ${two(moment.getHours())}:${two(moment.getMinutes())}`;
+}
+
+/**
+ * When a kitchen takes a delivery to a coordinate - the answer about an address before there is an order (the address
+ * window of a storefront): `null` - one takes it now; the order date of the first opening of a kitchen within a week
+ * after which the chain takes it (asked as for an order by that time, `KitchenResolveRequest.at`); `undefined` - none
+ * takes it within a week (switched off, none for the area).
+ */
+export async function kitchenOpensAt(coordinate: DeliveryCoordinate, city: string | null, now: Date = new Date()): Promise<string | null | undefined> {
+  const menu = await Adapter.get("menu");
+  const takes = async (at: Date) => !!(await menu.resolveCookingPlace({ serviceType: "delivery", coordinate, city, at })).placeId;
+  if (await takes(now)) return null;
+
+  const openings = new Set<number>();
+  for (const place of await Place.find!({ enable: true, isCookingPoint: true })) {
+    for (const hours of (place.worktime ?? []) as WorkTime[]) {
+      const [hour, minute] = String(hours.start).split(":").map(Number);
+      for (let day = 0; day <= 7; day++) {
+        const moment = new Date(now);
+        moment.setDate(moment.getDate() + day);
+        moment.setHours(hour, minute, 0, 0);
+        if (moment > now && hours.dayOfWeek?.includes(WEEK[moment.getDay()] as any)) openings.add(moment.getTime());
+      }
+    }
+  }
+  for (const moment of [...openings].sort((a, b) => a - b)) {
+    if (await takes(new Date(moment))) return orderDate(new Date(moment));
+  }
+  return undefined;
+}
+
+/**
+ * The answer about an address alone (`checkDeliveryAbility`): the delivery adapter's terms, and - as checkout will
+ * refuse an order no kitchen takes (`NO_KITCHEN`) unless soft calculation hands it to an operator - whether a kitchen
+ * takes it: closed now - `kitchenOpensAt`; none within a week - refused.
+ */
+export async function deliveryForAddress(address: OrderAddress): Promise<Delivery> {
+  const delivery = await (await Adapter.get("delivery")).checkAbility(address);
+  if (delivery.allowed === false || (await Settings.get("SOFT_DELIVERY_CALCULATION")) !== false) return delivery;
+
+  const coordinate = (await (await Adapter.get("geo")).locate(address)).coordinate;
+  if (!coordinate) return delivery;
+  const opensAt = await kitchenOpensAt(coordinate, address.city ?? null);
+  if (opensAt === undefined) return { ...delivery, allowed: false, message: "No kitchen delivers to this address now" };
+  return { ...delivery, kitchenOpensAt: opensAt };
 }

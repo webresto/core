@@ -1,5 +1,6 @@
 import { Adapter } from '../../adapters';
 import OrderAddress from '../../interfaces/OrderAddress';
+import { kitchenOpensAt } from '../../lib/order/kitchen-assignment';
 
 declare const mcp: any;
 
@@ -66,6 +67,8 @@ export function registerDeliveryTools() {
                     address: place?.address ?? null,
                     strategy: kitchen.strategy,
                     diagnostics: kitchen.diagnostics,
+                    // none now: when one opens and takes the address (YYYY-MM-DD HH:mm); undefined - none within a week
+                    opensAt: !kitchen.placeId && location.coordinate ? (await kitchenOpensAt(location.coordinate, city ?? null)) ?? 'not within a week' : null,
                 },
             };
         },

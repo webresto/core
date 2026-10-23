@@ -78,6 +78,12 @@ export interface Delivery {
   zoneOpen?: boolean
   /** When the zone takes orders. `null` — always. */
   zoneWorktime?: WorkTime[] | null
+  /**
+   * The kitchens that take this address are closed now: when the first opens and takes it, the order date by the
+   * restaurant's clock (`YYYY-MM-DD HH:mm`). `null` — a kitchen takes it now. Asked about an address alone
+   * (`deliveryForAddress`), with soft calculation off; absent otherwise.
+   */
+  kitchenOpensAt?: string | null
   /** What the operator wrote about the zone, untranslated. `null` — nothing. */
   zoneDescription?: string | null
   /**
