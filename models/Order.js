@@ -826,19 +826,31 @@ let Model = {
                 };
             }
             /**
+             * A cart of an account is checked out by that account only. The device keeps its cart
+             * across a logout, so without this the next one to log in on it (or a guest) ordered for the
+             * previous account: the order went to its history, the bonuses off its balance.
+             */
+            if (order.user && order.user !== userId) {
+                await Order.log({ id: order.id }, "warn", "core", "check: rejected, the cart belongs to another user", { owner: order.user, userId: userId ?? null });
+                throw {
+                    code: 27,
+                    error: "the cart belongs to another user",
+                };
+            }
+            /**
              * @setting: REQUIRE_AUTH_FOR_CART - and a cart that requires an account cannot be ordered
              * without one either.
              *
              * addDish/doCart guard the way IN; without this one the invariant only holds for carts
              * assembled after the flag went on. A basket filled before it, or by a promotion, or by an
              * integration, or left anonymous on another device, still reached checkout and became an
-             * order with no account behind it (review2 §4.2). `userId` is the caller's session,
-             * `order.user` the cart's own owner — either one satisfies it.
+             * order with no account behind it (review2 §4.2). A cart of an account has passed the check
+             * above with that account's session, so the session is what is asked.
              *
              * Code 20 rather than the 3 review2 proposed: 0–19 are taken, and 3 is already
              * "customer.name is invalid", thrown from checkCustomerInfo a few lines below.
              */
-            if (!userId && !order.user && await AuthService_1.default.cartRequiresAuth()) {
+            if (!userId && await AuthService_1.default.cartRequiresAuth()) {
                 await Order.log({ id: order.id }, "warn", "core", "check: rejected, authorization required", {});
                 throw {
                     code: 20,
@@ -878,12 +890,8 @@ let Model = {
                     };
                 }
             }
-            if (order.user && userId && order.user !== userId) {
-                sails.log.error(`User on basket [${order.shortId}] not equall [${order.user}] passed user [${userId}]`);
-            }
-            else {
-                order.user = userId;
-            }
+            // the cart's own account or none yet: a guest cart becomes the checking account's
+            order.user = userId;
             // Settled before the date checks, because `checkDate` asks the point
             // whether it is open and that question only exists for pickup and dine-in.
             if (serviceType) {
@@ -1839,31 +1847,21 @@ let Model = {
                     // set lock
                     order.isPromoting = true;
                     await Order.update({ id: order.id }, { isPromoting: true }).fetch();
-                    // If promocode is valid and allowed
+                    // The applied code is checked again at every recount: switched off, out of its dates or hours since, it
+                    // leaves the order as if the visitor had removed it - a code on the order is one that works.
                     if (order.promotionCode !== null && order.promotionCodeCheckValidTill !== null) {
-                        const currentDate = new Date();
-                        try {
-                            const promotionEndDate = new Date(order.promotionCodeCheckValidTill);
-                            if (promotionEndDate > currentDate) {
-                                // Re-check the code on every cart calculation. This makes disabling
-                                // a code effective immediately, even for carts where it was applied
-                                // before the operator turned it off.
-                                order.promotionCode = await PromotionCode.getValidPromotionCode(order.promotionCodeString);
-                                if (!order.promotionCode || !order.promotionCode.promotion || typeof order.promotionCode.promotion !== "object") {
-                                    throw `No valid promotion for promocode`;
-                                }
-                            }
-                            else {
-                                sails.log.debug(`Count: promocode [${order.promotionCodeString}] expired, order [${order.id}].`);
-                                throw "Promocode expired";
-                            }
+                        const applies = new Date(order.promotionCodeCheckValidTill) > new Date();
+                        const promotionCode = applies ? await PromotionCode.getValidPromotionCode(order.promotionCodeString) : null;
+                        if (promotionCode && promotionCode.promotion && typeof promotionCode.promotion === "object") {
+                            order.promotionCode = promotionCode;
                         }
-                        catch (error) {
-                            sails.log.error(`PromotionAdapter > Problem with parse Date`);
-                            await Order.log({ id: order.id }, "error", "core", "countCart: promotion date parse error", { error: error?.message || error });
+                        else {
+                            sails.log.debug(`Count: promotion code [${order.promotionCodeString}] no longer works, taken off order [${order.id}]`);
+                            await Order.log({ id: order.id }, "info", "core", `Promotion code [${order.promotionCodeString}] no longer works - taken off`, {});
                             order.promotionCode = null;
                             order.promotionCodeCheckValidTill = null;
-                            order.promotionCodeDescription = error.toString();
+                            order.promotionCodeString = null;
+                            order.promotionCodeDescription = null;
                         }
                     }
                     else {
@@ -1889,6 +1887,7 @@ let Model = {
                     let promotionOrderToSave = {
                         promotionCode: order.promotionCode,
                         promotionCodeCheckValidTill: order.promotionCodeCheckValidTill,
+                        promotionCodeString: order.promotionCodeString,
                         promotionCodeDescription: order.promotionCodeDescription,
                         promotionState: order.promotionState,
                         promotionErrors: order.promotionErrors,

@@ -5,6 +5,7 @@ import * as _ from "lodash";
 import bindAssets from "./bindAssets";
 import bindDictionaries from "./bindDictionaries";
 import { CartCleanup } from "../lib/order/CartCleanup";
+import { startPromotionCodeSweep } from "../lib/order/stopped-promotion-codes";
 
 /**
  * Set global emitter
@@ -101,6 +102,7 @@ export default function ToInitialize(sails: Sails) {
       HookTools.bindModels(resolve(__dirname, "../models"), modelsToSkip).then(() => {
         sails.after(["hook:orm:loaded"], () => {
           CartCleanup.start();
+          startPromotionCodeSweep();
         });
         cb();
       });

@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { resetDatabase } from "../../support/reset";
-import { add, CUSTOMER, newBasket, pickUpAt, thrown } from "../../support/storefront";
+import { takeOffStoppedPromotionCodes } from "../../../../lib/order/stopped-promotion-codes";
+import { add, CUSTOMER, newBasket, pickUpAt, thrown, updateOrder } from "../../support/storefront";
 
 /**
  * Promotion codes: a code the customer types switches on the promotions it is
@@ -47,6 +48,7 @@ describe("Promotion codes", function () {
     return id;
   }
   const apply = (id: string, code: string | null) => Order.applyPromotionCode({ id }, code);
+  const state = async (id: string) => (await Order.findOne({ id })).state;
 
   it("without its code, the promotion discounts nothing", async function () {
     expect((await Order.findOne({ id: await basket() })).discountTotal).to.equal(0);
@@ -85,16 +87,36 @@ describe("Promotion codes", function () {
     expect((await Order.findOne({ id })).state).to.equal("CART");
   });
 
-  it("switched off by the operator, leaves the baskets that had it and cannot be applied", async function () {
+  it("switched off by the operator, leaves the baskets that had it, code and text, and cannot be applied", async function () {
     const id = await basket();
     await apply(id, "CODE1");
     await PromotionCode.updateOne({ id: "code-1" }).set({ enable: false });
 
     let order = await Order.countCart({ id });
-    expect(order).to.include({ promotionCode: null, discountTotal: 0 });
+    expect(order).to.include({ promotionCode: null, promotionCodeString: null, promotionCodeDescription: null, discountTotal: 0 });
+    // kept so: the next change of the basket reads it from the database
+    expect(await updateOrder(id, { comment: "Comment 1" })).to.include({ promotionCodeString: null, promotionCodeDescription: null });
 
     order = await apply(id, "CODE1");
     expect(order).to.include({ promotionCode: null, discountTotal: 0 });
+  });
+
+  it("stopped while in carts, leaves them at the sweep without a change of theirs; a checked one goes back to CART", async function () {
+    const cart = await basket();
+    await apply(cart, "CODE1");
+    const checked = await basket();
+    await apply(checked, "CODE1");
+    await pickUpAt(checked, kitchen1);
+    await Order.check({ id: checked }, CUSTOMER, "pickup");
+
+    expect(await takeOffStoppedPromotionCodes()).to.equal(0);
+    expect(await state(checked)).to.equal("CHECKOUT");
+
+    await PromotionCode.updateOne({ id: "code-1" }).set({ enable: false });
+    expect(await takeOffStoppedPromotionCodes()).to.equal(2);
+    expect(await updateOrder(cart, { comment: "Comment 1" })).to.include({ promotionCode: null, promotionCodeString: null, discountTotal: 0 });
+    expect(await state(checked)).to.equal("CART");
+    expect(await takeOffStoppedPromotionCodes()).to.equal(0);
   });
 
   it("takes a changed promotion at once: a percentage off the receipt", async function () {
@@ -157,7 +179,7 @@ describe("Promotion codes", function () {
       await apply(id, "CODE1");
       await terms({ stopDate: day(-1) });
 
-      expect(await Order.countCart({ id })).to.include({ promotionCode: null, discountTotal: 0 });
+      expect(await Order.countCart({ id })).to.include({ promotionCode: null, promotionCodeString: null, discountTotal: 0 });
     });
   });
 

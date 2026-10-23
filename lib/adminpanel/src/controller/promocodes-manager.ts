@@ -14,7 +14,7 @@ export default function PromoCodesManagerController(req: any, res: any) {
   return req.Inertia.render({
     component: "module",
     props: {
-      moduleComponent: adminModuleUrl("PromoCodesManager", "20260721-1"),
+      moduleComponent: adminModuleUrl("PromoCodesManager", "20261023-1"),
       message: t("Promo codes"),
       locale,
       messages,

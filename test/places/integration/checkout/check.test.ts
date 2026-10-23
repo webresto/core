@@ -131,6 +131,30 @@ describe("Checkout: check and order", function () {
     expect(await Order.findOne({ id })).to.deep.include({ paymentMethod: paymentMethod1, paymentMethodTitle: "Payment 1" });
   });
 
+  describe("the account of the basket", function () {
+    // the check only compares the ids: no records behind them
+    const user1 = "user-1";
+    const user2 = "user-2";
+
+    it("a basket of an account is checked out by that account only: another one and a guest are refused", async function () {
+      const id = await pickupBasket();
+      await updateOrder(id, { user: user1 });
+
+      expect(await check(id, CUSTOMER, "pickup", undefined, undefined, user2)).to.deep.include({ code: 27 });
+      expect(await check(id, CUSTOMER, "pickup")).to.deep.include({ code: 27 });
+      expect(await state(id)).to.equal("CART");
+
+      expect(await check(id, CUSTOMER, "pickup", undefined, undefined, user1)).to.equal(null);
+      expect(await state(id)).to.equal("CHECKOUT");
+    });
+
+    it("a guest basket becomes the account's that checks it out", async function () {
+      const id = await pickupBasket();
+      expect(await check(id, CUSTOMER, "pickup", undefined, undefined, user2)).to.equal(null);
+      expect(await check(id, CUSTOMER, "pickup", undefined, undefined, user1)).to.deep.include({ code: 27 });
+    });
+  });
+
   it("refuses a paid basket and an order already placed", async function () {
     const paid = await pickupBasket();
     await Order.update({ id: paid }, { paid: true }).fetch();

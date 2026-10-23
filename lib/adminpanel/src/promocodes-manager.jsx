@@ -276,6 +276,11 @@ function blankCode() {
   };
 }
 
+/** the editor's copy of a code as the server gives it (promocode, the answer of a save) */
+function toDraft(r) {
+  return { id: r.id, code: r.code, description: r.description, type: r.type, enable: r.enable !== false, startDate: r.startDate, stopDate: r.stopDate, workTime: r.workTime, externalId: r.externalId, prefix: r.prefix, generateConfig: r.generateConfig, customData: r.customData, promotionIds: r.promotionIds || [], _status: r.status };
+}
+
 function CodeEditor({ t, language, draft, setDraft, baseline, promotions, saving, onSave, onDelete, onDuplicate, creating, isMobile, onBack }) {
   const [advanced, setAdvanced] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -546,8 +551,7 @@ function CodesSection({ t, language, codeId, creating }) {
       const res = await api(`/core/marketing/promocode?id=${encodeURIComponent(codeId)}`);
       if (cancelled) return;
       if (res.ok && res.payload?.result) {
-        const r = res.payload.result;
-        const d = { id: r.id, code: r.code, description: r.description, type: r.type, enable: r.enable !== false, startDate: r.startDate, stopDate: r.stopDate, workTime: r.workTime, externalId: r.externalId, prefix: r.prefix, generateConfig: r.generateConfig, customData: r.customData, promotionIds: r.promotionIds || [], _status: r.status };
+        const d = toDraft(res.payload.result);
         setDraft(d); setBaseline(JSON.stringify(d));
       } else {
         toast('error', res.payload?.error || t('Promo code not found'));
@@ -583,6 +587,8 @@ function CodesSection({ t, language, codeId, creating }) {
     if (!res.ok || res.payload?.success === false) { toast('error', res.payload?.error || t('Save failed')); return; }
     toast('success', t('Promo code saved'));
     const saved = res.payload?.result;
+    // the saved record is the editor's now: the hash of an existing code does not change, nothing would reload it
+    if (saved?.id) { const d = toDraft(saved); setDraft(d); setBaseline(JSON.stringify(d)); }
     await loadList();
     if (saved?.id) setHash(`id/${encodeURIComponent(saved.id)}`); else setHash('list');
   };
