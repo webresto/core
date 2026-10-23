@@ -3,10 +3,20 @@
  * The bonus program implements the spending of virtual bonuses through the adapter.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-const adapters_1 = require("../adapters");
 const uuid_1 = require("uuid");
 const normalize_1 = require("../utils/normalize");
 const aliveBonusPrograms = {};
+/** the coverage as a share of 0..1 (50 - 50%), or null out of 0..100% */
+function coverageShare(value) {
+    try {
+        const share = (0, normalize_1.normalizePercent)(value);
+        return share.isNaN() || share.lt(0) || share.gt(1) ? null : share.toNumber();
+    }
+    catch {
+        // not a number at all
+        return null;
+    }
+}
 let attributes = {
     /** ID */
     id: {
@@ -27,7 +37,7 @@ let attributes = {
     },
     /** Exchange price for website currency */
     exchangeRate: "number",
-    /** How much can you spend from the amount of the order */
+    /** How much of the amount of the order bonuses may pay: a share, 0.5 - half; 50 given is taken as 50% */
     coveragePercentage: "number",
     decimals: "number",
     sortOrder: "number",
@@ -50,9 +60,12 @@ let Model = {
         if (!init.id) {
             init.id = (0, uuid_1.v4)();
         }
-        // defaults
+        // the share is kept, once: 50 is 0.5; the order takes it as is
         if (init.coveragePercentage !== undefined) {
-            init.coveragePercentage = (0, normalize_1.normalizePercent)(init.coveragePercentage).toNumber();
+            const share = coverageShare(init.coveragePercentage);
+            if (share === null)
+                return cb(`coveragePercentage must be from 0 to 100%, not ${init.coveragePercentage}`);
+            init.coveragePercentage = share;
         }
         else {
             init.coveragePercentage = 1;
@@ -71,7 +84,10 @@ let Model = {
     },
     beforeUpdate(valuesToUpdate, cb) {
         if (valuesToUpdate.coveragePercentage !== undefined) {
-            valuesToUpdate.coveragePercentage = (0, normalize_1.normalizePercent)(valuesToUpdate.coveragePercentage).toNumber();
+            const share = coverageShare(valuesToUpdate.coveragePercentage);
+            if (share === null)
+                return cb(`coveragePercentage must be from 0 to 100%, not ${valuesToUpdate.coveragePercentage}`);
+            valuesToUpdate.coveragePercentage = share;
         }
         cb();
     },
@@ -122,18 +138,11 @@ let Model = {
         if (bonusProgram) {
             if (bonusProgram.enable !== true)
                 throw `getAdapter > bonusProgram ${adapterOrId} is disabled`;
-            if (aliveBonusPrograms[bonusProgram.adapter] !== undefined) {
-                return aliveBonusPrograms[bonusProgram.adapter];
-            }
-            else {
-                // here should find the adapter by adapter/index.ts
-                try {
-                    return adapters_1.Adapter.getBonusProgramAdapter(adapterOrId);
-                }
-                catch (error) {
-                    throw `BonusProgram ${adapterOrId} no alive or disabled`;
-                }
-            }
+            // a program is served only by the adapter its module made alive (`alive`)
+            const alive = aliveBonusPrograms[bonusProgram.adapter];
+            if (!alive)
+                throw `BonusProgram ${adapterOrId} is not alive`;
+            return alive;
         }
         else {
             throw `bonusProgram ${adapterOrId} not found`;

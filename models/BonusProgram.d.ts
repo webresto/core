@@ -1,7 +1,7 @@
 /**
  * The bonus program implements the spending of virtual bonuses through the adapter.
  */
-import { type BonusProgramAdapter } from "../adapters";
+import type { BonusProgramAdapter } from "../adapters";
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 declare let attributes: {
@@ -12,7 +12,7 @@ declare let attributes: {
     adapter: string;
     /** Exchange price for website currency */
     exchangeRate: number;
-    /** How much can you spend from the amount of the order */
+    /** How much of the amount of the order bonuses may pay: a share, 0.5 - half; 50 given is taken as 50% */
     coveragePercentage: number;
     decimals: number;
     sortOrder: number;

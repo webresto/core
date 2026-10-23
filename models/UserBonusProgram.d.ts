@@ -26,11 +26,10 @@ export interface UserBonusProgramRecord extends attributes, ORM {
 declare let Model: {
     beforeCreate(init: UserBonusProgramRecord, cb: (err?: string) => void): void;
     registration(user: UserRecord | string, adapterOrId: string): Promise<UserBonusProgramRecord>;
+    /** the user leaves this program: the membership stays as left, so a login does not put them back */
     delete(user: UserRecord | string, adapterOrId: string): Promise<void>;
     syncAll(user: UserRecord | string): Promise<void>;
     sync(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<void>;
-    checkEnoughToSpend(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, amount: number): Promise<boolean>;
-    sumCurrentBalance(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<number>;
 };
 declare global {
     const UserBonusProgram: typeof Model & ORMModel<UserBonusProgramRecord, "user" | "bonusProgram">;

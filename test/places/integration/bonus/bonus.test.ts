@@ -2,15 +2,16 @@ import { expect } from "chai";
 import AuthService from "../../../../lib/AuthService";
 import { Channel, NotificationManager } from "../../../../lib/notifications/NotificationManager";
 import { NotificationTypeRegistry } from "../../../../lib/notifications/NotificationTypeRegistry";
-import { resetDatabase } from "../../support/reset";
+import { resetDatabase, withSettings } from "../../support/reset";
 import { startBonusSystem, TestBonusSystem } from "../../support/bonus";
 import { add, CUSTOMER, newBasket, pickUpAt, thrown } from "../../support/storefront";
 
 /**
  * Paying part of an order with bonuses. The bonus system is external: it keeps
- * the balance, core keeps a copy it syncs. At checkout the bonuses asked for are
- * rounded to the program's decimals and capped at its coverage of the amount the
- * strategy names; placing the order writes the spending to the system.
+ * the balance, core keeps a copy it syncs. Each check states the spending anew:
+ * the bonuses asked for, capped at the program's coverage of the amount the
+ * strategy names, down to its decimals, and no more than the system says the
+ * customer has; placing the order writes what was counted to the system.
  *
  *   Bonus 1 covers at most half, to one decimal. Customer 1 has 1000 bonuses.
  *   The basket: five Dish 1 at 100 and three Dish 2 at 50 — 650.
@@ -46,17 +47,21 @@ describe("Bonuses", function () {
   }
   const spend = (id: string, amount: number) =>
     Order.check({ id }, CUSTOMER, "pickup", undefined, undefined, user.id, { bonusProgramId: bonusProgram, amount } as any);
+  // the globals are typed as possibly undefined: what the tests read and change, for sure
+  const orderOf = (id: string) => Order.findOne!({ id });
+  const membership = (customer: string) => UserBonusProgram.findOne!({ user: customer, bonusProgram });
+  const setProgram = (values: Record<string, unknown>) => BonusProgram.updateOne!({ id: bonusProgram }).set(values as any);
 
   it("the customer's copy of the balance follows the system", async function () {
     await UserBonusProgram.sync(user, bonusProgram);
-    expect((await UserBonusProgram.findOne({ user: user.id, bonusProgram })).balance).to.equal(1000);
+    expect((await membership(user.id)).balance).to.equal(1000);
   });
 
   it("spends what was asked, rounded to the program's decimals, off the total", async function () {
     const id = await basket();
     await spend(id, 5.23);
 
-    const order = await Order.findOne({ id });
+    const order = await orderOf(id);
     expect(order.bonusesTotal).to.equal(5.2);
     expect(order.total).to.equal(650 - 5.2);
   });
@@ -64,13 +69,13 @@ describe("Bonuses", function () {
   it("covers no more than the program allows", async function () {
     const id = await basket();
     await spend(id, 900);
-    expect((await Order.findOne({ id })).bonusesTotal).to.equal(325);
+    expect((await orderOf(id)).bonusesTotal).to.equal(325);
   });
 
   it("asking for none spends none", async function () {
     const id = await basket();
     await spend(id, 0);
-    expect(await Order.findOne({ id })).to.deep.include({ bonusesTotal: 0, spendBonus: null });
+    expect(await orderOf(id)).to.deep.include({ bonusesTotal: 0, spendBonus: null });
   });
 
   it("placing the order writes the spending to the system, and the copy follows", async function () {
@@ -82,18 +87,66 @@ describe("Bonuses", function () {
 
     expect(system.balances.get(user.id)).to.equal(990);
     await UserBonusProgram.sync(user, bonusProgram);
-    expect((await UserBonusProgram.findOne({ user: user.id, bonusProgram })).balance).to.equal(990);
+    expect((await membership(user.id)).balance).to.equal(990);
+  });
+
+  it("placing the order writes what the check counted, not what was asked", async function () {
+    system.balances.set(user.id, 1000);
+    const id = await basket();
+    await spend(id, 900);
+    expect(await orderOf(id)).to.deep.include({ bonusesTotal: 325, spendBonus: { bonusProgramId: bonusProgram, amount: 325, adapter: "bonus-1" } });
+
+    await Order.order({ id });
+    expect(system.balances.get(user.id)).to.equal(675);
+  });
+
+  it("refuses more than the system says the customer has, and says how much there is", async function () {
+    system.balances.set(user.id, 100);
+    try {
+      const id = await basket();
+      expect(await thrown(spend(id, 200))).to.deep.include({ code: 28, available: 100 });
+      expect(await orderOf(id)).to.deep.include({ state: "CART", bonusesTotal: 0, spendBonus: null });
+      expect(await thrown(spend(id, 100))).to.equal(null);
+    } finally {
+      system.balances.set(user.id, 1000);
+    }
+  });
+
+  it("a check without bonuses takes off the spending of an earlier one", async function () {
+    const id = await basket();
+    await spend(id, 10);
+    await Order.check({ id }, CUSTOMER, "pickup", undefined, undefined, user.id);
+    expect(await orderOf(id)).to.deep.include({ bonusesTotal: 0, spendBonus: null, total: 650 });
+  });
+
+  it("refuses bonuses while spending them is off, or of a program switched off", async function () {
+    const id = await basket();
+    await withSettings({ ALLOW_BONUS_SPENDING: false }, async () => {
+      expect(await thrown(spend(id, 10))).to.deep.include({ code: 29 });
+    });
+    await setProgram({ enable: false });
+    try {
+      expect(await thrown(spend(id, 10))).to.deep.include({ code: 29 });
+    } finally {
+      await setProgram({ enable: true });
+    }
+  });
+
+  it("keeps the coverage as a share, once: 50 is a half; beyond 100% is refused", async function () {
+    expect((await setProgram({ coveragePercentage: 50 }))?.coveragePercentage).to.equal(0.5);
+    expect(String(await thrown(setProgram({ coveragePercentage: 150 })))).to.contain("from 0 to 100%");
+    expect((await BonusProgram.findOne!({ id: bonusProgram })).coveragePercentage).to.equal(0.5);
   });
 
   it("an order spending bonuses of a program switched off is not placed", async function () {
     const id = await basket();
     await spend(id, 10);
-    await BonusProgram.update({ id: bonusProgram }, { enable: false }).fetch();
+    await setProgram({ enable: false });
 
     try {
       expect(await thrown(Order.order({ id }))).to.not.equal(null);
     } finally {
-      await BonusProgram.update({ id: bonusProgram }, { enable: true }).fetch();
+      await setProgram({ enable: true });
     }
   });
 
@@ -129,17 +182,33 @@ describe("Bonuses", function () {
 
     it("puts the customer into a program with automatic registration, with the system's balance", async function () {
       const customer = await login("15550000002");
-      expect(await UserBonusProgram.findOne({ user: customer, bonusProgram })).to.include({ isActive: true, balance: 0 });
+      expect(await membership(customer)).to.include({ isActive: true, balance: 0 });
       expect(system.balances.has(customer)).to.equal(true);
     });
 
+    it("a customer who left a program is not put back by a login; joining again takes the same membership", async function () {
+      const customer = await login("15550000004");
+      const joined = await membership(customer);
+
+      await UserBonusProgram.delete(customer, "bonus-1");
+      expect(await membership(customer)).to.include({ isDeleted: true, isActive: false });
+
+      await login("15550000004");
+      expect(await membership(customer)).to.include({ isDeleted: true, isActive: false });
+      expect(system.balances.has(customer)).to.equal(false);
+
+      await UserBonusProgram.registration(customer, "bonus-1");
+      expect(await UserBonusProgram.find!({ user: customer, bonusProgram })).to.have.length(1);
+      expect(await membership(customer)).to.include({ id: joined.id, isDeleted: false, isActive: true });
+    });
+
     it("leaves the customer out of a program without it", async function () {
-      await BonusProgram.update({ id: bonusProgram }, { automaticUserRegistration: false }).fetch();
+      await setProgram({ automaticUserRegistration: false });
       try {
         const customer = await login("15550000003");
-        expect(await UserBonusProgram.findOne({ user: customer, bonusProgram })).to.equal(undefined);
+        expect(await membership(customer)).to.equal(undefined);
       } finally {
-        await BonusProgram.update({ id: bonusProgram }, { automaticUserRegistration: true }).fetch();
+        await setProgram({ automaticUserRegistration: true });
       }
     });
   });

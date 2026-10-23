@@ -322,8 +322,8 @@ let Model = {
   /**
    * Puts the user into the working bonus programs (`BonusProgram.getAvailable`), on login: one
    * whose system already knows the user gets the user's row in core; one with
-   * `automaticUserRegistration` registers the user; others wait for the user to join. The balance
-   * of every active membership is synced.
+   * `automaticUserRegistration` registers the user; others wait for the user to join. A program the
+   * user left stays left. The balance of every active membership is synced.
    */
   async checkRegisteredInBonusPrograms(userId: string): Promise<void> {
     const user = await User.findOne({ id: userId });
@@ -331,6 +331,8 @@ let Model = {
     for (const bp of await BonusProgram.getAvailable()) {
       const adapter = await BonusProgram.getAdapter(bp.adapter);
       let userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: bp.id });
+      // left by the user: a login does not put them back, they join again themselves
+      if (userBonusProgram?.isDeleted) continue;
       if (await adapter.isRegistered(user)) {
         if (!userBonusProgram) {
           const external = await adapter.getUserInfo(user);

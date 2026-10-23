@@ -22,7 +22,6 @@ const order_timing_1 = require("../lib/order/order-timing");
 const bindLocales_1 = require("../hook/bindLocales");
 const ProductModifier_1 = require("../lib/ProductModifier");
 const OrderStateFlow_1 = require("../lib/order/OrderStateFlow");
-const normalize_1 = require("../utils/normalize");
 const NotificationService_1 = require("../lib/notifications/NotificationService");
 /**
  * How the customer gets the food.
@@ -972,63 +971,57 @@ let Model = {
                 };
             }
             /**
-             *  Bonus spending
+             *  Bonus spending. Each check states it anew: none asked - none spent, a spending of an earlier check does
+             *  not stay on the order. What is spent is what the check counts: the amount asked, at most the program's
+             *  coverage of the sum the strategy names, down to the program's decimals - and no more than the program says
+             *  the customer has (its adapter keeps the balance; the copy of core is for showing).
              * */
-            if (order.user && typeof order.user === "string" && spendBonus && spendBonus.bonusProgramId) {
-                if (spendBonus.amount < 0) {
-                    spendBonus.amount = 0;
+            order.spendBonus = null;
+            order.bonusesTotal = 0;
+            if (order.user && typeof order.user === "string" && spendBonus?.bonusProgramId && spendBonus.amount > 0) {
+                const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+                if (!(await Settings.get("ALLOW_BONUS_SPENDING")) || !bonusProgram?.enable) {
+                    throw {
+                        code: 29,
+                        error: "bonus spending is off",
+                    };
                 }
-                if (spendBonus.amount === 0) {
-                    order.spendBonus = null;
-                    order.bonusesTotal = 0;
+                // load bonus strategy
+                let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
+                let amountToDeduct = 0;
+                switch (bonusSpendingStrategy) {
+                    case 'bonus_from_order_total':
+                        amountToDeduct = order.total;
+                        break;
+                    case 'bonus_from_basket_delivery_discount':
+                        amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0) - order.discountTotal;
+                        break;
+                    case 'bonus_from_basket_and_delivery':
+                        amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0);
+                        break;
+                    case 'bonus_from_basket':
+                        amountToDeduct = order.basketTotal;
+                        break;
+                    default:
+                        throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
                 }
-                else {
-                    // load bonus strategy
-                    let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
-                    // Fetch the bonus program for this bonus spend
-                    const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
-                    spendBonus.adapter = bonusProgram.adapter;
-                    spendBonus.amount = parseFloat(new decimal_js_1.default(spendBonus.amount).toFixed(bonusProgram.decimals));
-                    // TODO: rewrite for Decimal.js
-                    let amountToDeduct = 0;
-                    switch (bonusSpendingStrategy) {
-                        case 'bonus_from_order_total':
-                            amountToDeduct = order.total;
-                            break;
-                        case 'bonus_from_basket_delivery_discount':
-                            amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0) - order.discountTotal;
-                            break;
-                        case 'bonus_from_basket_and_delivery':
-                            amountToDeduct = order.basketTotal + (order.delivery?.cost ?? 0);
-                            break;
-                        case 'bonus_from_basket':
-                            amountToDeduct = order.basketTotal;
-                            break;
-                        default:
-                            throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
-                    }
-                    // Calculate maximum allowed bonus coverage
-                    const maxBonusCoverage = new decimal_js_1.default(amountToDeduct).mul((0, normalize_1.normalizePercent)(bonusProgram.coveragePercentage));
-                    // Ensure maxBonusCoverage is not greater than amountToDeduct
-                    if (maxBonusCoverage.gt(amountToDeduct)) {
-                        throw {
-                            code: 19,
-                            error: "Max bonus coverage exceeds allowable amount to deduct",
-                        };
-                    }
-                    // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
-                    let bonusCoverage;
-                    if (spendBonus.amount && new decimal_js_1.default(spendBonus.amount).lessThan(maxBonusCoverage)) {
-                        bonusCoverage = new decimal_js_1.default(spendBonus.amount);
-                    }
-                    else {
-                        bonusCoverage = maxBonusCoverage;
-                    }
-                    // Deduct the bonus from the order total
-                    order.spendBonus = spendBonus;
-                    order.total = new decimal_js_1.default(order.total).sub(bonusCoverage).toNumber();
-                    order.bonusesTotal = bonusCoverage.toNumber();
+                // the coverage is a share of 0..1, kept so by the program (`BonusProgram.beforeCreate`)
+                const counted = decimal_js_1.default.min(new decimal_js_1.default(spendBonus.amount), new decimal_js_1.default(amountToDeduct).mul(bonusProgram.coveragePercentage))
+                    .toDecimalPlaces(bonusProgram.decimals ?? 0, decimal_js_1.default.ROUND_DOWN);
+                const membership = await UserBonusProgram.findOne({ user: order.user, bonusProgram: bonusProgram.id });
+                const balance = membership?.isActive
+                    ? new decimal_js_1.default(await (await BonusProgram.getAdapter(bonusProgram.adapter)).getBalance(await User.findOne({ id: order.user }), membership))
+                    : new decimal_js_1.default(0);
+                if (counted.gt(balance)) {
+                    throw {
+                        code: 28,
+                        error: "not enough bonuses",
+                        available: balance.toDecimalPlaces(bonusProgram.decimals ?? 0, decimal_js_1.default.ROUND_DOWN).toNumber(),
+                    };
                 }
+                order.spendBonus = { ...spendBonus, adapter: bonusProgram.adapter, amount: counted.toNumber() };
+                order.total = new decimal_js_1.default(order.total).sub(counted).toNumber();
+                order.bonusesTotal = counted.toNumber();
             }
             sails.log.silly("Order > check > after wait general emitter", order, results);
             Order.emitAndLogDetached({ id: order.id }, "core:order-after-check-counting", order);
@@ -1141,9 +1134,10 @@ let Model = {
                     user = order.user;
                 }
                 const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: order.spendBonus.bonusProgramId });
+                // what the check counted, the amount the total went down by
                 const transaction = {
                     isNegative: true,
-                    amount: order.spendBonus.amount
+                    amount: order.bonusesTotal
                 };
                 await bonusProgramAdapter.writeTransaction(user, userBonusProgram, transaction);
             }

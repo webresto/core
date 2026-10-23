@@ -179,39 +179,6 @@ export class Adapter {
   }
 
   /**
-   * returns BonusProgram-adapter
-   */
-  public static async getBonusProgramAdapter(adapter?: string | BonusProgramAdapter, initParams?: { [key: string]: string | number | boolean }): Promise<BonusProgramAdapter> {
-
-    let adapterName: string;
-    if (adapter) {
-      if (typeof adapter === "string") {
-        adapterName = adapter;
-      } else if (adapter instanceof BonusProgramAdapter) {
-        return adapter;
-      } else {
-        throw new Error("Adapter should be a string or instance of BonusProgramAdapter");
-      }
-    }
-
-    if (!adapterName) {
-      let defaultAdapterName = await Settings.get("DEFAULT_BONUS_ADAPTER");
-      if (!defaultAdapterName) throw "BonusProgramAdapter is not set ";
-    }
-
-    let adapterLocation = this.WEBRESTO_MODULES_PATH + "/" + adapterName.toLowerCase() + "-bonus-adapter";
-    adapterLocation = fs.existsSync(adapterLocation) ? adapterLocation : "@webresto/" + adapterName.toLowerCase() + "-bonus-adapter";
-
-    try {
-      const adapter = require(adapterLocation);
-      return adapter.BonusProgramAdapter[adapterName].getInstance(initParams) as BonusProgramAdapter;
-    } catch (e) {
-      sails.log.error("CORE > getAdapter Bonus > error; ", e);
-      throw new Error("Module " + adapterLocation + " not found");
-    }
-  }
-
-  /**
    * returns RMS-adapter
    */
   public static async getRMSAdapter(adapter?: string | RMSAdapter, initParams?: ConfigRMSAdapter): Promise<RMSAdapter> {

@@ -4,9 +4,7 @@ import { v4 as uuid } from "uuid";
 // todo: fix types model instance to {%ModelName%}Record for User"
 import { BonusProgramRecord } from "./BonusProgram";
 import Decimal from "decimal.js";
-import type { BonusTransaction } from "../adapters";
 import { UserRecord } from "./User";
-import { UserBonusTransactionRecord } from "./UserBonusTransaction";
 
 // type Optional<T> = {
 //   [P in keyof T]?: T[P];
@@ -83,18 +81,15 @@ let Model = {
     }
 
     let extId = await bp.registration(user);
+    const values = { balance: 0, externalId: extId, isActive: true, isDeleted: false, syncedToTime: "0" };
 
-    return await UserBonusProgram.create({
-      user: user.id,
-      balance: 0,
-      externalId: extId,
-      isActive: true,
-      isDeleted: false,
-      bonusProgram: bp.id,
-      syncedToTime: "0"
-    }).fetch();
+    // one membership per user and program: joining again after leaving takes the same row
+    const kept = await UserBonusProgram.findOne({ user: user.id, bonusProgram: bp.id });
+    if (kept) return await UserBonusProgram.updateOne({ id: kept.id }).set(values);
+    return await UserBonusProgram.create({ user: user.id, bonusProgram: bp.id, ...values }).fetch();
   },
 
+  /** the user leaves this program: the membership stays as left, so a login does not put them back */
   async delete(user: UserRecord | string, adapterOrId: string): Promise<void> {
     const bp = await BonusProgram.getAdapter(adapterOrId);
 
@@ -103,8 +98,9 @@ let Model = {
     }
 
     await bp.delete(user);
-    await UserBonusProgram.update({user: user.id}, {
+    await UserBonusProgram.update({ user: user.id, bonusProgram: bp.id }, {
       isDeleted: true,
+      isActive: false,
     }).fetch();
 
     return;
@@ -119,6 +115,7 @@ let Model = {
 
     const userBonusPrograms = await UserBonusProgram.find({user: user.id});
     for (const userBonusProgram of userBonusPrograms) {
+      if (!userBonusProgram.isActive) continue;
       // Skip if less TIME_TO_SYNC_BONUSES_IN_MINUTES
       const diffInMinutes: number = (Math.abs(new Date().getTime() - new Date(userBonusProgram.syncedToTime).getTime())) / (1000 * 60);
       const timeToSyncBonusesInMinutes = await Settings.get("TIME_TO_SYNC_BONUSES_IN_MINUTES") ?? 15;
@@ -166,106 +163,6 @@ let Model = {
   },
 
 
-  async checkEnoughToSpend(user: UserRecord | string, bonusProgram: BonusProgramRecord | string, amount: number): Promise<boolean> {
-    // If Bonus program not active, should stop
-    try {
-
-      if(typeof user === "string") {
-        user = await User.findOne({id: user})
-      }
-
-      if(typeof bonusProgram === "string") {
-        bonusProgram = await BonusProgram.findOne({id: bonusProgram})
-      }
-
-      if(!user || !bonusProgram){
-        throw `User or BonusProgram not found: user: ${user.id} bonusProgram: ${bonusProgram}`
-      }
-
-      const bonusProgramAdapterExist = await BonusProgram.isAlive(bonusProgram.adapter);
-      if (!bonusProgramAdapterExist) throw `No BonusProgram ${bonusProgram.adapter} exist`
-
-      // Sync force before spend
-      await UserBonusProgram.sync(user, bonusProgram);
-
-      const userBonusProgram = await UserBonusProgram.findOne({user: user.id, bonusProgram: bonusProgram.id});
-      if(!userBonusProgram) {
-        throw `UserBonusProgram not found: user: ${user.id} bonusProgram: ${bonusProgram}`
-      }
-
-
-
-      let adapter = await BonusProgram.getAdapter(bonusProgram.adapter);
-      if (!adapter) throw `No adapter ${bonusProgram.adapter}`
-      const externalBalance = new Decimal((await adapter.getBalance(user, userBonusProgram)).toFixed(bonusProgram.decimals));
-
-      const userBalance = new Decimal(userBonusProgram.balance);
-
-      /**
-       * ok if all is ok
-       */
-
-      if(userBalance.equals(externalBalance) && userBalance.greaterThanOrEqualTo(externalBalance)) {
-        return true
-
-        /**
-         * Stop bonus program when balance not matched
-         */
-      } else if(!userBalance.equals(externalBalance) && (await Settings.get("DISABLE_USER_BONUS_PROGRAM_ON_FAIL")) === true) {
-        sails.log.error(`User [${user.id}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] `)
-        await UserBonusProgram.update({id: userBonusProgram.id }, {isActive: false}).fetch();
-        return false
-
-        /**
-         * Only external system check balance
-         */
-      } else if(externalBalance.greaterThanOrEqualTo(amount) && (await Settings.get("ONLY_EXTERNAL_BONUS_SPEND_CHECK")) === true){
-        return true
-      } else if(externalBalance.greaterThanOrEqualTo(amount) && userBalance.greaterThanOrEqualTo(amount) ) {
-        sails.log.error(`User [${user.id}] balance [${userBalance}] not matched with external BonusSystem [${externalBalance}] but greater than ${amount} politic: "ONLY_EXTERNAL_BONUS_SPEND_CHECK"`)
-        return true
-      }
-      return false
-    } catch (error) {
-      sails.log.error(error);
-      throw error
-    }
-    // check here and outside
-    // issue a warning if it doesn't match and disable the bonus program
-
-  },
-  // Define the recalculateBalance method
-  async sumCurrentBalance(user: UserRecord | string, bonusProgram: BonusProgramRecord | string): Promise<number> {
-
-    if(typeof user === "string") {
-      user = await User.findOne({id: user})
-    }
-
-    if(typeof bonusProgram === "string") {
-      bonusProgram = await BonusProgram.findOne({id: bonusProgram})
-    }
-
-    if (!user || !bonusProgram) {
-      throw `recalculateBalance > user or bonusprogram not found`
-    }
-
-
-    // Retrieve the relevant transactions for the user and bonus program
-    const transactions: UserBonusTransactionRecord[] = await UserBonusTransaction.find({ user: user.id, bonusProgram: bonusProgram.id});
-    // Initialize the balance with 0
-    let balance = new Decimal(0);
-
-    // Iterate over each transaction and calculate the balance
-    for (const transaction of transactions) {
-      if (!transaction.isDeleted) {
-        const transactionAmount = new Decimal(transaction.amount);
-        balance = transaction.isNegative ? balance.minus(transactionAmount) : balance.plus(transactionAmount);
-      }
-    }
-
-    // Return the calculated balance
-    return parseFloat(balance.toFixed(bonusProgram.decimals));
-  }
 };
 
 module.exports = {

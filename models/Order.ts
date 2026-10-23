@@ -40,7 +40,6 @@ import { coreI18n } from "../hook/bindLocales";
 import { or } from "ajv/dist/compile/codegen";
 import { ProductModifier } from "../lib/ProductModifier";
 import { getAllowedOrderTransitions } from "../lib/order/OrderStateFlow";
-import { normalizePercent } from "../utils/normalize";
 import { NotificationService } from "../lib/notifications/NotificationService";
 
 export interface PromotionState {
@@ -1189,26 +1188,25 @@ let Model = {
       }
 
       /**
-       *  Bonus spending
+       *  Bonus spending. Each check states it anew: none asked - none spent, a spending of an earlier check does
+       *  not stay on the order. What is spent is what the check counts: the amount asked, at most the program's
+       *  coverage of the sum the strategy names, down to the program's decimals - and no more than the program says
+       *  the customer has (its adapter keeps the balance; the copy of core is for showing).
        * */
-      if (order.user && typeof order.user === "string" && spendBonus && spendBonus.bonusProgramId) {
-        if (spendBonus.amount < 0) {
-          spendBonus.amount = 0;
+      order.spendBonus = null;
+      order.bonusesTotal = 0;
+      if (order.user && typeof order.user === "string" && spendBonus?.bonusProgramId && spendBonus.amount > 0) {
+        const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
+        if (!(await Settings.get("ALLOW_BONUS_SPENDING")) || !bonusProgram?.enable) {
+          throw {
+            code: 29,
+            error: "bonus spending is off",
+          };
         }
-
-        if (spendBonus.amount === 0) {
-          order.spendBonus = null;
-          order.bonusesTotal = 0;
-        } else {
 
         // load bonus strategy
         let bonusSpendingStrategy = await Settings.get("BONUS_SPENDING_STRATEGY") ?? 'bonus_from_order_total';
-        // Fetch the bonus program for this bonus spend
-        const bonusProgram = await BonusProgram.findOne({ id: spendBonus.bonusProgramId });
-        spendBonus.adapter = bonusProgram.adapter;
-        spendBonus.amount = parseFloat(new Decimal(spendBonus.amount).toFixed(bonusProgram.decimals))
 
-        // TODO: rewrite for Decimal.js
         let amountToDeduct = 0;
         switch (bonusSpendingStrategy) {
           case 'bonus_from_order_total':
@@ -1227,28 +1225,25 @@ let Model = {
             throw `Invalid bonus spending strategy: ${bonusSpendingStrategy}`;
         }
 
-        // Calculate maximum allowed bonus coverage
-        const maxBonusCoverage = new Decimal(amountToDeduct).mul(normalizePercent(bonusProgram.coveragePercentage));
-        // Ensure maxBonusCoverage is not greater than amountToDeduct
-        if (maxBonusCoverage.gt(amountToDeduct)) {
+        // the coverage is a share of 0..1, kept so by the program (`BonusProgram.beforeCreate`)
+        const counted = Decimal.min(new Decimal(spendBonus.amount), new Decimal(amountToDeduct).mul(bonusProgram.coveragePercentage))
+          .toDecimalPlaces(bonusProgram.decimals ?? 0, Decimal.ROUND_DOWN);
+
+        const membership = await UserBonusProgram.findOne!({ user: order.user, bonusProgram: bonusProgram.id });
+        const balance = membership?.isActive
+          ? new Decimal(await (await BonusProgram.getAdapter(bonusProgram.adapter)).getBalance(await User.findOne!({ id: order.user }), membership))
+          : new Decimal(0);
+        if (counted.gt(balance)) {
           throw {
-            code: 19,
-            error: "Max bonus coverage exceeds allowable amount to deduct",
+            code: 28,
+            error: "not enough bonuses",
+            available: balance.toDecimalPlaces(bonusProgram.decimals ?? 0, Decimal.ROUND_DOWN).toNumber(),
           };
         }
-        // Check if the specified bonus spend amount is more than the maximum allowed bonus coverage
-        let bonusCoverage: Decimal;
-        if (spendBonus.amount && new Decimal(spendBonus.amount).lessThan(maxBonusCoverage)) {
-          bonusCoverage = new Decimal(spendBonus.amount);
-        } else {
-          bonusCoverage = maxBonusCoverage;
-        }
 
-        // Deduct the bonus from the order total
-        order.spendBonus = spendBonus;
-        order.total = new Decimal(order.total).sub(bonusCoverage).toNumber();
-        order.bonusesTotal = bonusCoverage.toNumber();
-        }
+        order.spendBonus = { ...spendBonus, adapter: bonusProgram.adapter, amount: counted.toNumber() };
+        order.total = new Decimal(order.total).sub(counted).toNumber();
+        order.bonusesTotal = counted.toNumber();
       }
 
 
@@ -1382,9 +1377,10 @@ let Model = {
 
         const userBonusProgram = await UserBonusProgram.findOne({ user: user.id, bonusProgram: order.spendBonus.bonusProgramId });
 
+        // what the check counted, the amount the total went down by
         const transaction: BonusTransaction = {
           isNegative: true,
-          amount: order.spendBonus.amount
+          amount: order.bonusesTotal
         }
 
         await bonusProgramAdapter.writeTransaction(user, userBonusProgram, transaction)

@@ -4,7 +4,7 @@ Bonuses are implemented through a Bonus Program, managed by the Bonus Program mo
 
 - `name`: String, required (for human visualization)
 - `exchangeRate`: Number, default is 1 (Exchange price for website currency)
-- `coveragePercentage`: Number, default is 1 (How much of the order's amount can be spent)
+- `coveragePercentage`: Number, default is 1 (How much of the order's amount bonuses may pay, a share: 0.5 is half; 50 given is kept as 0.5, beyond 100% is refused)
 - `decimals`: Number, default is 0 (denomination)
 - `description`: String
 
@@ -19,15 +19,9 @@ The Bonus Program should be implemented as an adapter from the abstract class `B
 > ⚠️ Bonuses will be synchronized every time the user is active but no more than `TIME_TO_SYNC_BONUSES_IN_MINUTES` (default 15 minutes)
 
 
-## Check enough balance cases
+## The balance
 
-Every time when there is a write-off of bonuses, the bonus program will be forcibly synchronized. And a check will be performed in the external system and, depending on the settings, a decision will be made on spending bonuses
-
-
-- If userBalance equals externalBalance and externalBalance equals amount, the function returns true.
-- If userBalance doesn't equal externalBalance and the setting DISABLE_BONUS_PROGRAM_ON_FAIL is enabled, it disables the bonus program and returns false
-- If externalBalance is greater than amount and the setting ONLY_EXTERNAL_BONUS_SPEND_CHECK is enabled, the function returns true.
-- If externalBalance and userBalance are both greater than amount, it logs an error and returns true.
+The adapter keeps the balance; `UserBonusProgram.balance` is a copy of core for showing, synced on login and on activity. The order check asks the adapter (`getBalance`) and refuses a spending above it (code 28, `available` - what there is).
 
 ## Deducting Bonus during Order
 
@@ -39,7 +33,7 @@ interface SpendBonus {
   amount: number,
 }
 ```
-Multiple bonus systems may be used on the site, but only one can be applied per order. Bonuses are added during the order check and recalculated each time something changes in the order or when the checked order's validity period has expired (10 minutes).
+Multiple bonus systems may be used on the site, but only one can be applied per order. Each check states the spending anew: a check without `spendBonus` takes off the spending of an earlier one. What is counted - `bonusesTotal`, written back into `spendBonus.amount` - is the amount asked, at most the program's coverage of the sum the strategy names, down to its decimals, at most the balance. Spending is refused (code 29) while `ALLOW_BONUS_SPENDING` is off or the program is switched off. `exchangeRate` is not applied: a bonus is one unit of the currency.
 
 ### Bonus Deduction Strategies
 
@@ -62,11 +56,11 @@ After the bonus deduction, a record is made in the UserBonusTransaction model, a
 
 ### Flow
 
-Bonuses will be added to the order during the order check, but they will be deducted only when the order is finalized. A consistency check is performed when deducting the bonuses.
+Bonuses will be added to the order during the order check, but they will be deducted only when the order is placed: the adapter writes a transaction of `bonusesTotal`.
 
 ### Stability
 
-In the event that the external bonus system fails to deduct bonuses but the site has deducted them, the UserBonusTransaction model will have a transaction record flagged as `isStable: false`. Such transactions should be handled by the bonus system adapter. In case of an error, the bonus system can be disabled from the core using the property `DISABLE_BONUSPROGRAM_ON_ERROR`.
+In the event that the external bonus system fails to deduct bonuses but the site has deducted them, the UserBonusTransaction model will have a transaction record flagged as `isStable: false`. Such transactions should be handled by the bonus system adapter.
 
 **[todo:]** - If external system has method for check stability, core should check it after 
 
@@ -76,7 +70,7 @@ For a user to utilize the bonus system, it needs to be enabled for them. By defa
 
 Upon user creation, a request will be made to all known bonus programs to verify user registration.
 
-A separate registration method can be used for signing up and removing the bonus program through the adapter.
+A separate registration method can be used for signing up and removing the bonus program through the adapter. Leaving a program (`UserBonusProgram.delete`) keeps its membership as left (`isDeleted`, not active): a login does not put the user back, joining again (`registration`) takes the same membership.
 
 ### Meal concepts and exceptions
 *Not implemented in current version*

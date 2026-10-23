@@ -54,7 +54,6 @@ declare global {
   interface SettingList {
     RESTOCORE_TIME_SYNC_PAYMENTS: number
     DEFAULT_CAPTCHA_ADAPTER: string
-    DEFAULT_BONUS_ADAPTER: string
     RMS_ADAPTER: string
     DEFAULT_MEDIAFILE_ADAPTER: string
     /** Configured delivery adapter; empty means the built-in zone-aware default. */
@@ -157,8 +156,6 @@ declare global {
     AUTH_DEMO_PHONES: string
     TIME_TO_SYNC_BONUSES_IN_MINUTES: number
     SYNC_BONUSTRANSACTION_AFTER_TIME: number
-    DISABLE_USER_BONUS_PROGRAM_ON_FAIL: boolean
-    ONLY_EXTERNAL_BONUS_SPEND_CHECK: boolean
     /**
      * Allows you to make shipping calculations optional. Shipping calculations will occur. But it won't throw an error
      */

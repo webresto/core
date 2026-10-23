@@ -53,10 +53,14 @@ export class TestBonusSystem extends BonusProgramAdapter {
   }
 }
 
-/** A running test bonus system and its enabled bonus program. Called after `resetDatabase`. */
+/**
+ * A running test bonus system and its enabled bonus program, with spending bonuses allowed (ALLOW_BONUS_SPENDING;
+ * `resetDatabase` of the next file puts it back). Called after `resetDatabase`.
+ */
 export async function startBonusSystem(): Promise<{ system: TestBonusSystem; bonusProgram: string }> {
   const system = new TestBonusSystem();
   await BonusProgram.alive(system);
+  await Settings.set("ALLOW_BONUS_SPENDING", { value: true });
   const [program] = await BonusProgram.update({ adapter: system.adapter }, { enable: true }).fetch();
   return { system, bonusProgram: program.id };
 }

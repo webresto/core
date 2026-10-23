@@ -118,8 +118,8 @@ declare let Model: {
     /**
      * Puts the user into the working bonus programs (`BonusProgram.getAvailable`), on login: one
      * whose system already knows the user gets the user's row in core; one with
-     * `automaticUserRegistration` registers the user; others wait for the user to join. The balance
-     * of every active membership is synced.
+     * `automaticUserRegistration` registers the user; others wait for the user to join. A program the
+     * user left stays left. The balance of every active membership is synced.
      */
     checkRegisteredInBonusPrograms(userId: string): Promise<void>;
 };
