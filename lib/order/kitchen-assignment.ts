@@ -71,6 +71,8 @@ export async function assignOrderCookingPlace(order: OrderRecord): Promise<Cooki
     pickupPointId: toPlaceId(order.pickupPoint),
     serviceType: order.serviceType,
     city: order.address?.city ?? null,
+    // an order by time is cooked by a kitchen open then, as its menu is read (MenuAdapter, `withoutClosedPoints`)
+    at: order.date ? new Date(order.date) : null,
   });
 
   return {

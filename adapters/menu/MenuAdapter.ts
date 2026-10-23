@@ -439,11 +439,14 @@ const rms: KitchenStrategy = async (request, diagnostics, inCity) => {
   return { kind: "resolved", placeId: String(place.id) };
 };
 
-/** Open kitchens of the city with a usable coordinate: what the geographic strategies choose between. */
-async function openKitchensWithCoordinate(inCity: InCity): Promise<Array<{ id: string; coordinate: { lat: number; lon: number } }>> {
+/**
+ * Kitchens of the city open at the moment of the order (`KitchenResolveRequest.at`, none - now) with a usable
+ * coordinate: what the geographic strategies choose between.
+ */
+async function openKitchensWithCoordinate(inCity: InCity, moment?: Date | null): Promise<Array<{ id: string; coordinate: { lat: number; lon: number } }>> {
   const kitchens: Array<{ id: string; coordinate: { lat: number; lon: number } }> = [];
   for (const place of await Place.find({})) {
-    if (!placeAcceptsOrdersNow(place) || !inCity(place)) continue;
+    if (!placeAcceptsOrdersNow(place, moment ?? undefined) || !inCity(place)) continue;
     const at = (place as any).coordinate;
     if (!at || typeof at.lat !== "number" || typeof at.lon !== "number") continue;
     kitchens.push({ id: String(place.id), coordinate: at });
@@ -470,7 +473,7 @@ const deliveryZone: KitchenStrategy = async (request, diagnostics, inCity) => {
   let placeId: string | null = null;
   try {
     const adapter = await Adapter.get("delivery");
-    placeId = await adapter.resolvePlaceForCoordinate(coordinate, await openKitchensWithCoordinate(inCity), adapterDiagnostics);
+    placeId = await adapter.resolvePlaceForCoordinate(coordinate, await openKitchensWithCoordinate(inCity, request.at), adapterDiagnostics);
   } catch (error) {
     diagnostics.push(`delivery-zone: delivery adapter failed (${error instanceof Error ? error.message : String(error)})`);
     return PASS;
@@ -508,7 +511,7 @@ const nearestGeo: KitchenStrategy = async (request, diagnostics, inCity) => {
   try {
     const adapter = await Adapter.get("delivery");
 
-    for (const { id, coordinate: at } of await openKitchensWithCoordinate(inCity)) {
+    for (const { id, coordinate: at } of await openKitchensWithCoordinate(inCity, request.at)) {
       const estimate = await adapter.estimateTravel(at, coordinate);
       if (!estimate) {
         diagnostics.push(`nearest-geo: ${id} not estimated`);

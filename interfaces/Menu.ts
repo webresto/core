@@ -132,6 +132,11 @@ export interface KitchenResolveRequest {
    * city are candidates.
    */
   city?: string | null;
+  /**
+   * The moment the order is for: the kitchens open then are the candidates. None - now (a bare coordinate, an order as
+   * soon as possible).
+   */
+  at?: Date | null;
 }
 
 export interface KitchenResolution {

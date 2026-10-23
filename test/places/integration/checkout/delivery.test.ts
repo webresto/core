@@ -196,6 +196,21 @@ describe("checkout: delivery", function () {
       });
     });
 
+    it("every kitchen closed now: an order by a time they work at gets the kitchen of its zone", async function () {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const day = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
+      // two hours away from now either way: closed now, open at the time of the order
+      const [start, stop, time] = new Date().getHours() < 12 ? ["14:00", "16:00", "15:00"] : ["03:00", "05:00", "04:00"];
+      const LATER = [{ dayOfWeek: CLOSED[0].dayOfWeek, start, stop }];
+      const id = await newBasket();
+      await add(id, await dishId("Dish 1"));
+      await withKitchens({ [kitchen1]: { worktime: LATER }, [kitchen2]: { worktime: LATER } }, async () => {
+        await updateOrder(id, { date: `${day} ${time}` });
+        expect((await deliverTo(id, at(IN_ZONE_2))).cookingPoints).to.deep.equal([kitchen2]);
+      });
+    });
+
     it("beyond the radius cap and in no zone: nobody takes it", async function () {
       await withSettings({ DELIVERY_MAX_RADIUS_KM: 1 }, async () => {
         expect(await delivered(OUTSIDE)).to.deep.equal({ kitchens: [], refusal: { code: 26, error: "NO_KITCHEN" } });

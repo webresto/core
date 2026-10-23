@@ -40,6 +40,9 @@ describe("Kitchen resolver", function () {
   const only = async (...keep: string[]) => {
     for (const id of Object.values(k)) if (!keep.includes(id)) await Place.update({ id }, { enable: false }).fetch();
   };
+  const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  /** the kitchen works every day from `start` to `stop` */
+  const hours = (id: string, start: string, stop: string) => Place.update!({ id }, { worktime: [{ dayOfWeek: DAYS, start, stop }] } as any).fetch();
 
   describe("delivery-zone", function () {
     it("serves the address from the kitchen standing in its zone, nearer by air or not", async function () {
@@ -72,13 +75,24 @@ describe("Kitchen resolver", function () {
     });
 
     it("passes over a kitchen closed by its schedule the way it passes over one switched off", async function () {
-      const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-      await Place.update({ id: k.kitchen2 }, { worktime: [{ dayOfWeek: days, start: "00:00", stop: "00:01" }] }).fetch();
+      await hours(k.kitchen2, "00:00", "00:01");
       await chain(["delivery-zone", "nearest-geo"], async () => {
         const resolution = await resolve({ coordinate: { lat: 56.9, lon: 60.61 } });
 
         expect(resolution).to.include({ placeId: k.kitchen1, strategy: "nearest-geo" });
         expect(resolution.diagnostics.join(" ")).to.match(/delivery-zone: zone \S+ contains no open kitchen/);
+      });
+    });
+
+    it("takes a kitchen closed now for an order by a time it is open at", async function () {
+      // two hours away from now either way: closed now, open at `at`
+      const [start, stop, hour] = new Date().getHours() < 12 ? ["14:00", "16:00", 15] : ["03:00", "05:00", 4];
+      await hours(k.kitchen2, start, stop);
+      const at = new Date();
+      at.setHours(hour, 0, 0, 0);
+      await chain(["delivery-zone"], async () => {
+        expect((await resolve({ coordinate: { lat: 56.9, lon: 60.61 } })).placeId).to.equal(null);
+        expect(await resolve({ coordinate: { lat: 56.9, lon: 60.61 }, at })).to.include({ placeId: k.kitchen2, strategy: "delivery-zone" });
       });
     });
 

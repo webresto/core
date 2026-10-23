@@ -47,6 +47,7 @@ export class DefaultMenuAdapter extends MenuAdapter {
       const resolution = await this.resolveCookingPlace({
         coordinate: request.coordinate,
         city: request.order?.address?.city ?? null,
+        at: request.order?.date ? new Date(request.order.date) : null,
       });
       if (resolution.placeId) {
         return {
