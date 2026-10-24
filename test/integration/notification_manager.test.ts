@@ -59,11 +59,21 @@ describe("NotificationManager", function () {
   });
 
   it("OTP recive to user", async () => {
-    const otpAdapter = await Adapter.getOTPAdapter();
-    await Settings.set("CORE_LOGIN_FIELD", {key: "CORE_LOGIN_FIELD", value: "phone"});
-    let a = await otpAdapter.get("1123");
-    if(testChannel.lastMessage !== `Your secret login code: ${a.password}`) {
-      throw new Error(`bad message: ${testChannel.lastMessage }`)
+    // OTP goes through the notification rules now; the direct send checked here is the
+    // legacy path, off unless OTP_LEGACY_DELIVERY is set
+    const legacyDelivery = process.env.OTP_LEGACY_DELIVERY;
+    process.env.OTP_LEGACY_DELIVERY = "true";
+    try {
+      const otpAdapter = await Adapter.getOTPAdapter();
+      await Settings.set("CORE_LOGIN_FIELD", {key: "CORE_LOGIN_FIELD", value: "phone"});
+      let a = await otpAdapter.get("1123");
+      // PROJECT_NAME, when set, is prepended as "Name: "
+      if(!testChannel.lastMessage.endsWith(`Your secret login code: ${a.password}`)) {
+        throw new Error(`bad message: ${testChannel.lastMessage }`)
+      }
+    } finally {
+      if (legacyDelivery === undefined) delete process.env.OTP_LEGACY_DELIVERY;
+      else process.env.OTP_LEGACY_DELIVERY = legacyDelivery;
     }
   });
 });

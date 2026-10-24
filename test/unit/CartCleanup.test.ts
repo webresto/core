@@ -2,8 +2,15 @@ import { expect } from "chai";
 import { CartCleanup } from "../../libs/CartCleanup";
 
 describe("CartCleanup", function () {
-  const realOrder = (global as any).Order;
-  const realOrderDish = (global as any).OrderDish;
+  // Taken in before(): at load time sails is not lifted yet and the models are undefined,
+  // restoring those would break every later test that uses Order.
+  let realOrder: any;
+  let realOrderDish: any;
+
+  before(function () {
+    realOrder = (global as any).Order;
+    realOrderDish = (global as any).OrderDish;
+  });
 
   afterEach(function () {
     (global as any).Order = realOrder;
