@@ -1913,6 +1913,11 @@ let Model = {
         } else {
           let deliveryAdapter = await Adapter.getDeliveryAdapter();
           await deliveryAdapter.reset(order);
+          // The cart address comes without a city (it is set in checkOrder only): take the default one,
+          // so the delivery (zone, minimum order, free delivery) is known in the cart already
+          if (order.selfService === false && order.address?.street && order.address?.home && !order.address.city) {
+            order.address = { ...order.address, city: await Settings.get("CITY") };
+          }
           if (order.selfService === false && order.address?.city && order.address?.street && order.address?.home) {
             Order.emitAndLogDetached({id: order.id}, "core:order-check-delivery", order);
             try {

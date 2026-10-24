@@ -123,4 +123,30 @@ describe("RMS adapter", function () {
     await Settings.set("FREE_DELIVERY_FROM", {key: "FREE_DELIVERY_FROM", value: 0});
     await Settings.set("DELIVERY_COST", {key: "DELIVERY_COST", value: 0});
   });
+  it("cart address without a city: countCart takes CITY and calculates the delivery in the cart", async () => {
+    const dish = await Dish.createOrUpdate(dishGenerator({ name: "cart delivery city dish", price: 100, concept: undefined }));
+    await Settings.set("CITY", {key: "CITY", value: "Test City"});
+    await Settings.set("DELIVERY_COST", {key: "DELIVERY_COST", value: 50});
+    await Settings.set("MIN_DELIVERY_AMOUNT", {key: "MIN_DELIVERY_AMOUNT", value: 500});
+
+    let order = await Order.create({id: "test-cart-delivery-city"}).fetch();
+    await Order.addDish({id: order.id}, dish, 3, [], "", "user");
+    // the storefront sets the address in the cart (orderUpdate) without a city and without Order.check
+    await Order.updateOne({id: order.id}).set({selfService: false, address: {street: "Courtlandt Ave", home: "681", city: null}});
+    await Order.countCart({id: order.id});
+    order = await Order.findOne(order.id);
+    expect(order.state).to.equal("CART");
+    expect(order.address.city).to.equal("Test City");
+    expect(order.delivery.allowed).to.equal(false);
+    expect(order.delivery.message).to.equal("Minimum amount not allowed");
+
+    // above the minimum: the cart gets the delivery cost
+    await Settings.set("MIN_DELIVERY_AMOUNT", {key: "MIN_DELIVERY_AMOUNT", value: 0});
+    await Order.countCart({id: order.id});
+    order = await Order.findOne(order.id);
+    expect(order.delivery.allowed).to.equal(true);
+    expect(order.deliveryCost).to.equal(50);
+
+    await Settings.set("DELIVERY_COST", {key: "DELIVERY_COST", value: 0});
+  });
 });
