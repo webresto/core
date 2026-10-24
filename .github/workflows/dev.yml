@@ -4,7 +4,6 @@ on:
     branches-ignore:
       - master
       - alpha
-      - next
       - test-with-postgres
 permissions:
   contents: read
