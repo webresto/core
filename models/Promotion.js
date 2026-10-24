@@ -157,6 +157,25 @@ let Model = {
             throw new Error(error);
         }
     },
+    /**
+     * A gift dish must be `notForSale` (free gift) or `promo` (special price): the guest
+     * can't add such a dish himself, so his row never merges with the gift row in addDish.
+     * Returns the error message, or null when the gift config is fine.
+     */
+    async validateGift(configDiscount) {
+        const giftDishIds = (configDiscount?.gift?.dishes ?? []).map((giftDish) => giftDish?.dishId).filter(Boolean);
+        if (!giftDishIds.length)
+            return null;
+        const dishes = await Dish.find({ id: giftDishIds });
+        for (const dishId of giftDishIds) {
+            const dish = dishes.find((d) => d.id === dishId);
+            if (!dish)
+                return `Gift dish [${dishId}] not found`;
+            if (!dish.notForSale && !dish.promo)
+                return `Gift dish [${dish.name}] must be notForSale or promo`;
+        }
+        return null;
+    },
     getAllByConcept(concept) {
         if (typeof concept === "string")
             concept = [concept];

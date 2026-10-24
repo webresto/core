@@ -1980,7 +1980,13 @@ let Model = {
       Order.emitAndLogDetached({id: order.id}, "core:count-after-delivery-cost", order);
       // END calculate delivery cost
 
-      order.total = new Decimal(basketTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
+      // basketTotal holds only what the guest added, so promotion thresholds don't count
+      // promotion rows. Those rows are still paid for: a promo dish at a special price
+      // costs its itemTotal, a notForSale gift was zeroed above and adds nothing.
+      const promotionOrderDishes = await OrderDish.find({ order: order.id, addedBy: "promotion" });
+      const promotionTotal = promotionOrderDishes.reduce((sum, orderDish) => sum.plus(orderDish.itemTotal ?? 0), new Decimal(0));
+
+      order.total = new Decimal(basketTotal).plus(promotionTotal).plus(order.deliveryCost).minus(order.discountTotal).toNumber();
       delete (order.dishes)
       order = (await Order.update({ id: order.id }, order).fetch())[0];
 

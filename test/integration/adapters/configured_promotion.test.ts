@@ -505,6 +505,56 @@ describe("Promotion adapter integration test", function () {
   })
 
 
+  it("Gift rows: a notForSale gift is free, a promo dish is paid in total", async () => {
+    const groupsId = (await Group.find({})).map(group => group.id)
+
+    const dish = await Dish.createOrUpdate(dishGenerator({ name: "gift total dish", price: 100, concept: "giftTotal", parentGroup: groupsId[0] }));
+    const freeGift = await Dish.createOrUpdate({ ...dishGenerator({ name: "gift not for sale", price: 70, concept: "giftTotal", parentGroup: groupsId[0] }), notForSale: true });
+    const promoDish = await Dish.createOrUpdate({ ...dishGenerator({ name: "gift promo price", price: 1, concept: "giftTotal", parentGroup: groupsId[0] }), promo: true });
+
+    // an ordinary dish can't be a gift: the guest's own row would merge with it
+    expect(await Promotion.validateGift({ gift: { minBasketTotal: 0, dishes: [{ dishId: dish.id, amount: 1 }] } } as IconfigDiscount)).to.be.a("string");
+    expect(await Promotion.validateGift({ gift: { minBasketTotal: 0, dishes: [{ dishId: freeGift.id, amount: 1 }, { dishId: promoDish.id, amount: 1 }] } } as IconfigDiscount)).to.equal(null);
+
+    const config: IconfigDiscount = {
+      discountType: "flat",
+      discountAmount: 0,
+      dishes: ["*"],
+      groups: ["*"],
+      gift: { minBasketTotal: 200, dishes: [{ dishId: freeGift.id, amount: 1 }, { dishId: promoDish.id, amount: 1 }] },
+    }
+    await promotionAdapter.addPromotionHandler(new ConfiguredPromotion({
+      concept: ["giftTotal"],
+      id: 'promotion-gift-total',
+      badge: 'test',
+      isJoint: true,
+      name: 'gift total',
+      isPublic: true,
+      configDiscount: config,
+      description: "gift total",
+      externalId: "externalID-gift-total"
+    }, config))
+
+    let order = await Order.create({ id: "configured-promotion-gift-total" }).fetch();
+    await Order.updateOne({ id: order.id }, { user: "user" });
+
+    await Order.addDish({ id: order.id }, dish, 1, [], "", "user");
+    let result = await Order.findOne(order.id)
+    expect(await OrderDish.count({ order: order.id, addedBy: "promotion" })).to.equal(0);
+    expect(result.total).to.equal(100);
+
+    await Order.addDish({ id: order.id }, dish, 1, [], "", "user");
+    result = await Order.findOne(order.id)
+    const giftRows = await OrderDish.find({ order: order.id, addedBy: "promotion" });
+    expect(giftRows.length).to.equal(2);
+    expect(giftRows.find(row => row.dish === freeGift.id).itemTotal).to.equal(0);
+    expect(giftRows.find(row => row.dish === promoDish.id).itemTotal).to.equal(1);
+    // the gifts don't move the threshold sum, the promo dish is paid
+    expect(result.basketTotal).to.equal(200);
+    expect(result.total).to.equal(201);
+  })
+
+
   it("Check prepend recursion discount", async () => {
     // TODO: check recrsion behavior
   })

@@ -75,12 +75,14 @@ export default async function UpsertMarketingPromotionController(req: any, res: 
     if (minBasketTotal > 0) configDiscount.minBasketTotal = minBasketTotal;
 
     // Gift: free dishes auto-added once the basket reaches the gift threshold.
-    // The "free" price comes from the dish itself (operator should use a 0₽ dish).
+    // The dish must be notForSale (free, countCart zeroes it) or promo (its own special price).
     const giftDishes = (Array.isArray(cd.gift?.dishes) ? cd.gift.dishes : [])
       .map((g: any) => ({ dishId: String(g?.dishId || "").trim(), amount: Math.max(1, Math.trunc(toNumber(g?.amount)) || 1) }))
       .filter((g: any) => g.dishId);
     if (giftDishes.length) {
       configDiscount.gift = { minBasketTotal: toNumber(cd.gift?.minBasketTotal), dishes: giftDishes };
+      const giftError = await Promotion.validateGift(configDiscount);
+      if (giftError) return res.status(400).json({ error: t(giftError) });
     }
 
     let concept = stringArray(body.concept);

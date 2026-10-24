@@ -79,6 +79,7 @@ export function registerPromotionsTools() {
             + 'configDiscount holds the discount and/or gift config (stored as JSON):\n'
             + '  - discount:  { discountType: "flat"|"percentage", discountAmount, dishes:[], groups:[] }\n'
             + '  - gift:      { gift: { minBasketTotal, dishes:[{ dishId, amount }] }, dishes:[], groups:[] }\n'
+            + '    each gift dish must be notForSale (free) or promo (special price), otherwise the call fails.\n'
             + 'A gift-only promo may omit discountType. For a "promocode only" gift set isPublic:false, '
             + 'isJoint:true and keep dishes:[]/groups:[] so condition() never applies it on its own — '
             + 'it is then applied solely via a linked PromotionCode.\n\n'
@@ -104,6 +105,8 @@ export function registerPromotionsTools() {
         },
         handler: async (params: Record<string, any>) => {
             const configDiscount = params.configDiscount ?? {};
+            const giftError = await Promotion.validateGift(configDiscount);
+            if (giftError) throw new Error(giftError);
             const values: any = {
                 name:           params.name,
                 description:    params.description ?? params.name,
@@ -151,6 +154,8 @@ export function registerPromotionsTools() {
         },
         handler: async ({ id, ...rest }: Record<string, any>) => {
             if (rest.configDiscount !== undefined) {
+                const giftError = await Promotion.validateGift(rest.configDiscount);
+                if (giftError) throw new Error(giftError);
                 rest.hash = hashCode(JSON.stringify(rest.configDiscount));
             }
             const updated = await Promotion.updateOne({ id: id as string }).set(rest);
