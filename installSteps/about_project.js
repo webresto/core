@@ -42,6 +42,7 @@ class AboutProjectStep {
             "RESTOCORE_URL",
             "COUNTRY_ISO",
             "CITY",
+            "TZ",
             "DEFAULT_CURRENCY_ISO",
             "DEFAULT_LOCALE",
             "FRONTEND_CHECKOUT_PAGE",
@@ -61,6 +62,15 @@ class AboutProjectStep {
             console.error('Failed to load countries data:', e);
             this.payload.countries = [];
         }
+
+        // Timezone list comes from the TZ setting schema, so the form offers only accepted values
+        try {
+            const tzPath = path.resolve(__dirname, "../settings/tz.json");
+            this.payload.timezones = JSON.parse(fs.readFileSync(tzPath, 'utf8')).jsonSchema.enum;
+        } catch (e) {
+            console.error('Failed to load timezones:', e);
+            this.payload.timezones = [];
+        }
     }
 
     async check() {
@@ -79,6 +89,7 @@ class AboutProjectStep {
             "RESTOCORE_URL", 
             "COUNTRY_ISO",
             "CITY",
+            "TZ",
             "DEFAULT_CURRENCY_ISO",
             "DEFAULT_LOCALE",
             "FRONTEND_CHECKOUT_PAGE",
@@ -102,6 +113,7 @@ class AboutProjectStep {
             "RESTOCORE_URL",
             "COUNTRY_ISO",
             "CITY",
+            "TZ",
             "DEFAULT_CURRENCY_ISO",
             "DEFAULT_LOCALE",
             "FRONTEND_CHECKOUT_PAGE",
@@ -121,6 +133,11 @@ class AboutProjectStep {
         }
 
         await ensureCityRecord(data["CITY"]);
+
+        // afterHook applies TZ only on boot; apply it now so dates are right without a restart
+        if (data.TZ) {
+            process.env.TZ = data.TZ;
+        }
 
         // Mark this step as completed
         await Settings.set("PROJECT_INIT_STEPS", { value: 1 });
