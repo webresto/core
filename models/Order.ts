@@ -9,7 +9,6 @@ import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
 import { Delivery } from "../adapters/delivery/DeliveryAdapter";
-import { Restrictions, TimeZoneIdentifier, WorkTimeValidator } from "@webresto/worktime";
 import AbstractPromotionAdapter from "../adapters/promotion/AbstractPromotionAdapter";
 import { phoneValidByMask } from "../libs/phoneValidByMask";
 import { OrderHelper } from "../libs/helpers/OrderHelper";
@@ -33,6 +32,7 @@ import { BonusTransaction } from "../adapters/bonusprogram/BonusProgramAdapter";
 import { ProductModifier } from "../libs/ProductModifier";
 import { getAllowedOrderTransitions } from "../libs/OrderStateFlow";
 import { normalizePercent } from "../utils/normalize";
+import { isOpenAt, orderDateToInstant, parseWallClock, wallClockAt } from "../utils/zonedTime";
 import { NotificationService } from "../libs/NotificationService";
 
 export interface PromotionState {
@@ -2641,18 +2641,8 @@ async function getTimezone(): Promise<string | undefined> {
   return process.env.TZ || undefined;
 }
 
-/**
- * order.date is the place wall-clock time ("yyyy-MM-dd HH:mm"), convert it to an instant
- * using the place timezone offset. Unknown formats are parsed as is.
- */
-function orderDateInTimezone(date: string, timezone: string): Date {
-  const match = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::\d{2})?$/.exec(date.trim());
-  if (!match) return new Date(date);
-  return new Date(`${match[1]}T${match[2]}:00${TimeZoneIdentifier.getTimeZoneGMTOffset(timezone)}`);
-}
-
 async function checkDate(order: OrderRecord) {
-  const MIN_DELIVERY_TIME_MINUTES = await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES");
+  const minDeliveryMinutes = Number(await Settings.get("MIN_DELIVERY_TIME_IN_MINUTES")) || 0;
 
   // The timezone is mandatory to place an order: every date check below (worktime,
   // "date is past", min delivery time, maintenance) is meaningless without it.
@@ -2671,17 +2661,37 @@ async function checkDate(order: OrderRecord) {
     throw { code: 19, error: 'Server timezone is not configured, ordering is disabled' };
   }
 
+  // order.date is the wall-clock time of the restaurant ("YYYY-MM-DD HH:mm"), in the
+  // TZ setting. It is read in that timezone, not in the process one (utils/zonedTime).
+  const orderWall = order.date ? parseWallClock(order.date) : null;
+  let orderInstant: Date | null = null;
+  if (order.date) {
+    try {
+      orderInstant = orderDateToInstant(order.date, timezone);
+    } catch (e) {
+      // An unknown zone name: Intl cannot read it
+      sails.log.error(`Order > checkDate > TZ [${timezone}] is not readable:`, e);
+      orderInstant = new Date(order.date);
+    }
+    if (isNaN(orderInstant.getTime())) {
+      throw {
+        code: 9,
+        error: "date is not valid",
+      };
+    }
+  }
+
   // Global worktime restriction via WORK_TIME settings.
   // Runs for ASAP orders too (order.date may be empty), otherwise the check below
   // — guarded by `if (order.date)` — would be skipped entirely for "as soon as possible" orders.
   // ASAP orders are checked against the current time, orders to time — against order.date,
   // so a customer can place an order while the place is closed for a time within work hours.
+  // An order to time may be exactly at opening or closing: the storefront offers these slots.
   try {
     const WORK_TIME = await Settings.get('WORK_TIME');
     if (WORK_TIME) {
-      const checkedAt = order.date ? orderDateInTimezone(order.date, timezone) : new Date();
-      const { workNow } = WorkTimeValidator.isWorkNow({ timezone, worktime: WORK_TIME } as Restrictions, checkedAt);
-      if (!workNow) {
+      const wall = order.date ? (orderWall ?? wallClockAt(orderInstant, timezone)) : wallClockAt(new Date(), timezone);
+      if (!isOpenAt(WORK_TIME, wall, { inclusive: Boolean(order.date) })) {
         throw { code: 18, error: 'Order date is outside work time' };
       }
     }
@@ -2692,26 +2702,9 @@ async function checkDate(order: OrderRecord) {
   }
 
   if (order.date) {
-    const date = new Date(order.date);
+    const now = Date.now();
 
-    function isDateInPast(date: string, timeZone: string | undefined) {
-      let currentDate = new Date();
-      let currentTimestamp = currentDate.getTime();
-      let targetDate = new Date(date);
-
-      let targetTimestamp;
-      try {
-        // When timeZone is undefined, toLocaleString uses the runtime's local time zone.
-        targetTimestamp = new Date(targetDate.toLocaleString('en', timeZone ? { timeZone } : undefined)).getTime();
-      } catch (error) {
-        sails.log.error(`TimeZone not defined. TZ: [${timeZone}]`);
-        targetTimestamp = new Date(targetDate.toLocaleString('en')).getTime();
-      }
-
-      return targetTimestamp < currentTimestamp;
-    }
-
-    if (isDateInPast(order.date, timezone)) {
+    if (orderInstant.getTime() < now) {
       throw {
         code: 15,
         error: "date is past",
@@ -2719,34 +2712,26 @@ async function checkDate(order: OrderRecord) {
     }
 
     // Adding minimum delivery time to order.date
-    const minDeliveryDate = Date.now() + MIN_DELIVERY_TIME_MINUTES * 60 * 1000;
-    if (minDeliveryDate > date.getTime()) {
+    const minDeliveryDate = now + minDeliveryMinutes * 60 * 1000;
+    if (minDeliveryDate > orderInstant.getTime()) {
       throw {
         code: 17,
         error: `date is too soon. Minimum allowed time is ${minDeliveryDate}`,
       };
     }
 
-    // date is Date
-    if (date instanceof Date && !date.toJSON()) {
-      throw {
-        code: 9,
-        error: "date is not valid",
-      };
-    }
-
     // Limit order date
     const possibleDatetime = await getOrderDateLimit();
-    if (date.getTime() > possibleDatetime.getTime()) {
-      sails.log.error(`Order checkDate: ${date.getTime()} > ${possibleDatetime.getTime()} = ${date.getTime() > possibleDatetime.getTime()}`);
+    if (orderInstant.getTime() > possibleDatetime.getTime()) {
+      sails.log.error(`Order checkDate: ${orderInstant.getTime()} > ${possibleDatetime.getTime()}`);
       throw {
         code: 10,
         error: "delivery far, far away! allowed not after" + possibleDatetime,
       };
     }
 
-    // Maintenance date check
-    let maintenance = await Maintenance.getActiveMaintenance(order.date);
+    // Maintenance date check. Maintenance dates are instants (ISO), the order is compared by its instant too
+    let maintenance = await Maintenance.getActiveMaintenance(orderInstant.toISOString());
     if (maintenance) {
       throw {
         code: 16,
@@ -2764,8 +2749,9 @@ async function checkDate(order: OrderRecord) {
 // TODO: refactor possibleToOrderInMinutes from seconds to full work days
 async function getOrderDateLimit(): Promise<Date> {
   let date = new Date();
-  let possibleToOrderInMinutes = await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES"); //minutes
-  if (!possibleToOrderInMinutes) possibleToOrderInMinutes = 1440;
+  // The same default as the storefront gets in Restrictions.possibleToOrderInMinutes (graphql)
+  let possibleToOrderInMinutes = Number(await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES")); //minutes
+  if (!possibleToOrderInMinutes) possibleToOrderInMinutes = 7 * 24 * 60;
 
   date.setSeconds(date.getSeconds() + (possibleToOrderInMinutes * 60));
   return date;
