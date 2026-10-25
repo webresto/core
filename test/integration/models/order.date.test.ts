@@ -76,4 +76,27 @@ describe("Order date (order to time)", function () {
   it("refuses an unreadable date", async function () {
     expect((await checkAt("tomorrow evening"))?.code).to.equal(9);
   });
+  describe("a basket with a time already passed", function () {
+    async function basketAt(date: string) {
+      const order = await Order.create({ id: `test--order-date-${++n}` }).fetch();
+      await Order.addDish({ id: order.id }, dish, 1, [], "", "user");
+      await Order.updateOne({ id: order.id }, { date });
+      return order.id;
+    }
+
+    it("drops the time on the recount, the basket becomes as soon as possible", async function () {
+      const past = wallClockAt(new Date(Date.now() - 60 * 60 * 1000), ZONE);
+      const id = await basketAt(`${past.date} ${past.time}`);
+      const counted = await Order.countCart({ id });
+      expect(counted.date ?? null).to.equal(null);
+      expect((await Order.findOne({ id })).date ?? null).to.equal(null);
+    });
+
+    it("keeps a time still ahead", async function () {
+      const date = `${tomorrow()} 22:30`;
+      const id = await basketAt(date);
+      await Order.countCart({ id });
+      expect((await Order.findOne({ id })).date).to.equal(date);
+    });
+  });
 });

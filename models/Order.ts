@@ -1571,6 +1571,9 @@ let Model = {
        */
       if (!["CART", "CHECKOUT", "PAYMENT"].includes(order.state)) throw `Order with orderId ${order.id} - not can calculated from current state: (${order.state})`;
 
+      // A basket keeps no time that has already passed: the storefront asks for a new one
+      await dropPastDate(order);
+
       const orderDishes = await OrderDish.find({ order: order.id }).populate("dish");
       if (!orderDishes) return order;
 
@@ -2639,6 +2642,32 @@ async function getTimezone(): Promise<string | undefined> {
     return tzSetting;
   }
   return process.env.TZ || undefined;
+}
+
+/**
+ * Drop `order.date` of a basket (CART) once that time has passed in the restaurant,
+ * so the basket becomes "as soon as possible" and the storefront asks for a time again
+ * instead of the checkout refusing it as "date is past". A checked basket (CHECKOUT)
+ * is left as checked. Without a timezone or with an unreadable date nothing is done:
+ * checkDate refuses those.
+ */
+async function dropPastDate(order: OrderRecord): Promise<void> {
+  if (order.state !== "CART" || !order.date) return;
+  const timezone = await getTimezone();
+  if (!timezone) return;
+
+  let at: Date;
+  try {
+    at = orderDateToInstant(order.date, timezone);
+  } catch {
+    return;
+  }
+  if (isNaN(at.getTime()) || at.getTime() >= Date.now()) return;
+
+  const date = order.date;
+  order.date = null;
+  await Order.updateOne({ id: order.id }, { date: null });
+  await Order.log({ id: order.id }, "warn", "core", "countCart: the order time has passed, dropped", { date, timezone });
 }
 
 async function checkDate(order: OrderRecord) {
