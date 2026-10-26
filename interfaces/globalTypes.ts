@@ -1,3 +1,4 @@
+/// <reference path="../models/AuthIdentity.ts" />
 import sails from "@42pub/typed-sails";
 import { Config } from "./Config";
 import AwaitEmitter from "../lib/AwaitEmitter";
@@ -189,6 +190,7 @@ declare global {
       enabled?: boolean
       sortOrder?: number
       cost?: number
+      stopEscalation?: boolean
     }>
 
     // for tests

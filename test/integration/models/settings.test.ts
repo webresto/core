@@ -41,6 +41,34 @@ describe("Settings", function () {
   //   expect(process.env.TEST_123_TEST).to.equal('true')
   // });
 
+  describe("mirrorToEnv", function () {
+    const key = "MIRROR_TEST_TZ";
+    // Not mirrored by the app before, as an operator env var would be
+    const pinnedKey = "MIRROR_TEST_TZ_PINNED";
+    afterEach(function () {
+      delete process.env[key];
+      delete process.env[pinnedKey];
+    });
+
+    it("a value the app copies into process.env is not an ENV pin", async function () {
+      const saved = await Settings.set(key as any, { key, value: "Europe/Moscow" });
+      expect(Settings.mirrorToEnv(key as any, "Europe/Moscow")).to.equal(true);
+      expect(process.env[key]).to.equal("Europe/Moscow");
+      expect(Settings.envOverride(saved).active).to.equal(false);
+
+      // The DB stays the source of truth: a later change is read back, not the stale env copy
+      await Settings.set(key as any, { key, value: "Asia/Ho_Chi_Minh" });
+      expect(await Settings.use(key)).to.equal("Asia/Ho_Chi_Minh");
+    });
+
+    it("an operator-provided env value wins and stays pinned", async function () {
+      process.env[pinnedKey] = "Europe/London";
+      const saved = await Settings.set(pinnedKey as any, { key: pinnedKey, value: "Europe/Moscow" });
+      expect(Settings.mirrorToEnv(pinnedKey as any, "Europe/Moscow")).to.equal(false);
+      expect(process.env[pinnedKey]).to.equal("Europe/London");
+      expect(Settings.envOverride(saved).active).to.equal(true);
+    });
+  });
 
 });
 function sleep(ms: number) {

@@ -20,6 +20,8 @@
  * (Settings["SETUP_CHECKLIST_DISMISSED"]), handled by SetupChecklistService — not here.
  */
 
+import { isTimezoneSupported } from "./timezone";
+
 export type CheckupSeverity = "required" | "recommended" | "optional";
 
 export type CheckupStatus =
@@ -262,7 +264,9 @@ export class SetupChecklistRegistry {
       settingKey: keyof SettingList,
       titleKey: string,
       sortOrder: number,
-      descriptionKey?: string
+      descriptionKey?: string,
+      /** Extra check of a filled value; returns why it is not acceptable, or undefined. */
+      invalidReason?: (text: string) => string | undefined
     ): void => {
       this.registerCheckup({
         key,
@@ -278,7 +282,9 @@ export class SetupChecklistRegistry {
           const value = await Settings.get(settingKey);
           const text = value === undefined || value === null ? "" : String(value).trim();
           // Surface the current value as a hint so it can be shown on the page.
-          return text ? { status: "done", detail: text } : { status: "todo" };
+          if (!text) return { status: "todo" };
+          const reason = invalidReason?.(text);
+          return reason ? { status: "todo", detail: reason } : { status: "done", detail: text };
         },
       });
     };
@@ -294,7 +300,11 @@ export class SetupChecklistRegistry {
     );
     requiredSetting("project_country", "COUNTRY_ISO", "Country", 1);
     // Orders are refused without a timezone (Order checkDate), so it is required too
-    requiredSetting("project_timezone", "TZ", "Timezone", 2);
+    // A zone the worktime resolver does not know breaks restrictions and checkout just like
+    // an empty one, so it does not count as done.
+    requiredSetting("project_timezone", "TZ", "Timezone", 2, undefined, (tz) =>
+      isTimezoneSupported(tz) ? undefined : `${tz} is not supported, choose another timezone`
+    );
     requiredSetting("project_currency", "DEFAULT_CURRENCY_ISO", "Default currency", 3);
     requiredSetting("project_locale", "DEFAULT_LOCALE", "Default locale", 4);
     requiredSetting("project_checkout_page", "FRONTEND_CHECKOUT_PAGE", "Frontend checkout page", 5);

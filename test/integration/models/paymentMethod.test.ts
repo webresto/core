@@ -79,7 +79,7 @@ describe("PaymentMethod", function () {
   });
   it("keeps adapter when update sends an empty one", async function () {
     const method = await PaymentMethod.create({ title: "Keep", type: "promise", adapter: "keep-adapter", enable: true }).fetch();
-    const updated = await PaymentMethod.updateOne({ id: method.id }).set({ adapter: "", title: "Kept" });
+    const updated = await PaymentMethod.updateOne({ id: method.id }).set({ adapter: "", title: "Kept" }) as unknown as PaymentMethodRecord;
     expect(updated.adapter).to.equal("keep-adapter");
     expect(updated.title).to.equal("Kept");
   });

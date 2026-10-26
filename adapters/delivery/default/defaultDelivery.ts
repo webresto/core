@@ -57,7 +57,8 @@ export class DefaultDeliveryAdapter extends DeliveryAdapter {
       }
     }
 
-    if (order.basketTotal > ( freeDeliveryFrom ?? Infinity )) {
+    // FREE_DELIVERY_FROM = 0 (the default) means there is no free-delivery threshold
+    if (freeDeliveryFrom > 0 && order.basketTotal >= freeDeliveryFrom) {
       return  {
         allowed: true,
         deliveryTimeMinutes: minDeliveryTimeInMinutes ?? 60,
