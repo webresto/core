@@ -15,7 +15,7 @@ import { LocalZoneGeometry } from "./geojson";
  *
  * Two rules shape everything here. A snapshot is applied whole or not at all,
  * so a truncated download cannot half-update the map. And the source owns only
- * the geometry and its own identifiers — tariffs, kitchen, worktime and the
+ * the geometry and its own identifiers — tariffs, kitchen and the
  * enable switch belong to the operator, who would otherwise lose an afternoon
  * of work to somebody dragging a polygon in Google Maps.
  *

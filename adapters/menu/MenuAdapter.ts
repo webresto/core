@@ -491,9 +491,6 @@ const deliveryZone: KitchenStrategy = async (request, diagnostics, inCity) => {
  * else by the built-in straight line. `DELIVERY_MAX_RADIUS_KM` caps the
  * adapter's kilometres; `0`, as everywhere else in these settings, means no
  * limit.
- *
- * Unlike `single-point` this one does check worktime, because it is choosing
- * between kitchens rather than describing the only one there is.
  */
 const nearestGeo: KitchenStrategy = async (request, diagnostics, inCity) => {
   const coordinate = request.coordinate;
@@ -552,20 +549,21 @@ const nearestGeo: KitchenStrategy = async (request, diagnostics, inCity) => {
  * one enabled kitchen. Needs no coordinate: with one kitchen there is nothing to
  * choose between.
  *
- * It deliberately does not check worktime. It describes the only kitchen there
- * is rather than choosing between kitchens; whether the installation takes
- * orders now is `WORK_TIME`'s question.
+ * The hours of that kitchen are the installation's - there are no others: closed
+ * at the moment of the order, it passes.
  */
-const singlePoint: KitchenStrategy = async (_request, diagnostics, inCity) => {
+const singlePoint: KitchenStrategy = async (request, diagnostics, inCity) => {
   // Cast because core types these globals as possibly undefined.
-  const kitchens = ((await (Place as any).find({})) as any[])
-    .filter((place: any) => isEnabledKitchen(place) && inCity(place))
-    .map((place: any) => String(place.id));
+  const kitchens = ((await (Place as any).find({})) as any[]).filter((place: any) => isEnabledKitchen(place) && inCity(place));
   if (kitchens.length !== 1) {
     diagnostics.push(`single-point: ${kitchens.length} enabled kitchens, not exactly one`);
     return PASS;
   }
-  const placeId = kitchens[0];
+  const placeId = String(kitchens[0].id);
+  if (!placeAcceptsOrdersNow(kitchens[0], request.at ?? undefined)) {
+    diagnostics.push(`single-point: ${placeId} is closed`);
+    return PASS;
+  }
   diagnostics.push(`single-point: ${placeId}`);
   return { kind: "resolved", placeId };
 };

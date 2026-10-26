@@ -1,6 +1,5 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
-import { WorkTime } from "@webresto/worktime";
 import { DishRecord } from "./Dish";
 import { CityRecord } from "./City";
 /**
@@ -45,8 +44,6 @@ declare let attributes: {
      * exists; the one thing it decides is that an imported zone is created off.
      */
     enable: boolean;
-    /** When the zone accepts orders. Empty means "always". */
-    worktime: WorkTime[];
     /**
      * The four commercial numbers, and all four are nullable columns.
      *
@@ -103,7 +100,7 @@ declare let attributes: {
      * because the map's author put them in one folder is not a decision anybody
      * made. So it is asked rather than assumed.
      *
-     * On, which is the default, the seven term fields below come from the layer
+     * On, which is the default, the six term fields below come from the layer
      * and the zones' own copies are ignored. Off, the layer only groups, and each
      * zone is priced on its own.
      *

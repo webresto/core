@@ -2,26 +2,23 @@
 import { OrderRecord } from "../../models/Order";
 import hashCode from "../hashCode";
 import { extractFieldValues } from "../stringsInArray";
+import { orderIntervals } from "./kitchen-assignment";
 
 export type InitCheckout = {
   /** Order nonce */
   nonce: number
   /**
-   * Intervals during which an order can be placed
+   * When the order can be had: `[from, to]` in Unix seconds, from now to the latest moment it may be for, by the hours
+   * of its kitchens (a delivery) or of its point (pickup, dine-in). Empty - never (no address or point yet, closed for
+   * the whole limit).
    * */
   worktimeIntervals: [number, number][]
-  
-  /**
-   * Will it be possible to order as quickly as possible?
-   * null means no explicit restriction — frontend should decide based on worktimeIntervals.
-   */
-  allowSoonAsPossible: boolean | null
 
-  /**
-   * Allow order by time
-   * null means no explicit restriction — frontend should decide based on worktimeIntervals.
-   */
-  allowOrderToTime: boolean | null
+  /** Whether the order can be had as soon as possible: an interval holds now. */
+  allowSoonAsPossible: boolean
+
+  /** Whether the order can be had by a time: there is an interval. */
+  allowOrderToTime: boolean
 
   /**
    * Above the expenditure of bonuses on a check of a piece that will be shown to the user
@@ -44,11 +41,17 @@ export class OrderHelper {
 
   }
 
+  /**
+   * What the checkout of an order may offer. The time - by the hours of the kitchens only: `worktimeIntervals` are
+   * the moments the order can be had (`orderIntervals`), "as soon as possible" - one of them is now.
+   */
   public static async initCheckout(populatedOrder: OrderRecord): Promise<InitCheckout> {
+    const now = new Date();
+    const intervals = await orderIntervals(populatedOrder, now);
     let initCheckout: InitCheckout = {
-      worktimeIntervals: [],
-      allowSoonAsPossible: null,
-      allowOrderToTime: null,
+      worktimeIntervals: intervals,
+      allowSoonAsPossible: intervals.length > 0 && intervals[0][0] <= Math.floor(now.getTime() / 1000),
+      allowOrderToTime: intervals.length > 0,
       nonce: 0,
       bonusBannerHTMLChunk: null,
       minCookingTimeInMinutes: 0,

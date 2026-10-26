@@ -77,7 +77,7 @@ export function registerSettingsTools() {
         schema: {
             type: 'object',
             properties: {
-                key: { type: 'string', description: 'Setting key, e.g. "WORK_TIME".', example: 'WORK_TIME' },
+                key: { type: 'string', description: 'Setting key, e.g. "TZ".', example: 'TZ' },
             },
             required: ['key'],
         },
@@ -99,11 +99,11 @@ export function registerSettingsTools() {
         description:
             'Updates a setting value. Value is validated against jsonSchema before saving.\n\n'
             + 'Call settings-get first to see the expected type and schema.\n\n'
-            + 'Delivery terms (cost, minimum order, free delivery, time) are not settings: each delivery zone carries its own.\n\n'
+            + 'Delivery terms (cost, minimum order, free delivery, time) are not settings: each delivery zone carries its own.\n'
+            + 'Hours are not settings either: each kitchen (place) carries its own work time.\n\n'
             + 'Common examples:\n'
             + '  Safety margin:      { key: "DELIVERY_SAFETY_MARGIN_MINUTES", value: 10 }\n'
             + '  Order ahead limit:  { key: "POSSIBLE_TO_ORDER_IN_MINUTES", value: 1440 }\n'
-            + '  Work hours:         { key: "WORK_TIME", value: [{ dayOfWeek: ["monday",...], start: "10:00", stop: "22:00", break: "00:00-00:00" }] }\n'
             + '  Currency symbol:    { key: "CURRENCY_SIGN", value: "₽" }',
         mode: 'protected',
         schema: {

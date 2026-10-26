@@ -1,4 +1,3 @@
-import { openByHours } from "../../../lib/hours";
 import OrderAddress from "../../../interfaces/OrderAddress";
 import { Delivery } from "../../../interfaces/Delivery";
 import { Adapter } from "../../index";
@@ -82,7 +81,7 @@ async function deliveryItemPrice(item: string): Promise<number> {
 
 type ZoneTerms = Pick<
   Delivery,
-  "zoneId" | "zoneName" | "minOrderTotal" | "freeDeliveryFrom" | "deliveryCost" | "zoneOpen" | "zoneWorktime" | "zoneDescription"
+  "zoneId" | "zoneName" | "minOrderTotal" | "freeDeliveryFrom" | "deliveryCost" | "zoneDescription"
 >;
 
 /**
@@ -103,15 +102,8 @@ async function zoneTerms(zone: DeliveryZoneRecord): Promise<ZoneTerms> {
     freeDeliveryFrom: positive(zone.freeDeliveryFrom),
     // A delivery product and a delivery cost are alternatives, as below.
     deliveryCost: zone.deliveryItem ? await deliveryItemPrice(zone.deliveryItem as string) : zone.deliveryCost ?? 0,
-    zoneOpen: zoneIsOpen(zone),
-    zoneWorktime: zone.worktime?.length ? zone.worktime : null,
     zoneDescription: zone.description || null,
   };
-}
-
-/** Whether the zone accepts orders at a moment - by default, this one. A switched-off zone never gets here: `findServing` drops it. */
-export function zoneIsOpen(zone: DeliveryZoneRecord, at?: Date): boolean {
-  return openByHours(zone.worktime, at);
 }
 
 /**
@@ -126,18 +118,6 @@ export async function applyZone(
   diagnostics: string[] = [],
 ): Promise<Delivery> {
   const terms = await zoneTerms(zone);
-
-  if (!terms.zoneOpen) {
-    return {
-      allowed: false,
-      deliveryTimeMinutes: zone.minDeliveryTime ?? null,
-      cost: 0,
-      item: undefined,
-      message: "At the moment, the delivery area does not work, try it later",
-      ...terms,
-      diagnostics,
-    };
-  }
 
   if (basketTotal < (zone.minOrderTotal ?? 0)) {
     return {

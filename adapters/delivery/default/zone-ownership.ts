@@ -37,7 +37,6 @@ export const OPERATOR_OWNED_FIELDS = [
   // Whether a layer prices its zones is an operator's answer about a folder,
   // not something the folder states.
   "termsApplyToZones",
-  "worktime",
   "minDeliveryTime",
   "minOrderTotal",
   "freeDeliveryFrom",

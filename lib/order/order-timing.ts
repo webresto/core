@@ -98,6 +98,15 @@ export async function estimateDeliveryTime(
   };
 }
 
+/**
+ * The latest moment an order may be for: now and `POSSIBLE_TO_ORDER_IN_MINUTES` - unset, a week, the default the
+ * storefront gets in `Restrictions.possibleToOrderInMinutes` (graphql).
+ */
+export async function getOrderDateLimit(now: Date = new Date()): Promise<Date> {
+  const minutes = Number(await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES")) || 7 * 24 * 60;
+  return new Date(now.getTime() + minutes * 60_000);
+}
+
 export type OrderTimingCode = "ORDER_TIMING_AMBIGUOUS" | "ORDER_WAIT_TOO_SHORT";
 
 export interface OrderTiming {

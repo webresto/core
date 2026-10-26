@@ -1,6 +1,6 @@
 /**
- * Opening and closing by the hours. A point, a delivery zone or a promotion with hours opens and closes with no write,
- * so no hook of its model tells a storefront that the menu of a kitchen, the terms of an address or the prices turned.
+ * Opening and closing by the hours. A point or a promotion with hours opens and closes with no write,
+ * so no hook of its model tells a storefront that the menu of a kitchen or the prices turned.
  * Once a minute the sweep asks every kind of record with hours what is open now and, for what turned since the sweep
  * before, raises the event a write of it would - a storefront asks again what it shows.
  *

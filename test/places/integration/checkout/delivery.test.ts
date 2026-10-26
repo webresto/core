@@ -2,7 +2,8 @@ import { expect } from "chai";
 import { deliveryForAddress, KITCHEN_LOG } from "../../../../lib/order/kitchen-assignment";
 import { geocoder } from "../../support/geocoder";
 import { resetDatabase, withSettings } from "../../support/reset";
-import { add, checkout, deliverTo, lines, newBasket, thrown, updateOrder } from "../../support/storefront";
+import { add, checkout, deliverTo, lines, newBasket, pickUpAt, thrown, updateOrder } from "../../support/storefront";
+import { OrderHelper } from "../../../../lib/order/OrderHelper";
 
 /**
  * Delivery: the address picks the zone, the zone picks the kitchen that stands
@@ -259,6 +260,116 @@ describe("checkout: delivery", function () {
         const assigned = (await Order.getLogs({ id })).find((entry) => entry.message === KITCHEN_LOG.assigned);
         expect(assigned?.data.strategy).to.equal("single-point");
       });
+    });
+
+    it("with one kitchen, closed at the moment of the order, nobody takes a delivery", async function () {
+      const id = await newBasket();
+      await add(id, await dishId("Dish 1"));
+      await withKitchens({ [kitchen2]: { isCookingPoint: false }, [kitchen1]: { worktime: CLOSED } }, async () => {
+        expect((await deliverTo(id, at(null))).cookingPoints).to.deep.equal([]);
+        expect(await thrown(checkout(id))).to.deep.equal({ code: 26, error: "NO_KITCHEN" });
+      });
+    });
+
+    it("the kitchen of a basket closed: adding a dish asks the chain again, and an open kitchen takes the basket", async function () {
+      const id = await newBasket();
+      await add(id, await dishId("Dish 1"));
+      expect((await deliverTo(id, at(IN_ZONE_1))).cookingPoints).to.deep.equal([kitchen1]);
+      await withKitchens({ [kitchen1]: { worktime: CLOSED } }, async () => {
+        await add(id, await dishId("Dish 1"));
+
+        expect((await Order.findOne({ id })).cookingPoints).to.deep.equal([kitchen2]);
+        expect(await lines(id)).to.deep.equal({ "Dish 1": 2 });
+      });
+    });
+
+    /** When an order can be had - initCheckout: the hours of the kitchens that take its address, or of its point. */
+    describe("when the order can be had", function () {
+      const seconds = (moment: Date) => Math.floor(moment.getTime() / 1000);
+      /** The next `time` today or tomorrow, by the process clock - the restaurant's. */
+      function next(time: string): Date {
+        const [hour, minute] = time.split(":").map(Number);
+        const moment = new Date();
+        moment.setHours(hour, minute, 0, 0);
+        if (moment.getTime() <= Date.now()) moment.setDate(moment.getDate() + 1);
+        return moment;
+      }
+      // two hours away from now either way: closed now, open later - today, or tomorrow at night
+      const [start, stop] = new Date().getHours() < 12 ? ["14:00", "16:00"] : ["03:00", "05:00"];
+      const LATER = [{ dayOfWeek: CLOSED[0].dayOfWeek, start, stop }];
+      const initCheckout = async (id: string) => OrderHelper.initCheckout(await Order.populate({ id }));
+      const limitSeconds = async () => Number(await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES")) * 60;
+
+      it("a kitchen takes the address now and all along: one interval from now to the limit", async function () {
+        const id = await newBasket();
+        await add(id, await dishId("Dish 1"));
+        await deliverTo(id, at(IN_ZONE_2));
+        const answer = await initCheckout(id);
+
+        expect(answer).to.include({ allowSoonAsPossible: true, allowOrderToTime: true });
+        expect(answer.worktimeIntervals).to.have.length(1);
+        const [[from, to]] = answer.worktimeIntervals;
+        expect(from).to.be.closeTo(seconds(new Date()), 5);
+        expect(to - from).to.be.closeTo(await limitSeconds(), 5);
+      });
+
+      it("the kitchens of the address work later: a window a day, not now", async function () {
+        const id = await newBasket();
+        await add(id, await dishId("Dish 1"));
+        await withKitchens({ [kitchen1]: { worktime: LATER }, [kitchen2]: { worktime: LATER } }, async () => {
+          await deliverTo(id, at(IN_ZONE_2));
+          const answer = await initCheckout(id);
+
+          expect(answer).to.include({ allowSoonAsPossible: false, allowOrderToTime: true });
+          expect(answer.worktimeIntervals[0]).to.deep.equal([seconds(next(start)), seconds(next(stop))]);
+          const days = (await limitSeconds()) / 86400;
+          expect(answer.worktimeIntervals.length).to.be.within(days - 1, days + 1);
+        });
+      });
+
+      it("only the kitchen of the zone takes the address: its hours, not the other kitchen's", async function () {
+        const id = await newBasket();
+        await add(id, await dishId("Dish 1"));
+        await withSettings({ KITCHEN_RESOLVE_CHAIN: ["delivery-zone"] }, async () => {
+          await withKitchens({ [kitchen2]: { worktime: LATER } }, async () => {
+            await deliverTo(id, at(IN_ZONE_2));
+            const answer = await initCheckout(id);
+
+            expect(answer).to.include({ allowSoonAsPossible: false, allowOrderToTime: true });
+            expect(answer.worktimeIntervals[0]).to.deep.equal([seconds(next(start)), seconds(next(stop))]);
+          });
+        });
+      });
+
+      it("pickup: the hours of its point", async function () {
+        const id = await newBasket();
+        await add(id, await dishId("Dish 1"));
+        await withKitchens({ [kitchen1]: { worktime: LATER } }, async () => {
+          await pickUpAt(id, kitchen1);
+          const answer = await initCheckout(id);
+
+          expect(answer).to.include({ allowSoonAsPossible: false, allowOrderToTime: true });
+          expect(answer.worktimeIntervals[0]).to.deep.equal([seconds(next(start)), seconds(next(stop))]);
+        });
+      });
+
+      it("no address and no point yet: never", async function () {
+        const answer = await initCheckout(await newBasket());
+        expect(answer).to.deep.include({ worktimeIntervals: [], allowSoonAsPossible: false, allowOrderToTime: false });
+      });
+    });
+  });
+
+  it("with soft calculation an order can be had all along: an operator finds a kitchen", async function () {
+    const id = await newBasket();
+    await add(id, await dishId("Dish 1"));
+    const CLOSED_NOW = [{ dayOfWeek: CLOSED[0].dayOfWeek, start: "00:00", stop: "00:01" }];
+    await withKitchens({ [kitchen1]: { worktime: CLOSED_NOW }, [kitchen2]: { worktime: CLOSED_NOW } }, async () => {
+      await deliverTo(id, at(IN_ZONE_2));
+      const answer = await OrderHelper.initCheckout(await Order.populate({ id }));
+
+      expect(answer).to.include({ allowSoonAsPossible: true, allowOrderToTime: true });
+      expect(answer.worktimeIntervals).to.have.length(1);
     });
   });
 });

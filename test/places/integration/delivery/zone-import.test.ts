@@ -88,7 +88,7 @@ describe("Delivery zone import", function () {
     await existing({
       externalId: "external-1", name: "Zone 1",
       deliveryCost: 300, deliveryItem: "dish-1", minOrderTotal: 500, freeDeliveryFrom: 2000,
-      enable: false, sortOrder: 7, worktime: [{ dayOfWeek: "monday" }],
+      enable: false, sortOrder: 7, minDeliveryTime: 45,
       description: "operator wrote this", customData: { note: "keep" },
     });
 
@@ -97,9 +97,8 @@ describe("Delivery zone import", function () {
     const zone = await row("external-1");
     expect(zone).to.include({
       deliveryCost: 300, deliveryItem: "dish-1", minOrderTotal: 500, freeDeliveryFrom: 2000,
-      enable: false, sortOrder: 7, description: "operator wrote this",
+      enable: false, sortOrder: 7, minDeliveryTime: 45, description: "operator wrote this",
     });
-    expect(zone.worktime).to.deep.equal([{ dayOfWeek: "monday" }]);
     expect(zone.customData).to.deep.equal({ note: "keep" });
     // The name is the source's; the description is not, operators write terms into it.
     expect(zone.name).to.equal("Zone 1 renamed");

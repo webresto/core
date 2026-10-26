@@ -82,8 +82,7 @@ export function isEnabledKitchen(place: any): boolean {
  * noon must be judged against tomorrow noon, and the clock's answer today would
  * refuse or accept it for the wrong reason.
  *
- * A point with no schedule is treated as always open, which is how zones with
- * no `worktime` already behave.
+ * A point with no schedule is treated as always open.
  */
 export function placeIsOpen(place: any, at?: Date): boolean {
   if (!place || place.enable === false) return false;

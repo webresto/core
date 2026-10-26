@@ -1,7 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { ConfirmDialog } from './components/ConfirmDialog';
-import WorktimeEditor from './components/WorktimeEditor';
 import {
   styles, toast, notificationsApi as api, useIsMobile, ModuleToaster,
 } from './components/notifications/shared';
@@ -76,7 +75,6 @@ const EMPTY_DRAFT = {
   enable: true,
   sortOrder: 0,
   polygon: [],
-  worktime: [],
   minDeliveryTime: '',
   minOrderTotal: '',
   freeDeliveryFrom: '',
@@ -329,19 +327,6 @@ function TariffDialog({ zone, layerName, layerTerms, canManage, onSave, onClose,
                 <span style={styles.help}>{t('Switching a layer off takes its zones with it')}</span>
               )}
             </div>
-
-            {!inherited && (
-              <div style={styles.field}>
-                <Label style={styles.fieldLabel}>{t('Work Time')}</Label>
-                <WorktimeEditor
-                  value={draft.worktime}
-                  onChange={(value) => setField('worktime', value)}
-                  disabled={!editable}
-                  t={t}
-                />
-                <span style={styles.help}>{t('Empty means the zone takes orders whenever the installation does')}</span>
-              </div>
-            )}
           </div>
 
           <DialogStackFooter>
@@ -1281,7 +1266,7 @@ function DeliveryZonesContent({ canManage }) {
           {locked && (
             <div style={{ padding: '8px 12px' }}>
               <span style={styles.help}>
-                {t('Name and polygon are maintained in the source and would be overwritten by the next run. Delivery terms, working hours and the kitchen are yours to change here.')}
+                {t('Name and polygon are maintained in the source and would be overwritten by the next run. Delivery terms and the kitchen are yours to change here.')}
                 {citySourceUrl ? ' ' : ''}
                 {citySourceUrl && (
                   <a href={citySourceUrl} target="_blank" rel="noreferrer">{t('Open the source')}</a>

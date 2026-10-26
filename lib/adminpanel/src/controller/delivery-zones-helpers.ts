@@ -54,7 +54,6 @@ export function toZoneView(zone: DeliveryZoneRecord, ownership: ZoneOwnership) {
     enable: zone.enable !== false,
     sortOrder: zone.sortOrder ?? 0,
     polygon: zone.polygon ?? [],
-    worktime: zone.worktime ?? [],
     minDeliveryTime: zone.minDeliveryTime ?? null,
     minOrderTotal: zone.minOrderTotal ?? null,
     freeDeliveryFrom: zone.freeDeliveryFrom ?? null,
@@ -134,7 +133,6 @@ export function readZoneInput(body: any): ZoneInputResult {
     // Sent by every row and read off layers only, which is where it means
     // anything. A zone carrying `true` lends its terms to nothing.
     termsApplyToZones: body.termsApplyToZones !== false,
-    worktime: Array.isArray(body.worktime) ? body.worktime : [],
     minDeliveryTime: toNumberOrNull(body.minDeliveryTime) as any,
     minOrderTotal: toNumberOrNull(body.minOrderTotal) as any,
     freeDeliveryFrom: toNumberOrNull(body.freeDeliveryFrom) as any,

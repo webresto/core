@@ -124,8 +124,7 @@ export default async function () {
     // The built-in delivery adapter's zone sync and its setup checkup.
     await startDefaultDelivery();
 
-    // Points and promotions with hours open and close with no write: the sweep tells a storefront, as it does the
-    // zones of the delivery adapter (lib/hours-sweep).
+    // Points and promotions with hours open and close with no write: the sweep tells a storefront (lib/hours-sweep).
     addHoursSubject({
       name: "place",
       read: async () => (await Place.find({})).filter((place) => place.enable !== false && hasHours(place.worktime)),

@@ -2,9 +2,11 @@ import { Adapter } from "../../adapters";
 import { Delivery, DeliveryCoordinate } from "../../interfaces/Delivery";
 import OrderAddress from "../../interfaces/OrderAddress";
 import { OrderRecord } from "../../models/Order";
-import { primaryCookingPoint, toPlaceId } from "../menu/cooking-place";
+import { placeIsOpen, primaryCookingPoint, toPlaceId } from "../menu/cooking-place";
 import { KitchenResolution } from "../../interfaces/Menu";
 import type { WorkTime } from "@webresto/worktime";
+import { hoursBounds } from "../hours";
+import { getOrderDateLimit } from "./order-timing";
 
 /**
  * Giving an order its kitchen.
@@ -122,6 +124,56 @@ export async function kitchenOpensAt(coordinate: DeliveryCoordinate, city: strin
     if (await takes(new Date(moment))) return orderDate(new Date(moment));
   }
   return undefined;
+}
+
+/**
+ * When an order can be had (`InitCheckout.worktimeIntervals`): `[from, to]` in Unix seconds, from now to the latest
+ * moment it may be for (`getOrderDateLimit`). A delivery - while the chain finds a kitchen for its address, asked as for
+ * an order by that time; with soft calculation the order passes without one (an operator takes it), so all of it.
+ * Pickup and dine-in - while its point is open. No address or point - none.
+ *
+ * Between two bounds of the hours of the kitchens the same ones are open, so the answer is the same: the chain is asked
+ * once for each set of open kitchens.
+ */
+export async function orderIntervals(order: OrderRecord, now: Date = new Date()): Promise<Array<[number, number]>> {
+  const limit = await getOrderDateLimit(now);
+  const seconds = (moment: number) => Math.floor(moment / 1000);
+  let places: any[];
+  let served: (at: Date, open: any[]) => Promise<boolean>;
+
+  if (order.serviceType === "pickup" || order.serviceType === "dine-in") {
+    const pointId = toPlaceId(order.pickupPoint);
+    const point = pointId ? await Place.findOne!({ id: pointId }) : null;
+    if (!point) return [];
+    places = [point];
+    served = async (_at, open) => open.length > 0;
+  } else {
+    if (!order.address) return [];
+    if (await Settings.get("SOFT_DELIVERY_CALCULATION")) return [[seconds(now.getTime()), seconds(limit.getTime())]];
+    const coordinate = (await (await Adapter.get("geo")).locate(order.address)).coordinate;
+    if (!coordinate) return [];
+
+    const menu = await Adapter.get("menu");
+    const city = order.address.city ?? null;
+    const answers = new Map<string, boolean>();
+    places = await Place.find!({ enable: true, isCookingPoint: true });
+    served = async (at, open) => {
+      const key = open.map((place) => String(place.id)).sort().join();
+      if (!answers.has(key)) answers.set(key, !!(await menu.resolveCookingPlace({ serviceType: "delivery", coordinate, city, at })).placeId);
+      return answers.get(key)!;
+    };
+  }
+
+  const bounds = [...new Set([now.getTime(), ...places.flatMap((place) => hoursBounds(place.worktime, now, limit)), limit.getTime()])].sort((a, b) => a - b);
+  const intervals: Array<[number, number]> = [];
+  for (let index = 0; index < bounds.length - 1; index++) {
+    const at = new Date(bounds[index]);
+    if (!(await served(at, places.filter((place) => placeIsOpen(place, at))))) continue;
+    const last = intervals[intervals.length - 1];
+    if (last && last[1] === seconds(bounds[index])) last[1] = seconds(bounds[index + 1]);
+    else intervals.push([seconds(bounds[index]), seconds(bounds[index + 1])]);
+  }
+  return intervals;
 }
 
 /**

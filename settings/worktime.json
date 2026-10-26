@@ -1,8 +1,8 @@
 {
   "key": "WORK_TIME",
   "type": "json",
-  "name": "Work Time",
-  "description": "Complex object, required",
+  "name": "Work Time (deprecated)",
+  "description": "Deprecated: not read anywhere. Hours are the kitchens' only (the work time of a place).",
   "defaultValue": [
     {
       "dayOfWeek": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],

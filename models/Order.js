@@ -405,8 +405,15 @@ let Model = {
         // The basket reads stock at the point the menu was read at, and asks the same
         // adapter for it. Two answers to "which kitchen" is how a customer ends up
         // adding a product they were shown and cannot have.
-        const basket = await Order.findOne(criteria);
-        const menuContext = await (await Adapter.get("menu")).resolveContext({ order: basket });
+        let basket = await Order.findOne(criteria);
+        let menuContext = await (await Adapter.get("menu")).resolveContext({ order: basket });
+        // The kitchen of the order closed since it was chosen - hours turn with no
+        // write. The recount asks the chain again (a kitchen open now, or at the
+        // order's time) before a product is judged by the closed one.
+        if (menuContext.code === "PLACE_CLOSED" && basket && (0, cooking_place_1.primaryCookingPoint)(basket)) {
+            basket = await Order.countCart({ id: basket.id });
+            menuContext = await (await Adapter.get("menu")).resolveContext({ order: basket });
+        }
         // A mode that ties the menu to a point, with no point to tie it to, cannot
         // say whether this product is sellable — and must not guess. The default mode
         // never reaches here: it has no such requirement and `code` stays unset.
@@ -2768,8 +2775,8 @@ async function checkDate(order) {
             };
         }
     }
-    // The timezone is mandatory to place an order: every date check below (worktime,
-    // "date is past", min delivery time, maintenance) is meaningless without it.
+    // The timezone is mandatory to place an order: every date check below (the hours
+    // of the point, "date is past", min delivery time, maintenance) is meaningless without it.
     // If it is not configured, refuse the order and shout loudly in the log.
     const timezone = await getTimezone();
     if (!timezone) {
@@ -2782,9 +2789,8 @@ async function checkDate(order) {
             '╚════════════════════════════════════════════════════════════════════╝');
         throw { code: 19, error: 'Server timezone is not configured, ordering is disabled' };
     }
-    // A zone the worktime resolver cannot read makes every date check below throw; the
-    // WORK_TIME one is caught and only logged, so the order used to go through with no
-    // work-time check at all. Treat it like a missing timezone: refuse, loudly.
+    // A zone the worktime resolver cannot read makes every date check below throw and
+    // the hours of the kitchens unreadable. Treat it like a missing timezone: refuse, loudly.
     if (!(0, timezone_1.isTimezoneSupported)(timezone)) {
         sails.log.error(`Order > checkDate: timezone [${timezone}] is unknown to @webresto/worktime, orders are refused. ` +
             `Choose another value in Settings > TZ (or the TZ env var)`);
@@ -2792,7 +2798,6 @@ async function checkDate(order) {
     }
     // order.date is the wall-clock time of the restaurant ("YYYY-MM-DD HH:mm"), in the
     // TZ setting. It is read in that timezone, not in the process one (utils/zonedTime).
-    const orderWall = order.date ? (0, zonedTime_1.parseWallClock)(order.date) : null;
     let orderInstant = null;
     if (order.date) {
         try {
@@ -2809,27 +2814,6 @@ async function checkDate(order) {
                 error: "date is not valid",
             };
         }
-    }
-    // Global worktime restriction via WORK_TIME settings.
-    // Runs for ASAP orders too (order.date may be empty), otherwise the check below
-    // — guarded by `if (order.date)` — would be skipped entirely for "as soon as possible" orders.
-    // ASAP orders are checked against the current time, orders to time — against order.date,
-    // so a customer can place an order while the place is closed for a time within work hours.
-    // An order to time may be exactly at opening or closing: the storefront offers these slots.
-    try {
-        const WORK_TIME = await Settings.get('WORK_TIME');
-        if (WORK_TIME) {
-            const wall = order.date ? (orderWall ?? (0, zonedTime_1.wallClockAt)(orderInstant, timezone)) : (0, zonedTime_1.wallClockAt)(new Date(), timezone);
-            if (!(0, zonedTime_1.isOpenAt)(WORK_TIME, wall, { inclusive: Boolean(order.date) })) {
-                throw { code: 18, error: 'Order date is outside work time' };
-            }
-        }
-    }
-    catch (e) {
-        // Re-throw the intentional worktime block; only swallow validator/settings failures.
-        if (e && e.code === 18)
-            throw e;
-        sails.log.error('Order > checkDate > WORK_TIME validation error:', e);
     }
     await checkPickupPoint(order, order.date ? new Date(order.date) : undefined);
     if (order.date) {
@@ -2852,7 +2836,7 @@ async function checkDate(order) {
             };
         }
         // Limit order date
-        const possibleDatetime = await getOrderDateLimit();
+        const possibleDatetime = await (0, order_timing_1.getOrderDateLimit)();
         if (orderInstant.getTime() > possibleDatetime.getTime()) {
             sails.log.error(`Order checkDate: ${orderInstant.getTime()} > ${possibleDatetime.getTime()}`);
             throw {
@@ -2869,20 +2853,6 @@ async function checkDate(order) {
             };
         }
     }
-}
-/**
- * Return Date in future
- * default 1 day
- */
-// TODO: refactor possibleToOrderInMinutes from seconds to full work days
-async function getOrderDateLimit() {
-    let date = new Date();
-    // The same default as the storefront gets in Restrictions.possibleToOrderInMinutes (graphql)
-    let possibleToOrderInMinutes = Number(await Settings.get("POSSIBLE_TO_ORDER_IN_MINUTES")); //minutes
-    if (!possibleToOrderInMinutes)
-        possibleToOrderInMinutes = 7 * 24 * 60;
-    date.setSeconds(date.getSeconds() + (possibleToOrderInMinutes * 60));
-    return date;
 }
 /**
  * How many units of a line its modifiers have stock for in this context.

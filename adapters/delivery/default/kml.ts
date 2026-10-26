@@ -59,7 +59,7 @@ function layerIdOf(name: string): string {
  *
  * `name` is offered but never chosen automatically. Renaming a zone in the map
  * would then look like deleting one and creating another, and every manual
- * setting attached to the old row — kitchen, tariff, worktime — would be
+ * setting attached to the old row — kitchen, tariff — would be
  * stranded on a zone the source no longer lists.
  */
 export type ExternalIdSource = "placemark-id" | "extended-data" | "name";

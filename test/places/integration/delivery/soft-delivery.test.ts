@@ -130,7 +130,7 @@ describe("Soft delivery calculation", function () {
         // No zone answered, so there is no zone to name and no terms to quote.
         for (const answer of [ability, calculated]) {
           expect(answer).to.not.have.any.keys(
-            "zoneId", "zoneName", "minOrderTotal", "freeDeliveryFrom", "deliveryCost", "zoneOpen", "zoneWorktime", "zoneDescription",
+            "zoneId", "zoneName", "minOrderTotal", "freeDeliveryFrom", "deliveryCost", "zoneDescription",
           );
         }
       });

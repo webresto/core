@@ -52,8 +52,6 @@ let attributes = {
         type: "boolean",
         defaultsTo: true,
     },
-    /** When the zone accepts orders. Empty means "always". */
-    worktime: "json",
     /**
      * The four commercial numbers, and all four are nullable columns.
      *
@@ -128,7 +126,7 @@ let attributes = {
      * because the map's author put them in one folder is not a decision anybody
      * made. So it is asked rather than assumed.
      *
-     * On, which is the default, the seven term fields below come from the layer
+     * On, which is the default, the six term fields below come from the layer
      * and the zones' own copies are ignored. Off, the layer only groups, and each
      * zone is priced on its own.
      *

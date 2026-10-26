@@ -4,7 +4,6 @@
  * Nothing here imports anything but a shape: contracts describe shapes, they do
  * not reach for models, settings or adapters.
  */
-import type { WorkTime } from "@webresto/worktime";
 
 /**
  * **Soft delivery calculation**
@@ -74,10 +73,6 @@ export interface Delivery {
    * is a free delivery, not an unset one.
    */
   deliveryCost?: number
-  /** Whether the zone takes orders now, by `zoneWorktime`. */
-  zoneOpen?: boolean
-  /** When the zone takes orders. `null` — always. */
-  zoneWorktime?: WorkTime[] | null
   /**
    * The kitchens that take this address are closed now: when the first opens and takes it, the order date by the
    * restaurant's clock (`YYYY-MM-DD HH:mm`). `null` — a kitchen takes it now. Asked about an address alone

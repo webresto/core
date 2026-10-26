@@ -1,7 +1,6 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
-import { WorkTime } from "@webresto/worktime";
 import { DishRecord } from "./Dish";
 import { CityRecord } from "./City";
 import { invalidateDeliveryZoneCache } from "../adapters/delivery/default/zone-cache";
@@ -61,9 +60,6 @@ let attributes = {
     type: "boolean",
     defaultsTo: true,
   } as unknown as boolean,
-
-  /** When the zone accepts orders. Empty means "always". */
-  worktime: "json" as unknown as WorkTime[],
 
   /**
    * The four commercial numbers, and all four are nullable columns.
@@ -147,7 +143,7 @@ let attributes = {
    * because the map's author put them in one folder is not a decision anybody
    * made. So it is asked rather than assumed.
    *
-   * On, which is the default, the seven term fields below come from the layer
+   * On, which is the default, the six term fields below come from the layer
    * and the zones' own copies are ignored. Off, the layer only groups, and each
    * zone is priced on its own.
    *

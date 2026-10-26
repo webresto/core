@@ -5,9 +5,8 @@
  * Settings come from core's manifests, as on a fresh installation. Tests start
  * once core has finished its boot (`restocore:ready`), not merely after lift.
  * The default geo adapter asks a test geocoder (`./geocoder`), never the network.
- * The installation's own working hours (`WORK_TIME`, 10:00–20:00 out of the
- * box) are lifted, so a checkout does not depend on the hour the run starts; a
- * test about working hours sets them.
+ * Hours are the kitchens' only: a kitchen without them is always open, and a
+ * test about hours gives them to its kitchens.
  * Sails logs nothing unless `LOG_LEVEL` says otherwise (`LOG_LEVEL=error`).
  * The locales are a copy: Sails' i18n writes every phrase it meets back into
  * its files outside production, and the fixture's must stay as committed.
@@ -33,10 +32,6 @@ export const mochaHooks = {
       sails.lift({ port: 0, log: { level: process.env.LOG_LEVEL || "silent" }, i18n: { localesDirectory: locales } }, (error: unknown) => error && reject(error));
     });
     attachGeocoder();
-    // Round the clock, as far as the setting can say it: an empty value falls
-    // back to the manifest's hours, and a day cannot end later than 23:59.
-    const everyDay = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-    await Settings.set("WORK_TIME", { value: [{ dayOfWeek: everyDay, start: "00:00", stop: "23:59" }] });
     await snapshotSettings();
   },
   async afterAll(this: Mocha.Context) {

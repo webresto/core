@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { resetDatabase, withSettings } from "../../support/reset";
+import { resetDatabase } from "../../support/reset";
 import { add, CUSTOMER, deliverTo, newBasket, pickUpAt, thrown, updateOrder } from "../../support/storefront";
 
 /**
@@ -181,50 +181,6 @@ describe("Checkout: check and order", function () {
     } finally {
       await Maintenance.destroy({ id: maintenance.id }).fetch();
     }
-  });
-
-  /**
-   * `WORK_TIME`, the hours of the whole restaurant, at the moment the order is
-   * for. The hours are one hour twelve hours from now, so "now" is closed.
-   */
-  describe("the restaurant's hours", function () {
-    const everyDay = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const open = (new Date().getHours() + 12) % 24;
-    const HOURS = [{ dayOfWeek: everyDay, start: `${pad(open)}:00`, stop: open === 23 ? "23:59" : `${pad(open + 1)}:00` }];
-
-    /** The next `hour`:30 at least two hours ahead, as the storefront sends it: the restaurant's "YYYY-MM-DD HH:mm". */
-    function nextAt(hour: number): string {
-      const at = new Date();
-      at.setHours(hour, 30, 0, 0);
-      while (at.getTime() < Date.now() + 2 * 60 * 60 * 1000) at.setDate(at.getDate() + 1);
-      return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`;
-    }
-
-    /** A pickup basket checked out for `date`, or as soon as possible without one. */
-    async function checkFor(date: string | null) {
-      const id = await pickupBasket();
-      if (date) await updateOrder(id, { date });
-      return check(id, CUSTOMER, "pickup");
-    }
-
-    it("takes an order for a time inside them while the restaurant is closed now", async function () {
-      await withSettings({ WORK_TIME: HOURS }, async () => {
-        expect(await checkFor(nextAt(open))).to.equal(null);
-      });
-    });
-
-    it("refuses an order for a time outside them", async function () {
-      await withSettings({ WORK_TIME: HOURS }, async () => {
-        expect(await checkFor(nextAt((open + 6) % 24))).to.deep.include({ code: 18 });
-      });
-    });
-
-    it("refuses an order as soon as possible while the restaurant is closed", async function () {
-      await withSettings({ WORK_TIME: HOURS }, async () => {
-        expect(await checkFor(null)).to.deep.include({ code: 18 });
-      });
-    });
   });
 
   describe("placing the order", function () {

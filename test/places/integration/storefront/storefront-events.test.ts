@@ -11,7 +11,7 @@ import { stopHoursSweep, sweepHours } from "../../../../lib/hours-sweep";
  * pay; what opens and closes by the hours, with no write, is told by the sweep of the hours.
  *
  *   City 1: Kitchen 1 (10:00–20:00 every day), Kitchen 2 (no hours). Group 1: Dish 1.
- *   Zone 1 and Promotion 1 - 10:00–20:00 every day.
+ *   Zone 1 (no hours: zones have none). Promotion 1 - 10:00–20:00 every day.
  */
 describe("Storefront events", function () {
   const EVENTS = [
@@ -57,7 +57,7 @@ describe("Storefront events", function () {
     r.kitchen2 = await Place.create({ title: "Kitchen 2", city: r.city.id, enable: true, isCookingPoint: true }).fetch();
     r.group1 = await Group.create({ name: "Group 1", enable: true }).fetch();
     r.dish1 = await Dish.create({ name: "Dish 1", price: 100, enable: true, parentGroup: r.group1.id }).fetch();
-    r.zone1 = await DeliveryZone.create({ name: "Zone 1", polygon: ZONE, deliveryCost: 100, minDeliveryTime: 30, worktime: HOURS } as any).fetch();
+    r.zone1 = await DeliveryZone.create({ name: "Zone 1", polygon: ZONE, deliveryCost: 100, minDeliveryTime: 30 } as any).fetch();
     await Promotion.createOrUpdate({
       id: "promotion-1", name: "Promotion 1", badge: "badge-1", description: "Description 1", externalId: "promotion-1",
       isJoint: true, isPublic: true, createdByUser: true, concept: ["origin"], worktime: HOURS,
@@ -153,15 +153,15 @@ describe("Storefront events", function () {
       expect(told).to.deep.equal([]);
 
       await sweepHours(at("12:00"));
-      const turned = [`core:place-changed ${r.kitchen1.id}`, `core:promotion-changed promotion-1`, `core:delivery-zone-changed ${r.zone1.id}`];
-      expect(told).to.have.members(turned).and.have.length(3);
+      const turned = [`core:place-changed ${r.kitchen1.id}`, `core:promotion-changed promotion-1`];
+      expect(told).to.have.members(turned).and.have.length(2);
 
       told = [];
       await sweepHours(at("12:01"));
       expect(told).to.deep.equal([]);
 
       await sweepHours(at("21:00"));
-      expect(told).to.have.members(turned).and.have.length(3);
+      expect(told).to.have.members(turned).and.have.length(2);
     });
 
     it("a record without hours, or switched off, is never told", async function () {
@@ -171,7 +171,7 @@ describe("Storefront events", function () {
       told = [];
 
       await sweepHours(at("12:00"));
-      expect(told).to.deep.equal([`core:delivery-zone-changed ${r.zone1.id}`]);
+      expect(told).to.deep.equal([]);
     });
   });
 });

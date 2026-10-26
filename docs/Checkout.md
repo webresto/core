@@ -73,9 +73,9 @@ Triggered when the user opens the Checkout, `InitCheckout` takes the current car
 ```ts
 initCheckout = {
   nonce: 493482,
-  worktimeIntervals: [[39600, 72000]], // 11:00–20:00 in seconds
+  worktimeIntervals: [[1761886800, 1761922800], [1761973200, 1762009200]], // Unix seconds: today 10:00–20:00, tomorrow 10:00–20:00
   allowSoonAsPossible: true,
-  allowOrderToTime: false,
+  allowOrderToTime: true,
   bonusBannerHTMLChunk: '<div>Spend your bonuses and get a discount!</div>',
   minCookingTimeInMinutes: 15,
   cookingTimeDescription: 'Prepared in 15–20 minutes',
@@ -84,28 +84,15 @@ initCheckout = {
 
 > In this example:
 >
-> * Delivery “ASAP” is allowed;
-> * Scheduled delivery is not;
-> * Delivery is only available between 11:00 and 20:00;
+> * Delivery “ASAP” is allowed (an interval holds now);
+> * Scheduled delivery is allowed within the intervals;
+> * Delivery is only available between 10:00 and 20:00, today and tomorrow;
 > * Bonus banners are shown;
 > * Minimum cooking time is 15 minutes.
 
-#### Null semantics for `allowSoonAsPossible` and `allowOrderToTime`
+#### Where the time comes from
 
-Both fields use a three-value logic:
-
-| Value   | Meaning |
-|---------|---------|
-| `true`  | Explicitly allowed by backend logic (e.g. a plugin or custom hook). |
-| `false` | Explicitly forbidden regardless of schedule. |
-| `null`  | No explicit override — frontend should decide based on `worktimeIntervals`. |
-
-The default value returned by the server is `null` for both fields. This means:
-
-* If the current time falls within `Restrictions.worktime` → frontend may allow “ASAP” ordering (`allowSoonAsPossible`).
-* If `Restrictions.worktime` contains future intervals → frontend may allow scheduled ordering (`allowOrderToTime`).
-
-A backend plugin can override either field to `true` or `false` via the `core:order-init-checkout` event to enforce business rules independent of the schedule.
+Hours are the kitchens' only (`Place.worktime`): there are no installation hours and no zone hours. `worktimeIntervals` are the moments the order can be had, from now to the latest one it may be for (`POSSIBLE_TO_ORDER_IN_MINUTES`): a delivery — while the kitchen chain finds a kitchen for its address, asked as for an order by that time (with soft delivery calculation, all of it); pickup and dine-in — while its point is open. `allowSoonAsPossible` — an interval holds now; `allowOrderToTime` — there is an interval. A module may still change the answer through the `core:order-init-checkout` event.
 
 ---
 

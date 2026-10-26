@@ -23,9 +23,9 @@ describe("Settings", function () {
   });
 
   it("keeps a json value whole", async function () {
-    const worktime = [{ dayOfWeek: ["monday"], start: "10:00", stop: "11:00" }];
-    await Settings.set("WORK_TIME", { value: worktime });
-    expect(await Settings.get("WORK_TIME")).to.deep.equal(worktime);
+    const chain = ["nearest-geo", "single-point"];
+    await Settings.set("KITCHEN_RESOLVE_CHAIN", { value: chain });
+    expect(await Settings.get("KITCHEN_RESOLVE_CHAIN")).to.deep.equal(chain);
   });
 
   it("an environment variable does not override a key this process wrote", async function () {

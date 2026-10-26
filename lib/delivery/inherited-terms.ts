@@ -11,7 +11,6 @@ import type { DeliveryZoneRecord } from "../../models/DeliveryZone";
  * "inherited" would silently move somebody's tariff.
  */
 const INHERITED_FIELDS = [
-  "worktime",
   "minDeliveryTime",
   "minOrderTotal",
   "freeDeliveryFrom",
