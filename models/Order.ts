@@ -42,7 +42,7 @@ export interface PromotionState {
 }
 
 import OrderLogHelper, { OrderLogLevel, OrderLogEntry } from "../libs/OrderLogHelper";
-import { normalizeTimezone } from "../libs/timezone";
+import { isTimezoneSupported, normalizeTimezone } from "../libs/timezone";
 export type { OrderLogLevel, OrderLogEntry };
 
 export type PaymentBack = {
@@ -2691,6 +2691,17 @@ async function checkDate(order: OrderRecord) {
       '╚════════════════════════════════════════════════════════════════════╝'
     );
     throw { code: 19, error: 'Server timezone is not configured, ordering is disabled' };
+  }
+
+  // A zone the worktime resolver cannot read makes every date check below throw; the
+  // WORK_TIME one is caught and only logged, so the order used to go through with no
+  // work-time check at all. Treat it like a missing timezone: refuse, loudly.
+  if (!isTimezoneSupported(timezone)) {
+    sails.log.error(
+      `Order > checkDate: timezone [${timezone}] is unknown to @webresto/worktime, orders are refused. ` +
+      `Choose another value in Settings > TZ (or the TZ env var)`
+    );
+    throw { code: 19, error: 'Server timezone is not supported, ordering is disabled' };
   }
 
   // order.date is the wall-clock time of the restaurant ("YYYY-MM-DD HH:mm"), in the
