@@ -58,20 +58,13 @@ export interface MenuRequest {
    * than inputs to a decision.
    */
   coordinate?: { lat: number; lon: number } | null;
-  /**
-   * Read the points whatever the hour. For what is already in a basket — its
-   * recount, its display: a kitchen closing hides its menu, it does not empty
-   * the baskets made from it. Checkout refuses a closed kitchen by itself.
-   */
-  ignoreSchedule?: boolean;
 }
 
 /**
- * `MENU_PLACE_REQUIRED` — a point was required and none could be found.
- * `PLACE_CLOSED` — every point of the menu is closed now (`Place.worktime`, or
- * switched off): nothing is offered and nothing can be added.
+ * `MENU_PLACE_REQUIRED` — a point was required and none could be found. Hours
+ * close nothing here: a closed kitchen offers its menu to a time it works at.
  */
-export type MenuContextCode = "MENU_PLACE_REQUIRED" | "PLACE_CLOSED";
+export type MenuContextCode = "MENU_PLACE_REQUIRED";
 
 /** Which points a menu is read at, and how that was decided. */
 export interface MenuContext {

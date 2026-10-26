@@ -10,7 +10,6 @@ import {
   getOrderCityKitchenIds,
   isEnabledKitchen,
   placeAcceptsOrdersNow,
-  placeIsOpen,
   primaryCookingPoint,
   readsEveryPoint,
   toPlaceId,
@@ -63,13 +62,13 @@ export default abstract class MenuAdapter {
   /**
    * The adapter's points, and the order they were resolved for.
    *
-   * Without the points closed at the moment the order is for — now, or a
-   * pre-order's date: a closed kitchen offers nothing. Every point closed is
-   * `PLACE_CLOSED`. `ignoreSchedule` skips this, for what is already in a basket.
+   * Hours do not hide a menu: a closed kitchen offers what it sells, to a time
+   * it works at. Whether "as soon as possible" is possible and which kitchen
+   * cooks at the order's time is the hours' question (`InitCheckout`, the
+   * kitchen chain), not the menu's.
    */
   public async resolveContext(request: MenuRequest): Promise<MenuContext> {
-    const context: MenuContext = { ...(await this.resolvePlaces(request)), order: request.order ?? null };
-    return request.ignoreSchedule ? context : withoutClosedPoints(context);
+    return { ...(await this.resolvePlaces(request)), order: request.order ?? null };
   }
 
   /**
@@ -141,7 +140,6 @@ export default abstract class MenuAdapter {
     products: T[],
     context: MenuContext,
   ): Promise<T[]> {
-    if (context.code === "PLACE_CLOSED" && !(await Settings.get("SHOW_UNAVAILABLE_DISHES"))) return [];
     const maxWaitMinutes = context.order?.maxWaitMinutes;
     return this.filterSellable(
       products.filter((product) => productFitsMaxWait(product, maxWaitMinutes)),
@@ -200,9 +198,6 @@ export default abstract class MenuAdapter {
     amount: number,
     context: MenuContext,
   ): Promise<ProductAvailability> {
-    if (context.code === "PLACE_CLOSED") {
-      return { productId: String(product.id), available: false, reason: "PLACE_CLOSED", balance: 0 };
-    }
     if (!context.placeIds.length) return getProductAvailability(product, null, amount);
 
     if (readsEveryPoint(context)) {
@@ -358,29 +353,6 @@ export default abstract class MenuAdapter {
     diagnostics.push("no strategy in the chain named a cooking point");
     return { placeId: null, strategy: null, diagnostics };
   }
-}
-
-/**
- * The context without its points closed at the order's moment. A union loses
- * what they would have offered; an intersection stops waiting on them — the
- * resolver never picks a closed kitchen, so they are not where the order can
- * end up. None open is `PLACE_CLOSED`.
- */
-async function withoutClosedPoints(context: MenuContext): Promise<MenuContext> {
-  if (!context.placeIds.length) return context;
-
-  const at = context.order?.date ? new Date(context.order.date) : undefined;
-  // Cast because core types these globals as possibly undefined; the ORM is up
-  // long before a menu is read.
-  const places = (await (Place as any).find({ id: context.placeIds })) as any[];
-  const open = context.placeIds.filter((id) => placeIsOpen(places.find((place) => String(place.id) === id), at));
-  if (open.length === context.placeIds.length) return context;
-
-  const closed = context.placeIds.filter((id) => !open.includes(id));
-  const diagnostics = [...context.diagnostics, `closed now, left out of the menu: ${closed.join(", ")}`];
-  return open.length
-    ? { ...context, placeIds: open, diagnostics }
-    : { ...context, placeIds: [], code: "PLACE_CLOSED", diagnostics };
 }
 
 /** Stock as a number to compare: `-1` is unlimited. */

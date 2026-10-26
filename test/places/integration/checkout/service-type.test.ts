@@ -173,7 +173,7 @@ describe("Checkout: service type", function () {
     }
   });
 
-  it("a kitchen that closes keeps the basket: its menu is empty, nothing more goes in, checkout refuses it as closed", async function () {
+  it("a kitchen that closes keeps the basket and its menu, more goes in; \"as soon as possible\" is refused as closed", async function () {
     const id = await basketAtKitchen1();
     await pickUpAt(id, kitchen1);
     const closed = [{ dayOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"], start: "00:00", stop: "00:01" }];
@@ -184,15 +184,13 @@ describe("Checkout: service type", function () {
       expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 2": 1 });
       expect(order.message).to.equal("");
       expect((await Order.populate({ id })).dishes).to.have.length(2);
-      expect(await menuOf(id)).to.deep.equal({});
-      expect(String(await thrown(add(id, dish1)))).to.contain("PLACE_CLOSED");
+      expect(Object.keys(await menuOf(id))).to.include.members(["Dish 1", "Dish 2"]);
+      await add(id, dish1);
+      expect(await lines(id)).to.deep.equal({ "Dish 1": 2, "Dish 2": 1 });
       expect(await check(id)).to.deep.equal({ code: 23, error: "PLACE_CLOSED" });
     } finally {
       await Place.update({ id: kitchen1 }, { worktime: null }).fetch();
     }
-
-    await add(id, dish1);
-    expect(await lines(id)).to.deep.equal({ "Dish 1": 2, "Dish 2": 1 });
   });
 
   it("dine-in at another kitchen moves the basket the way pickup does, from delivery or from a pickup", async function () {

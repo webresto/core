@@ -192,7 +192,7 @@ describe("checkout: delivery", function () {
       return { kitchens: order.cookingPoints, refusal: await thrown(checkout(id)) };
     }
 
-    it("every kitchen closed: nobody takes it, nothing more goes in, and the basket stays", async function () {
+    it("every kitchen closed: nobody takes it now, a dish still goes in, the basket stays, \"as soon as possible\" is refused", async function () {
       const id = await newBasket();
       await add(id, await dishId("Dish 1"));
       await withKitchens({ [kitchen1]: { worktime: CLOSED }, [kitchen2]: { worktime: CLOSED } }, async () => {
@@ -200,7 +200,8 @@ describe("checkout: delivery", function () {
 
         expect(order.cookingPoints).to.deep.equal([]);
         expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
-        expect(String(await thrown(add(id, await dishId("Dish 1"))))).to.contain("PLACE_CLOSED");
+        await add(id, await dishId("Dish 1"));
+        expect(await lines(id)).to.deep.equal({ "Dish 1": 2 });
         expect(await thrown(checkout(id))).to.deep.equal({ code: 26, error: "NO_KITCHEN" });
       });
     });
@@ -271,7 +272,7 @@ describe("checkout: delivery", function () {
       });
     });
 
-    it("the kitchen of a basket closed: adding a dish asks the chain again, and an open kitchen takes the basket", async function () {
+    it("the kitchen of a basket closed: adding a dish recounts the basket, and an open kitchen takes it", async function () {
       const id = await newBasket();
       await add(id, await dishId("Dish 1"));
       expect((await deliverTo(id, at(IN_ZONE_1))).cookingPoints).to.deep.equal([kitchen1]);

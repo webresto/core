@@ -240,7 +240,10 @@ describe("Menu contexts", function () {
     });
   });
 
-  /** Closed by its schedule (`Place.worktime`), not switched off. */
+  /**
+   * Closed by its schedule (`Place.worktime`), not switched off. Hours hide no menu: a closed kitchen offers what it
+   * sells, to a time it works at; "as soon as possible" and the kitchen at the order's time are the hours' question.
+   */
   describe("a kitchen closed now", function () {
     const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     const CLOSED = [{ dayOfWeek: DAYS, start: "00:00", stop: "00:01" }];
@@ -248,48 +251,27 @@ describe("Menu contexts", function () {
       withRows(Place, kitchens.map((id) => [id, { worktime: CLOSED }]), run);
     const atKitchen2 = () => ({ order: { cookingPoints: [k.kitchen2] } as any });
 
-    it("offers nothing, and nothing can be added there", async function () {
+    it("offers its menu, and what it sells can be added", async function () {
       await closed([k.kitchen2], async () => {
         const context = await contextOf(atKitchen2());
 
-        expect(context).to.deep.include({ code: "PLACE_CLOSED", placeIds: [] });
-        expect(await menuOf(context)).to.deep.equal([]);
-        const verdict = await (await menu()).canAddProduct(await Dish.findOne({ id: d.dish1 }), 1, context);
-        expect(verdict).to.include({ available: false, reason: "PLACE_CLOSED" });
-      });
-    });
-
-    it("before a kitchen, is left out of the intersection; a city closed whole offers nothing", async function () {
-      const inCity1 = { order: { address: { city: "City 1" } } as any };
-      await closed([k.kitchen2], async () => {
-        const context = await contextOf(inCity1);
-        expect(context.placeIds).to.deep.equal([k.kitchen1]);
-        // Kitchen 1's menu: what only Kitchen 2 was short of is back.
-        expect(await menuOf(context)).to.deep.equal(ALL);
-        await expectMenuAgreesWithBasket(context);
-      });
-      await closed([k.kitchen1, k.kitchen2], async () => {
-        expect(await menuFor(inCity1)).to.deep.equal([]);
-      });
-    });
-
-    it("a pre-order is read at its moment: a kitchen closed now and open then offers its menu", async function () {
-      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      tomorrow.setHours(12, 0, 0, 0);
-      const openTomorrow = [{ dayOfWeek: [DAYS[tomorrow.getDay()]], start: "10:00", stop: "20:00" }];
-      await withRows(Place, [[k.kitchen2, { worktime: openTomorrow }]], async () => {
-        expect((await contextOf(atKitchen2())).code).to.equal("PLACE_CLOSED");
-        const preOrder = await contextOf({ order: { cookingPoints: [k.kitchen2], date: tomorrow.toISOString() } as any });
-        expect(preOrder.placeIds).to.deep.equal([k.kitchen2]);
-        expect(await menuOf(preOrder)).to.deep.equal(["Dish 1", "Dish 3", "Dish 4", "Dish 5"]);
-      });
-    });
-
-    it("`ignoreSchedule` reads it as ever — for what is already in a basket", async function () {
-      await closed([k.kitchen2], async () => {
-        const context = await contextOf({ ...atKitchen2(), ignoreSchedule: true });
         expect(context.placeIds).to.deep.equal([k.kitchen2]);
         expect(context.code).to.equal(undefined);
+        expect(await menuOf(context)).to.deep.equal(["Dish 1", "Dish 3", "Dish 4", "Dish 5"]);
+        const verdict = await (await menu()).canAddProduct(await Dish.findOne({ id: d.dish1 }), 1, context);
+        expect(verdict).to.include({ available: true });
+      });
+    });
+
+    it("before a kitchen, stays in the intersection of its city: the menu is the one it has open", async function () {
+      const inCity1 = { order: { address: { city: "City 1" } } as any };
+      const open = await contextOf(inCity1);
+      const openMenu = await menuOf(open);
+      await closed([k.kitchen1, k.kitchen2], async () => {
+        const context = await contextOf(inCity1);
+        expect(context.placeIds).to.deep.equal(open.placeIds);
+        expect(await menuOf(context)).to.deep.equal(openMenu);
+        await expectMenuAgreesWithBasket(context);
       });
     });
   });

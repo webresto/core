@@ -34,9 +34,7 @@ import {
 export type ProductUnavailableReason =
   | "PRODUCT_DISABLED"
   | "PRODUCT_STOPPED_AT_PLACE"
-  | "PRODUCT_NOT_ENOUGH_AT_PLACE"
-  /** Every point of the menu is closed now: `MenuAdapter.canAddProduct` only. */
-  | "PLACE_CLOSED";
+  | "PRODUCT_NOT_ENOUGH_AT_PLACE";
 
 /**
  * What availability needs to know about a product.

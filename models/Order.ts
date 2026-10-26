@@ -527,16 +527,8 @@ let Model = {
     // The basket reads stock at the point the menu was read at, and asks the same
     // adapter for it. Two answers to "which kitchen" is how a customer ends up
     // adding a product they were shown and cannot have.
-    let basket = await Order.findOne(criteria);
-    let menuContext = await (await Adapter.get("menu")).resolveContext({ order: basket });
-
-    // The kitchen of the order closed since it was chosen - hours turn with no
-    // write. The recount asks the chain again (a kitchen open now, or at the
-    // order's time) before a product is judged by the closed one.
-    if (menuContext.code === "PLACE_CLOSED" && basket && primaryCookingPoint(basket)) {
-      basket = await Order.countCart({ id: basket.id });
-      menuContext = await (await Adapter.get("menu")).resolveContext({ order: basket });
-    }
+    const basket = await Order.findOne(criteria);
+    const menuContext = await (await Adapter.get("menu")).resolveContext({ order: basket });
 
     // A mode that ties the menu to a point, with no point to tie it to, cannot
     // say whether this product is sellable — and must not guess. The default mode
@@ -591,9 +583,7 @@ let Model = {
       throw new Error(
         availability.reason === "PRODUCT_NOT_ENOUGH_AT_PLACE"
           ? `Not enough dishes with id ${dishObj.id}. Available quantity: ${availability.balance}`
-          : availability.reason === "PLACE_CLOSED"
-            ? `PLACE_CLOSED: the kitchen serving this order is closed now`
-            : `Dish [${dishObj.id}] is not available at the kitchen serving this order`,
+          : `Dish [${dishObj.id}] is not available at the kitchen serving this order`,
       );
     }
 
@@ -1703,8 +1693,7 @@ let Model = {
       if (!fullOrder) throw `order by criteria: ${criteria},  not found`;
       const orderDishes = await OrderDish.find({ order: fullOrder.id }).populate("dish").sort("createdAt");
       // Modifier stock is read where the menu is: resolved once for the basket.
-      // Whatever the hour: a closed kitchen does not strip the basket's lines.
-      const menuContext = await (await Adapter.get("menu")).resolveContext({ order: fullOrder, ignoreSchedule: true });
+      const menuContext = await (await Adapter.get("menu")).resolveContext({ order: fullOrder });
 
       for (let orderDish of orderDishes) {
         if (!orderDish.dish) {
@@ -1855,9 +1844,7 @@ let Model = {
       // The menu adapter answers. The built-in ones keep the whole basket on the
       // order's kitchen; a routing module spreads it over the stops of a route.
       const menuAdapter = await Adapter.get("menu");
-      // Whatever the hour: a kitchen closing hides its menu but does not empty
-      // the baskets made from it. Checkout refuses a closed kitchen itself.
-      const menuContext = await menuAdapter.resolveContext({ order, ignoreSchedule: true });
+      const menuContext = await menuAdapter.resolveContext({ order });
       const placement = await menuAdapter.placeLines(
         order,
         orderDishes
