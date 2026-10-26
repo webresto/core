@@ -24,22 +24,45 @@ let rms: any = null;
 const counter = (total: () => number, enabled: () => number) =>
   async (where?: any) => (where && where.enable === true ? enabled() : total());
 
-(global as any).sails = { log: { warn() {}, error() {}, info() {}, debug() {} } };
-(global as any).Settings = {
-  async get(k: string) { return store[k]; },
-  async set(k: string, v: any) { store[k] = v?.value ?? v; return v; },
-  setDeclaredSetting() {},
+const mocks: Record<string, any> = {
+  sails: { log: { warn() {}, error() {}, info() {}, debug() {} } },
+  Settings: {
+    async get(k: string) { return store[k]; },
+    async set(k: string, v: any) { store[k] = v?.value ?? v; return v; },
+    setDeclaredSetting() {},
+  },
+  PaymentMethod: { count: counter(() => paymentTotal, () => paymentEnabled) },
+  Place: { count: counter(() => placeTotal, () => placeEnabled) },
+  Adapter: { async getRMSAdapter() { return rms; } },
 };
-(global as any).PaymentMethod = { count: counter(() => paymentTotal, () => paymentEnabled) };
-(global as any).Place = { count: counter(() => placeTotal, () => placeEnabled) };
-(global as any).Adapter = { async getRMSAdapter() { return rms; } };
 
 const ctx = { locale: "en", t: (k: string) => k, now: new Date() };
 const findItem = (st: any, key: string) =>
   st.groups.flatMap((g: any) => g.items).find((i: any) => i.key === key);
 
 describe("SetupChecklist registry + service", () => {
+  // The mocks go in for this suite only: in the full run sails is lifted and the real
+  // models are globals, set at load time they would be overwritten by the lift (and,
+  // left in place, would break the suites after this one).
+  const originals: Record<string, any> = {};
+  // In the full run the lifted app has already registered its own checkups (e.g. the
+  // required has_sales_channel from hook/afterHook): the counts below are about the core
+  // defaults only, so the registry is cleared for the suite and restored after it.
+  let registeredCheckups: ReturnType<typeof SetupChecklistRegistry.listCheckups> = [];
+
+  after(() => {
+    for (const key of Object.keys(mocks)) (global as any)[key] = originals[key];
+    SetupChecklistRegistry.listCheckups().forEach((def) => SetupChecklistRegistry.unregisterCheckup(def.key));
+    SetupChecklistRegistry.registerCheckups(registeredCheckups);
+  });
+
   before(() => {
+    for (const key of Object.keys(mocks)) {
+      originals[key] = (global as any)[key];
+      (global as any)[key] = mocks[key];
+    }
+    registeredCheckups = SetupChecklistRegistry.listCheckups();
+    registeredCheckups.forEach((def) => SetupChecklistRegistry.unregisterCheckup(def.key));
     SetupChecklistRegistry.registerCoreDefaults();
     SetupChecklistRegistry.registerCheckup({
       key: "partial_demo", group: "project", severity: "recommended", titleKey: "Partial demo",
@@ -94,6 +117,7 @@ describe("SetupChecklist registry + service", () => {
 
     // fill the rest of the required settings + enable a payment method
     store["COUNTRY_ISO"] = "RU";
+    store["TZ"] = "Europe/Moscow";
     store["DEFAULT_CURRENCY_ISO"] = "RUB";
     store["DEFAULT_LOCALE"] = "ru";
     store["FRONTEND_CHECKOUT_PAGE"] = "/checkout";
@@ -177,6 +201,23 @@ describe("SetupChecklist registry + service", () => {
     expect(findItem(st, "project_name").status).to.equal("todo");
     expect(st.overallReady).to.equal(false);
     store["PROJECT_NAME"] = "My Resto"; // restore for following tests
+  });
+
+  it("a timezone unknown to the resolver does not count as done", async () => {
+    // In the full suite Sails replaces the global Settings mock, so pin one for this test
+    const realSettings = (global as any).Settings;
+    let tz = "Asia/Saigon";
+    (global as any).Settings = { ...realSettings, async get(k: string) { return k === "TZ" ? tz : realSettings.get(k); } };
+    try {
+      let st = await SetupChecklistService.getStatus(ctx);
+      expect(findItem(st, "project_timezone").status).to.equal("todo");
+      expect(findItem(st, "project_timezone").detail).to.contain("not supported");
+      tz = "Asia/Ho_Chi_Minh";
+      st = await SetupChecklistService.getStatus(ctx);
+      expect(findItem(st, "project_timezone").status).to.equal("done");
+    } finally {
+      (global as any).Settings = realSettings;
+    }
   });
 
   it("settings targets deep-link via #KEY hash (so settings-manager selects the field)", () => {

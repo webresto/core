@@ -1,4 +1,5 @@
 /// <reference path="./../../index.ts" />
+import sinon from "sinon";
 import path = require("path");
 import { TestRMS } from "../mocks/adapter/RMS";
 import { Adapter } from "../../adapters";
@@ -84,8 +85,12 @@ describe("111 Promotion code integration test", function () {
 
     // After go to payment promocode should work, till ORDER state
     await TestPaymentSystem.getInstance();
-    const paymentMethod = (await PaymentMethod.find({}))[0];
+    // not just the first method: other suites create methods whose adapter is not installed
+    const paymentMethod = (await PaymentMethod.find({ adapter: "test-payment-system" }).limit(1))[0];
     await Order.check({ id: order.id }, customer, false, address, paymentMethod.id);
+    // the test gateway marks a payment paid 500 ms later, and a paid payment freezes the cart;
+    // this step is about a payment still pending, so keep it pending
+    const paidStub = sinon.stub(TestPaymentSystem.prototype as any, "paid");
     await Order.payment({ id: order.id });
     result = await Order.findOne({ id: order.id })
 
@@ -97,6 +102,7 @@ describe("111 Promotion code integration test", function () {
     console.log(result);
     expect(result.basketTotal).to.equal(111.3);
     expect(result.state).to.equal("CART");
+    paidStub.restore();
 
 
 

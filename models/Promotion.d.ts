@@ -43,6 +43,12 @@ declare let Model: {
     beforeUpdate(init: PromotionRecord, cb: (err?: string) => void): void;
     beforeCreate(init: PromotionRecord, cb: (err?: string) => void): Promise<void>;
     createOrUpdate(values: PromotionRecord): Promise<PromotionRecord>;
+    /**
+     * A gift dish must be `notForSale` (free gift) or `promo` (special price): the guest
+     * can't add such a dish himself, so his row never merges with the gift row in addDish.
+     * Returns the error message, or null when the gift config is fine.
+     */
+    validateGift(configDiscount: IconfigDiscount): Promise<string | null>;
     getAllByConcept(concept: string[]): PromotionRecord[];
 };
 declare global {

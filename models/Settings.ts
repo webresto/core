@@ -11,7 +11,7 @@ import Ajv from 'ajv';
 import fs from 'fs';
 import path from 'path';
 import { isInDeclaredSettings, setDeclaredSetting } from "../lib/settings/declared";
-import { envMirroredSettings, syncToEnv } from "../lib/settings/env-mirror";
+import { appMirroredEnvKeys, envMirroredSettings, mirrorToEnv, syncToEnv } from "../lib/settings/env-mirror";
 import { cleanValue, parseBoolean } from "../lib/settings/value";
 import { maskSettingValueForLog } from "../lib/maskSecrets";
 
@@ -132,7 +132,7 @@ export interface SettingsRecord extends RequiredField<OptionalAll<attributes>, "
 function parseEnvValue(setting: SettingsRecord): { present: boolean; ok: boolean; value?: SettingValue } {
   const key = setting.key;
   const raw = process.env[key];
-  if (raw === undefined) {
+  if (raw === undefined || appMirroredEnvKeys.has(key)) {
     return { present: false, ok: false };
   }
 
@@ -238,7 +238,7 @@ let Model = {
     let value: SettingValue;
 
     /** ENV variable is more important than database, but it should match the schema */
-    if (process.env[key] !== undefined) {
+    if (process.env[key] !== undefined && !appMirroredEnvKeys.has(key)) {
       // ENV variable should be in database
       let setting = await Settings.findOne({ key: key });
       if (!setting) {
@@ -534,6 +534,15 @@ let Model = {
   envOverride(setting: SettingsRecord): { active: boolean; valid: boolean; value?: SettingValue } {
     const parsed = parseEnvValue(setting);
     return { active: parsed.present, valid: parsed.ok, value: parsed.value };
+  },
+
+  /**
+   * Copy a setting value into process.env for code that reads it from there (e.g. TZ),
+   * without turning it into an ENV pin: envOverride stays inactive and the setting
+   * remains editable. An operator-provided env value is never overwritten.
+   */
+  mirrorToEnv(key: keyof SettingList, value: string): boolean {
+    return mirrorToEnv(String(key), value);
   },
 
   /**

@@ -18,7 +18,7 @@ class TestRMS extends RMSAdapter_1.default {
         return;
     }
     async loadOutOfStocksDishes(concept) {
-        return;
+        return [];
     }
     async nomenclatureHasUpdated() {
         return true;

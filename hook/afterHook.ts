@@ -6,6 +6,7 @@ import { SetupChecklistRegistry } from "../lib/SetupChecklistRegistry";
 import { SalesChannelRegistry } from "../lib/SalesChannelRegistry";
 import { salesChannelCheckup } from "../lib/SalesChannelProviders";
 import { NotificationService } from "../lib/notifications/NotificationService";
+import { isTimezoneSupported, normalizeTimezone } from "../lib/timezone";
 import { registerCoreMcpTools } from "./mcp";
 import { CoreOtpAdapter } from "../adapters/auth/core/CoreOtpAdapter";
 import { registerAuthSetupCheckups } from "../lib/authSetupCheckups";
@@ -38,15 +39,25 @@ export default async function () {
      * TIMEZONE
      *
      * The TZ setting can legitimately be empty (no default is applied for it).
-     * In that case fall back to the TZ environment variable instead of
-     * overwriting process.env.TZ with an empty string.
+     * In that case the TZ environment variable (if any) stays in effect.
+     *
+     * A stored legacy name (Asia/Saigon, Asia/Calcutta...) is rewritten to the one
+     * the worktime resolver knows, otherwise restrictions and checkout break on it.
+     * The value is mirrored into process.env through Settings.mirrorToEnv so it is
+     * not mistaken for an operator ENV pin and stays editable in the admin.
      */
-    const tzSetting = await Settings.get("TZ");
-    const timezone = (typeof tzSetting === "string" && tzSetting.trim() !== "")
-      ? tzSetting
-      : (process.env.TZ || undefined);
-    if (timezone) {
-      process.env.TZ = timezone;
+    let tzSetting = await Settings.get("TZ");
+    if (typeof tzSetting === "string" && tzSetting.trim() !== "") {
+      const normalized = normalizeTimezone(tzSetting);
+      if (normalized !== tzSetting && isTimezoneSupported(normalized)) {
+        sails.log.warn(`CORE > TZ setting [${tzSetting}] is a legacy zone name, rewriting it to [${normalized}]`);
+        await Settings.set("TZ", { value: normalized });
+        tzSetting = normalized;
+      }
+      if (!isTimezoneSupported(tzSetting)) {
+        sails.log.error(`CORE > TZ setting [${tzSetting}] is unknown to the timezone resolver: restrictions and order date checks will fail. Choose another value in Settings > TZ`);
+      }
+      Settings.mirrorToEnv("TZ", tzSetting);
     }
 
     if (await Settings.get("UUID_NAMESPACE") === undefined) {

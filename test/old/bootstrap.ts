@@ -2,6 +2,8 @@
 
 import "mocha";
 require("dotenv").config();
+// Orders are refused without a server timezone (Order checkDate), the tests need one
+process.env.TZ = process.env.TZ || "Etc/GMT";
 var Sails = require("./fixture/node_modules/sails").Sails;
 
 before(function (done) {

@@ -69,6 +69,12 @@ declare let Model: {
         value?: SettingValue;
     };
     /**
+     * Copy a setting value into process.env for code that reads it from there (e.g. TZ),
+     * without turning it into an ENV pin: envOverride stays inactive and the setting
+     * remains editable. An operator-provided env value is never overwritten.
+     */
+    mirrorToEnv(key: keyof SettingList, value: string): boolean;
+    /**
      * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB
      * into process.env on boot, so libraries reading process.env[key] directly
      * stay in sync with the value configured in Settings.

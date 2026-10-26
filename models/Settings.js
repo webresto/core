@@ -94,7 +94,7 @@ let attributes = {
 function parseEnvValue(setting) {
     const key = setting.key;
     const raw = process.env[key];
-    if (raw === undefined) {
+    if (raw === undefined || env_mirror_1.appMirroredEnvKeys.has(key)) {
         return { present: false, ok: false };
     }
     let value;
@@ -189,7 +189,7 @@ let Model = {
     async use(key) {
         let value;
         /** ENV variable is more important than database, but it should match the schema */
-        if (process.env[key] !== undefined) {
+        if (process.env[key] !== undefined && !env_mirror_1.appMirroredEnvKeys.has(key)) {
             // ENV variable should be in database
             let setting = await Settings.findOne({ key: key });
             if (!setting) {
@@ -463,6 +463,14 @@ let Model = {
     envOverride(setting) {
         const parsed = parseEnvValue(setting);
         return { active: parsed.present, valid: parsed.ok, value: parsed.value };
+    },
+    /**
+     * Copy a setting value into process.env for code that reads it from there (e.g. TZ),
+     * without turning it into an ENV pin: envOverride stays inactive and the setting
+     * remains editable. An operator-provided env value is never overwritten.
+     */
+    mirrorToEnv(key, value) {
+        return (0, env_mirror_1.mirrorToEnv)(String(key), value);
     },
     /**
      * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB

@@ -3,6 +3,7 @@
 const path = require("path");
 const fs = require("fs");
 const slugify = require("slugify");
+const { TIMEZONE_ALIASES, isTimezoneSupported, normalizeTimezone } = require("../lib/timezone");
 
 /**
  * The city an operator names during installation, as a `City` row.
@@ -71,6 +72,8 @@ class AboutProjectStep {
             console.error('Failed to load timezones:', e);
             this.payload.timezones = [];
         }
+        // Browsers report legacy names (Asia/Saigon, Asia/Calcutta); the form maps them to the listed ones
+        this.payload.timezoneAliases = TIMEZONE_ALIASES;
     }
 
     async check() {
@@ -107,6 +110,15 @@ class AboutProjectStep {
     }
 
     async process(data, context) {
+        // A legacy zone name is valid for Node but unknown to the worktime resolver,
+        // which then breaks restrictions and checkout: store the resolvable twin instead.
+        if (data.TZ) {
+            data.TZ = normalizeTimezone(data.TZ);
+            if (!isTimezoneSupported(data.TZ)) {
+                throw new Error(`Setting TZ: timezone "${data.TZ}" is not supported, pick another one from the list`);
+            }
+        }
+
         // Save all settings from the form
         const settingsToSave = [
             "PROJECT_NAME",
@@ -134,9 +146,10 @@ class AboutProjectStep {
 
         await ensureCityRecord(data["CITY"]);
 
-        // afterHook applies TZ only on boot; apply it now so dates are right without a restart
+        // afterHook applies TZ only on boot; apply it now so dates are right without a restart.
+        // Through mirrorToEnv, so the copy is not taken for an ENV pin and TZ stays editable.
         if (data.TZ) {
-            process.env.TZ = data.TZ;
+            Settings.mirrorToEnv("TZ", data.TZ);
         }
 
         // Mark this step as completed

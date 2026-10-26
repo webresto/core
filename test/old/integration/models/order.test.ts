@@ -19,7 +19,9 @@ describe("Order", function () {
   // });
 
   before(async function () {
-    dishes = await Dish.find({});
+    // fixture dishes (bootstrap, RMS mock) cost 100.1, the sums below rely on it; other
+    // suites add dishes at other prices that Dish.find({}) may return first
+    dishes = await Dish.find({ price: 100.1, isDeleted: false });
     order = await Order.create({id:"create-cart"}).fetch();
   });
 

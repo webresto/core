@@ -15,7 +15,7 @@ describe("PaymentDocument manual confirmation", function () {
   let orderIds: string[] = [];
 
   before(async function () {
-    paymentMethodId = (await PaymentMethod.findOne({})).id;
+    paymentMethodId = (await PaymentMethod.find({}).limit(1))[0].id;
   });
 
   afterEach(async function () {
