@@ -16,6 +16,7 @@ const normalize_1 = require("../utils/normalize");
 const zonedTime_1 = require("../utils/zonedTime");
 const NotificationService_1 = require("../libs/NotificationService");
 const OrderLogHelper_1 = __importDefault(require("../libs/OrderLogHelper"));
+const timezone_1 = require("../libs/timezone");
 const ORDERED_STATES = ["ORDER", "COOKING", "ON_THE_WAY"];
 let attributes = {
     /** Id  */
@@ -2246,9 +2247,11 @@ async function checkPaymentMethod(paymentMethodId) {
 async function getTimezone() {
     const tzSetting = await Settings.get("TZ");
     if (typeof tzSetting === "string" && tzSetting.trim() !== "") {
-        return tzSetting;
+        return (0, timezone_1.normalizeTimezone)(tzSetting);
     }
-    return process.env.TZ || undefined;
+    // Legacy names are normalized here too: an operator env TZ=Asia/Saigon is valid for
+    // Node but unknown to the worktime resolver.
+    return (0, timezone_1.normalizeTimezone)(process.env.TZ || undefined);
 }
 /**
  * Drop `order.date` of a basket (CART) once that time has passed in the restaurant,

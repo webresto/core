@@ -64,12 +64,22 @@ declare let Model: {
     get<K extends keyof SettingList, T = SettingList[K]>(key: K): Promise<T | undefined>;
     set<K extends keyof SettingList>(key: K, settingsSetInput: SettingsSetInput<K, SettingList[K]>): Promise<Settings>;
     env<K extends keyof SettingList>(key: K): SettingList[K] | undefined;
-    /** Whether process.env pins this setting, shadowing whatever is stored in the DB. */
+    /**
+     * Whether process.env pins this setting, shadowing whatever is stored in the DB.
+     * Used by the admin API to label such settings and to refuse writes that would be
+     * saved but never take effect.
+     */
     envOverride(setting: SettingsRecord): {
         active: boolean;
         valid: boolean;
         value?: SettingValue;
     };
+    /**
+     * Copy a setting value into process.env for code that reads it from there (e.g. TZ),
+     * without turning it into an ENV pin: envOverride stays inactive and the setting
+     * remains editable. An operator-provided env value is never overwritten.
+     */
+    mirrorToEnv(key: keyof SettingList, value: string): boolean;
     /**
      * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB
      * into process.env on boot, so libraries reading process.env[key] directly

@@ -23,6 +23,23 @@ const isInDeclaredSettingsErrorCollector = new Map();
 // Settings whose value, when stored in DB, must also be mirrored into process.env
 // because some libraries read process.env[key] directly instead of Settings.get(key)
 const envMirroredSettings = ["JWT_SECRET"];
+// Keys this process copied into process.env itself (envMirroredSettings, TZ from the
+// DB/install wizard). Such a copy is not an operator ENV pin: the DB stays the source
+// of truth, so Settings.use reads the DB and the admin can still change the setting.
+const appMirroredEnvKeys = new Set();
+/**
+ * Copy a value into process.env on behalf of the app and remember that it is ours.
+ * A value the operator put into the environment wins and is left untouched.
+ * Returns whether process.env now holds the given value.
+ */
+function mirrorToEnv(key, value) {
+    if (process.env[key] !== undefined && !appMirroredEnvKeys.has(key)) {
+        return process.env[key] === value;
+    }
+    process.env[key] = value;
+    appMirroredEnvKeys.add(key);
+    return true;
+}
 function setDeclaredSetting(key) {
     declaredSettings.push(key);
 }
@@ -38,7 +55,7 @@ function syncToEnv(record) {
     if (value === undefined || value === null) {
         return;
     }
-    process.env[record.key] = typeof value === "string" ? value : JSON.stringify(value);
+    mirrorToEnv(record.key, typeof value === "string" ? value : JSON.stringify(value));
 }
 function parseBoolean(value) {
     if (value === undefined || value === null || value === '') {
@@ -116,12 +133,18 @@ let attributes = {
 };
 /**
  * Parse the process.env value for a setting exactly as Settings.use() consumes it.
- * Single source of truth for the "ENV wins over DB" rule.
+ * Single source of truth for the "ENV wins over DB" rule: callers that only need to
+ * know *whether* a setting is pinned by env (UI badges, write guards) then cannot
+ * drift from the precedence actually applied when the value is read.
+ *
+ * present:false — env holds nothing for this key, the DB value is in effect.
+ * ok:false with present:true — env holds a value that fails parsing/validation, so
+ * the setting reads as undefined. That is not the same as "overridden with a value".
  */
 function parseEnvValue(setting) {
     const key = setting.key;
     const raw = process.env[key];
-    if (raw === undefined) {
+    if (raw === undefined || appMirroredEnvKeys.has(key)) {
         return { present: false, ok: false };
     }
     let value;
@@ -214,7 +237,7 @@ let Model = {
     async use(key) {
         let value;
         /** ENV variable is more important than database, but it should match the schema */
-        if (process.env[key] !== undefined) {
+        if (process.env[key] !== undefined && !appMirroredEnvKeys.has(key)) {
             // ENV variable should be in database
             let setting = await Settings.findOne({ key: key });
             if (!setting) {
@@ -432,7 +455,7 @@ let Model = {
             // The stored row is the truth about `secret`, but a module manifest may omit
             // the flag and settingsHelper then merges the stored one away, so the effective
             // flag is whichever source says "secret" (see maskSettingValueForLog).
-            const _mask = (v) => (0, maskSecrets_1.maskSettingValueForLog)({ key, secret: settingsSetInput.secret || (setting === null || setting === void 0 ? void 0 : setting.secret) }, v);
+            const _mask = (v) => (0, maskSecrets_1.maskSettingValueForLog)({ key, secret: settingsSetInput.secret || setting?.secret }, v);
             // Cap the value before it goes into the log payload, not after: stringifying an
             // already serialized string would only escape it again.
             const _fmt = (v) => { const s = JSON.stringify(v); return s && s.length > 1024 ? '[long object]' : v; };
@@ -443,7 +466,7 @@ let Model = {
                     return created;
                 }
                 catch (e) {
-                    if ((e === null || e === void 0 ? void 0 : e.code) !== "E_UNIQUE") {
+                    if (e?.code !== "E_UNIQUE") {
                         throw e;
                     }
                     // Another bootstrap path created the same setting between findOne and create.
@@ -482,10 +505,20 @@ let Model = {
     },
     /**
      * Whether process.env pins this setting, shadowing whatever is stored in the DB.
+     * Used by the admin API to label such settings and to refuse writes that would be
+     * saved but never take effect.
      */
     envOverride(setting) {
         const parsed = parseEnvValue(setting);
         return { active: parsed.present, valid: parsed.ok, value: parsed.value };
+    },
+    /**
+     * Copy a setting value into process.env for code that reads it from there (e.g. TZ),
+     * without turning it into an ENV pin: envOverride stays inactive and the setting
+     * remains editable. An operator-provided env value is never overwritten.
+     */
+    mirrorToEnv(key, value) {
+        return mirrorToEnv(String(key), value);
     },
     /**
      * Pull stored values for envMirroredSettings (e.g. JWT_SECRET) from the DB

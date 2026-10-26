@@ -203,6 +203,23 @@ describe("SetupChecklist registry + service", () => {
     store["PROJECT_NAME"] = "My Resto"; // restore for following tests
   });
 
+  it("a timezone unknown to the resolver does not count as done", async () => {
+    // In the full suite Sails replaces the global Settings mock, so pin one for this test
+    const realSettings = (global as any).Settings;
+    let tz = "Asia/Saigon";
+    (global as any).Settings = { ...realSettings, async get(k: string) { return k === "TZ" ? tz : realSettings.get(k); } };
+    try {
+      let st = await SetupChecklistService.getStatus(ctx);
+      expect(findItem(st, "project_timezone").status).to.equal("todo");
+      expect(findItem(st, "project_timezone").detail).to.contain("not supported");
+      tz = "Asia/Ho_Chi_Minh";
+      st = await SetupChecklistService.getStatus(ctx);
+      expect(findItem(st, "project_timezone").status).to.equal("done");
+    } finally {
+      (global as any).Settings = realSettings;
+    }
+  });
+
   it("settings targets deep-link via #KEY hash (so settings-manager selects the field)", () => {
     const def = SetupChecklistRegistry.getCheckup("project_name")!;
     const target = typeof def.target === "function" ? def.target(ctx) : def.target;

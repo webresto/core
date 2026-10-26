@@ -42,6 +42,7 @@ export interface PromotionState {
 }
 
 import OrderLogHelper, { OrderLogLevel, OrderLogEntry } from "../libs/OrderLogHelper";
+import { normalizeTimezone } from "../libs/timezone";
 export type { OrderLogLevel, OrderLogEntry };
 
 export type PaymentBack = {
@@ -2639,9 +2640,11 @@ async function checkPaymentMethod(paymentMethodId: string) {
 async function getTimezone(): Promise<string | undefined> {
   const tzSetting = await Settings.get("TZ");
   if (typeof tzSetting === "string" && tzSetting.trim() !== "") {
-    return tzSetting;
+    return normalizeTimezone(tzSetting);
   }
-  return process.env.TZ || undefined;
+  // Legacy names are normalized here too: an operator env TZ=Asia/Saigon is valid for
+  // Node but unknown to the worktime resolver.
+  return normalizeTimezone(process.env.TZ || undefined);
 }
 
 /**

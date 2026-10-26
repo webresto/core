@@ -285,6 +285,7 @@
     // Countries data from server
     const countriesData = <%- JSON.stringify(countries || []) %>;
     const timezonesData = <%- JSON.stringify(typeof timezones !== 'undefined' ? timezones : []) %>;
+    const timezoneAliases = <%- JSON.stringify(typeof timezoneAliases !== 'undefined' ? timezoneAliases : {}) %>;
     
     // Auto-fill URLs based on current browser location
     document.addEventListener('DOMContentLoaded', function() {
@@ -514,7 +515,9 @@
             timezoneSelect.appendChild(option);
         });
         try {
-            const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            // Chrome reports legacy names (Asia/Saigon), the list holds their current twins
+            const reportedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const browserTimezone = timezoneAliases[reportedTimezone] || reportedTimezone;
             if (!timezoneSelect.value && timezonesData.includes(browserTimezone)) {
                 timezoneSelect.value = browserTimezone;
                 timezoneSelect.dispatchEvent(new Event('change', { bubbles: true }));
