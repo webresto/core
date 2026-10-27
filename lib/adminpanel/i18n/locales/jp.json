@@ -295,7 +295,7 @@
 	"A promo code does nothing on its own — it activates the promotions linked here when applied to an order.": "プロモコード単体では何も起こりません。注文に適用されると、ここでリンクされたプロモーションを有効にします。",
 	"Active": "有効",
 	"Active codes": "有効なコード",
-	"Active for customers.": "顧客に有効。",
+	"Applies by itself. Off — only through its promo codes.": "自動で適用されます。オフの場合はそのプロモコード経由でのみ適用されます。",
 	"Add gift items": "ギフト商品を追加",
 	"Added to the cart as a gift. Use a 0₽ dish for a free gift, or a special promo item at its own price.": "ギフトとしてカートに追加されます。無料ギフトには0₽の料理を、または特別なプロモ商品をその価格で使用してください。",
 	"Advanced": "詳細設定",

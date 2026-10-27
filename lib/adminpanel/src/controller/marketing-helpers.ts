@@ -63,7 +63,7 @@ export function discountSummary(configDiscount: IconfigDiscount | null | undefin
   scope: "all" | "dishes" | "groups" | "mixed" | "none";
   dishesCount: number;
   groupsCount: number;
-  deliveryMethod: string[];
+  serviceType: string[];
   hasGift: boolean;
   giftDishesCount: number;
   giftMinBasketTotal: number;
@@ -90,7 +90,7 @@ export function discountSummary(configDiscount: IconfigDiscount | null | undefin
     scope,
     dishesCount: dishes.length,
     groupsCount: groups.length,
-    deliveryMethod: Array.isArray(cd.deliveryMethod) ? cd.deliveryMethod.filter((x: any) => typeof x === "string") : [],
+    serviceType: Array.isArray(cd.serviceType) ? cd.serviceType.filter((x: any) => typeof x === "string") : [],
     hasGift: giftDishes.length > 0,
     giftDishesCount: giftDishes.length,
     giftMinBasketTotal: toNumber(cd.gift?.minBasketTotal),

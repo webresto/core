@@ -38,7 +38,7 @@ export function mapPromotionFull(promotion: any, activeIds?: Set<string>): any {
       discountAmount: toNumber(configDiscount?.discountAmount),
       dishes: Array.isArray(configDiscount?.dishes) ? configDiscount.dishes : [],
       groups: Array.isArray(configDiscount?.groups) ? configDiscount.groups : [],
-      deliveryMethod: Array.isArray(configDiscount?.deliveryMethod) ? configDiscount.deliveryMethod : [],
+      serviceType: Array.isArray(configDiscount?.serviceType) ? configDiscount.serviceType : [],
       excludeModifiers: Boolean(configDiscount?.excludeModifiers),
       exclude: {
         dishes: Array.isArray(exclude?.dishes) ? exclude.dishes : [],

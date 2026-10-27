@@ -46,6 +46,8 @@ export interface PromotionState {
   type: string;
   message: string;
   state: object | object[];
+  /** The entry of a promotion of the order's promo code; absent - of one that applies by itself. */
+  byCode?: boolean;
 }
 
 /**

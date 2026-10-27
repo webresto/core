@@ -333,7 +333,7 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
         </div>
         <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px,100%),1fr))' }}>
           <div style={{ ...styles.field, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div><Label style={styles.fieldLabel}>{t('Enabled')}</Label><div style={styles.help}>{t('Active for customers.')}</div></div>
+            <div><Label style={styles.fieldLabel}>{t('Enabled')}</Label><div style={styles.help}>{t('Applies by itself. Off — only through its promo codes.')}</div></div>
             <Switch checked={Boolean(draft.enable)} onCheckedChange={(v) => setField('enable', v === true)} />
           </div>
           <div style={styles.field}>

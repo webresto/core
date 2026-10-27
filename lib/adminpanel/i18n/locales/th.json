@@ -295,7 +295,7 @@
 	"A promo code does nothing on its own — it activates the promotions linked here when applied to an order.": "โค้ดส่วนลดเพียงอย่างเดียวไม่ทำอะไร — เมื่อใช้กับคำสั่งซื้อ มันจะเปิดใช้งานโปรโมชันที่เชื่อมโยงไว้ที่นี่",
 	"Active": "ใช้งานอยู่",
 	"Active codes": "โค้ดที่ใช้งานอยู่",
-	"Active for customers.": "ใช้งานสำหรับลูกค้า",
+	"Applies by itself. Off — only through its promo codes.": "ใช้โดยอัตโนมัติ ปิดอยู่ — ใช้ได้เฉพาะผ่านโค้ดโปรโมชันของตน",
 	"Add gift items": "เพิ่มของแถม",
 	"Added to the cart as a gift. Use a 0₽ dish for a free gift, or a special promo item at its own price.": "เพิ่มลงตะกร้าเป็นของแถม ใช้เมนูราคา 0₽ สำหรับของแถมฟรี หรือสินค้าโปรโมชันพิเศษตามราคาของมันเอง",
 	"Advanced": "ขั้นสูง",

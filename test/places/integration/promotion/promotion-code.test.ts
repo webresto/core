@@ -9,7 +9,8 @@ import { add, CUSTOMER, newBasket, pickUpAt, thrown, updateOrder } from "../../s
  * applies to nothing by itself and to the whole receipt through its code. The
  * code is read case-insensitively and rechecked at every recount, so a code the
  * operator switches off leaves baskets that already had it. Applying or removing
- * a code sends the basket back to CART.
+ * a code sends the basket back to CART. A code's promotions go first, and apply
+ * whether they are switched on or off.
  *
  *   Group 1: Dish 1 at 10.1, Dish 2 at 15.2. The basket: five and four — 111.3.
  *   Code CODE1 → Promotion 1, 1.45 off the receipt.
@@ -49,6 +50,12 @@ describe("Promotion codes", function () {
   }
   const apply = (id: string, code: string | null) => Order.applyPromotionCode({ id }, code);
   const state = async (id: string) => (await Order.findOne({ id })).state;
+  const discount = async (id: string) => (await Order.findOne({ id })).discountTotal;
+  const line = (id: string, dish: string) => OrderDish.findOne({ order: id, dish });
+  /** changes Promotion 1, the code's */
+  const change = (values: Record<string, unknown>) => Promotion.update({ id: "promotion-1" }, values).fetch();
+  /** the entry of the order's `promotionState` of a type */
+  const entry = (order: any, type: string) => order.promotionState.find((item: any) => item.type === type);
 
   it("without its code, the promotion discounts nothing", async function () {
     expect((await Order.findOne({ id: await basket() })).discountTotal).to.equal(0);
@@ -136,6 +143,7 @@ describe("Promotion codes", function () {
       type: "promocode-min-basket-total",
       message: "The promo code works from a basket total of 200",
       state: { promotionId: "promotion-1", minBasketTotal: 200, basketTotal: 111.3 },
+      byCode: true,
     });
     await add(id, dish2, 6);
     expect(await Order.findOne({ id }))
@@ -180,6 +188,112 @@ describe("Promotion codes", function () {
       await terms({ stopDate: day(-1) });
 
       expect(await Order.countCart({ id })).to.include({ promotionCode: null, promotionCodeString: null, discountTotal: 0 });
+    });
+
+    it("out of its promotion's hours, gives nothing and says so", async function () {
+      const today = DAYS[new Date().getDay()];
+      await change({ worktime: [{ dayOfWeek: DAYS.filter((name) => name !== today), start: "00:00", stop: "23:59" }] });
+      const order = await apply(await basket(), "CODE1");
+
+      expect(order).to.include({ promotionCode: "code-1", discountTotal: 0 });
+      expect(entry(order, "promocode-promotion-hours")).to.deep.include({ state: { promotionId: "promotion-1" }, byCode: true });
+    });
+  });
+
+  it("works for the ways of receiving an order its promotion is for, and says so otherwise", async function () {
+    await change({ configDiscount: { discountType: "flat", discountAmount: 1.45, dishes: [], groups: [], excludeModifiers: true, serviceType: ["pickup"] } });
+    const id = await basket();
+    const order = await apply(id, "CODE1");
+    expect(order.discountTotal).to.equal(0);
+    expect(entry(order, "promocode-service-type")).to.deep.include({ state: { promotionId: "promotion-1", serviceTypes: ["pickup"] }, byCode: true });
+
+    await pickUpAt(id, kitchen1);
+    expect(await discount(id)).to.equal(1.45);
+  });
+
+  /**
+   * With the promotions that apply by themselves: the code's go first. Dish 1 is five, Dish 2 four;
+   * Promotion 2 takes 1 off each Dish 1 and is exclusive, Promotion 3 takes 1 off each Dish 2 and is joint.
+   */
+  describe("with the automatic promotions", function () {
+    async function automatic(id: string, dish: string, isJoint: boolean) {
+      await Promotion.createOrUpdate({
+        id, name: id, badge: "badge-1", description: id, externalId: id,
+        isJoint, isPublic: false, createdByUser: true, concept: ["origin"],
+        configDiscount: { discountType: "flat", discountAmount: 1, dishes: [dish], groups: ["*"], excludeModifiers: true },
+      } as any);
+      await Promotion.update({ id }, { enable: true, sortOrder: 0 }).fetch();
+    }
+
+    beforeEach(async function () {
+      await automatic("promotion-2", dish1, false);
+      await automatic("promotion-3", dish2, true);
+    });
+
+    it("a joint code puts an exclusive automatic promotion aside and goes with the joint ones", async function () {
+      const id = await basket();
+      expect(await discount(id)).to.equal(5);
+
+      // 1.45 off the receipt and 1 off each Dish 2
+      const order = await apply(id, "CODE1");
+      expect(order.discountTotal).to.equal(5.45);
+      expect((await line(id, dish1)).discountId).to.equal(null);
+      expect((await line(id, dish2)).discountId).to.equal("promotion-3");
+      // the entries of the code's promotion and of the one it puts aside say they are the code's
+      expect(order.promotionState?.map((item) => [item.message, item.byCode])).to.deep.equal([
+        ["Description 1", true],
+        ["promotion-3", undefined],
+        ["The promo code does not stack with: promotion-2", true],
+      ]);
+      expect(entry(order, "promocode-sets-aside").state).to.deep.equal({ promotions: [{ id: "promotion-2", name: "promotion-2", description: "promotion-2" }] });
+    });
+
+    it("an exclusive code takes the basket alone, and says what it puts aside", async function () {
+      await change({ isJoint: false });
+      const order = await apply(await basket(), "CODE1");
+      expect(order.discountTotal).to.equal(1.45);
+      // Promotion 3 would not apply without the code either: Promotion 2 took the basket
+      expect(entry(order, "promocode-sets-aside").state.promotions.map((item: any) => item.id)).to.deep.equal(["promotion-2"]);
+    });
+
+    it("below its minimum basket total, puts nothing aside", async function () {
+      await change({ configDiscount: { discountType: "flat", discountAmount: 1.45, dishes: [], groups: [], excludeModifiers: true, minBasketTotal: 200 } });
+      const order = await apply(await basket(), "CODE1");
+      expect(order.discountTotal).to.equal(5);
+      expect(JSON.stringify(order.promotionState)).to.contain("promocode-min-basket-total");
+      expect(entry(order, "promocode-sets-aside")).to.equal(undefined);
+    });
+
+    it("takes the lines first", async function () {
+      // Promotion 2 joint now, and the code's 10% off each Dish 1 - switched off, so only through the code
+      await automatic("promotion-2", dish1, true);
+      await change({ enable: false, configDiscount: { discountType: "percentage", discountAmount: 10, dishes: [dish1], groups: ["*"], excludeModifiers: true } });
+      const id = await basket();
+      expect(await discount(id)).to.equal(9);
+
+      // 5.05 off the five Dish 1 instead of 5, and 4 off Dish 2
+      expect((await apply(id, "CODE1")).discountTotal).to.equal(9.05);
+      expect((await line(id, dish1)).discountId).to.equal("promotion-1");
+    });
+  });
+
+  describe("its promotion switched off", function () {
+    beforeEach(async function () {
+      // 10% off each Dish 1
+      await change({ enable: false, configDiscount: { discountType: "percentage", discountAmount: 10, dishes: [dish1], groups: ["*"], excludeModifiers: true } });
+    });
+
+    it("applies only through the code, to what it chooses", async function () {
+      const id = await basket();
+      expect(await discount(id)).to.equal(0);
+
+      expect((await apply(id, "CODE1")).discountTotal).to.equal(5.05);
+      expect((await line(id, dish2)).discountTotal).to.equal(0);
+    });
+
+    it("deleted, gives nothing through the code", async function () {
+      await change({ isDeleted: true });
+      expect((await apply(await basket(), "CODE1")).discountTotal).to.equal(0);
     });
   });
 

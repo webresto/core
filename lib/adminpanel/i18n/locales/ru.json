@@ -684,7 +684,7 @@
 	"Type": "Тип",
 	"Validity period": "Период действия",
 	"What this code grants": "Что даёт этот код",
-	"Active for customers.": "Активна для клиентов.",
+	"Applies by itself. Off — only through its promo codes.": "Действует сама. Выключенная — только по своим промокодам.",
 	"All concepts (origin)": "Все концепты (origin)",
 	"Amount": "Величина",
 	"Applies to": "На что распространяется",

@@ -9,8 +9,16 @@ import { DishRecord } from "../../../models/Dish";
 import { GroupRecord } from "../../../models/Group";
 import { PromotionCodeRecord } from "../../../models/PromotionCode";
 
-/** `PromotionState.type` of a code's promotion waiting for a bigger basket: `state` - `{ promotionId, minBasketTotal, basketTotal }` */
+/**
+ * `PromotionState.type` of the entries about the order's code, each `byCode: true`. A promotion of the code that gives
+ * nothing now, and why: below its minimum basket - `{ promotionId, minBasketTotal, basketTotal }`; not for the way the
+ * order is received - `{ promotionId, serviceTypes }`; out of the promotion's hours - `{ promotionId }`. And the
+ * promotions that would apply without the code and do not with it - `{ promotions: [{ id, name, description }] }`.
+ */
 const PROMOCODE_MIN_BASKET_TOTAL = "promocode-min-basket-total";
+const PROMOCODE_SERVICE_TYPE = "promocode-service-type";
+const PROMOCODE_PROMOTION_HOURS = "promocode-promotion-hours";
+const PROMOCODE_SETS_ASIDE = "promocode-sets-aside";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
 
@@ -22,15 +30,17 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     let debugCount = 0;
     emitter.emit("promotion-process:debug", debugCount, populatedOrder, null, null)
     populatedOrder = await this.clearOfPromotion(populatedOrder);
-    let filteredPromotion = this.filterByConcept(populatedOrder.concept);
-    // TODO: filter retruns only one
-    let promotionByConcept: PromotionRecord[] | undefined = this.filterPromotions(filteredPromotion, populatedOrder);
+    const automatic = this.automaticPromotions(this.filterByConcept(populatedOrder.concept), populatedOrder);
+    const byCode = this.codePromotions(populatedOrder);
+    const promotionByConcept = this.choose(byCode, automatic);
+    // the entries of the code's promotions say so: a storefront tells what the code gives from what a promotion gives by itself
+    const ofCode = new Set(byCode.map((promotion) => promotion.id));
     if (promotionByConcept[0] !== undefined) {
       for (const promotion of promotionByConcept) {
         debugCount++;
         try {
           const state = await this.promotions[promotion.id].action(populatedOrder);
-          promotionStates.push(state);
+          promotionStates.push(ofCode.has(promotion.id) ? { ...state, byCode: true } : state);
           emitter.emit("promotion-process:debug", debugCount, populatedOrder, promotion, state);
         } catch (error) {
           promotionErrors.push({
@@ -56,7 +66,10 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
     }
 
     // --- CALCULATE DISCOUNTS END --- //
-    promotionStates.push(...this.codeWaitsForBasket(populatedOrder, promotionByConcept));
+    promotionStates.push(
+      ...this.codeGivesNothing(populatedOrder, promotionByConcept),
+      ...this.codeSetsAside(byCode, automatic, promotionByConcept),
+    );
     populatedOrder.promotionState = promotionStates;
     populatedOrder.promotionErrors = promotionErrors;
 
@@ -111,84 +124,98 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   }
 
   /**
-   * The promotions of the order's code that wait for a bigger basket: below its `codeMinBasketTotal` a code's
-   * promotion gives nothing, and the state says from which sum - a storefront tells the customer how much is
-   * missing instead of showing a code that does nothing.
+   * The promotions of the order's code that give nothing now, and why - a storefront tells the customer instead of
+   * showing a code that does nothing: out of the promotion's hours, not for the way the order is received, below its
+   * minimum basket (`codeMinBasketTotal`). One the code's exclusive promotion keeps out works, and says nothing.
    */
-  private codeWaitsForBasket(order: OrderRecord, applied: PromotionRecord[]): PromotionState[] {
-    const promotionCode = order.promotionCode as PromotionCodeRecord | null;
-    if (!promotionCode || !Array.isArray(promotionCode.promotion)) return [];
+  private codeGivesNothing(order: OrderRecord, applied: PromotionRecord[]): PromotionState[] {
     const basketTotal = new Decimal(order.basketTotal ?? 0);
-    return (promotionCode.promotion as PromotionRecord[]).flatMap((promotion) => {
-      if (typeof promotion !== "object" || promotion === null) return [];
+    return this.codeLinked(order).flatMap((promotion): PromotionState[] => {
       if (applied.some((item) => item?.id === promotion.id)) return [];
       const handler = this.promotions[promotion.id];
       if (!(handler instanceof ConfiguredPromotion)) return [];
+      if (!openByHours(promotion.worktime)) {
+        return [{ type: PROMOCODE_PROMOTION_HOURS, message: "The promo code does not work at this time", state: { promotionId: promotion.id }, byCode: true }];
+      }
+      if (!handler.servesOrder(order)) {
+        const serviceTypes = handler.serviceTypes;
+        return [{ type: PROMOCODE_SERVICE_TYPE, message: `The promo code works for ${serviceTypes.join(", ")} only`, state: { promotionId: promotion.id, serviceTypes }, byCode: true }];
+      }
       const minBasketTotal = handler.codeMinBasketTotal;
       if (basketTotal.gte(minBasketTotal)) return [];
       return [{
         type: PROMOCODE_MIN_BASKET_TOTAL,
         message: `The promo code works from a basket total of ${minBasketTotal}`,
         state: { promotionId: promotion.id, minBasketTotal, basketTotal: basketTotal.toNumber() },
+        byCode: true,
       }];
     });
   }
 
+  /** The promotions the basket would have without its working code and has not with it: the code does not stack with them. */
+  private codeSetsAside(byCode: PromotionRecord[], automatic: PromotionRecord[], applied: PromotionRecord[]): PromotionState[] {
+    if (!byCode.length) return [];
+    const aside = this.choose([], automatic).filter((promotion) => !applied.some((item) => item.id === promotion.id));
+    if (!aside.length) return [];
+    return [{
+      type: PROMOCODE_SETS_ASIDE,
+      message: `The promo code does not stack with: ${aside.map((promotion) => promotion.name).join(", ")}`,
+      state: { promotions: aside.map(({ id, name, description }) => ({ id, name, description })) },
+      byCode: true,
+    }];
+  }
+
+  /**
+   * The promotions to apply, in the order they take the lines: one that is not joint alone, else the joint ones.
+   *
+   * The applied code's promotions come first - the customer typed the code to have them. An exclusive one of them
+   * takes the basket alone; joint ones go with the joint automatic promotions, and an exclusive automatic one gives
+   * way to them. A code's promotion that does not work now (`codePromotions`) puts nothing aside.
+   */
   public filterPromotions(promotionsByConcept: PromotionRecord[], target: GroupRecord | DishRecord | OrderRecord): PromotionRecord[] {
-    /**
-     * If promotion enabled by promocode notJoint it disables all promotions and sets promocode promotion,
-     * If promocode promotion is joint, it just will be applied by order
-     */
+    const byCode = findModelInstanceByAttributes(target) === "Order" ? this.codePromotions(target as OrderRecord) : [];
+    return this.choose(byCode, this.automaticPromotions(promotionsByConcept, target));
+  }
 
-    let filteredPromotionsToApply: PromotionRecord[] = Object.values(promotionsByConcept)
+  /** The promotions that apply to the target by themselves, within their hours, by `sortOrder`. */
+  private automaticPromotions(promotionsByConcept: PromotionRecord[], target: GroupRecord | DishRecord | OrderRecord): PromotionRecord[] {
+    const open = Object.values(promotionsByConcept)
       .filter((record) => openByHours(record.worktime))
-      .sort((a, b) => a.sortOrder - b.sortOrder);
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    return this.filterByCondition(open, target);
+  }
 
-    const filteredByCondition: PromotionRecord[] = this.filterByCondition(filteredPromotionsToApply, target);
-    /**
-     * Promotions activated by an applied PromotionCode are force-applied, but they
-     * still pass through condition() in promocode mode (viaPromocode=true): the code
-     * relaxes the automatic dish/group targeting, yet code-eligibility rules (e.g. a
-     * minimum basket total) are honoured. A promotion already eligible automatically
-     * is not pushed twice.
-     */
-    if (findModelInstanceByAttributes(target) === "Order") {
-      const order = target as OrderRecord;
-      if (order.promotionCode) {
-        const promotionCode = order.promotionCode as PromotionCodeRecord
-        if (Array.isArray(promotionCode.promotion)) {
-          promotionCode.promotion.forEach((p) => {
-            if (typeof p !== "object" || p === null) return;
-            const handler = this.promotions[p.id];
-            if (!handler) return; // not registered (e.g. disabled) → can't apply
-            if (filteredByCondition.some((x) => x.id === p.id)) return; // already eligible
-            if (handler.condition(order, true)) {
-              p.sortOrder = -Infinity;
-              filteredByCondition.push(p);
-            }
-          });
-        }
-        else {
-          if (promotionCode.promotion !== null) {
-            sails.log.debug(`PromotionAdapter: promotionCode.promotion should be array: \n${JSON.stringify(promotionCode, null, 2)}`);
-          }
-        }
+  /** The rule of `filterPromotions` over the code's promotions that work and the automatic ones. */
+  private choose(byCode: PromotionRecord[], automatic: PromotionRecord[]): PromotionRecord[] {
+    const candidates = byCode.length
+      ? [...byCode, ...automatic.filter((promotion) => promotion.isJoint === true && !byCode.some((own) => own.id === promotion.id))]
+      : automatic;
+    const exclusive = candidates.find((promotion) => promotion.isJoint === false);
+    return exclusive ? [exclusive] : candidates.filter((promotion) => promotion.isJoint === true);
+  }
+
+  /**
+   * The promotions of the order's code that work now, by their `sortOrder`. Switched off or not, a promotion applies
+   * through its code, within its hours; the code relaxes its targeting of dishes and groups (`condition` in promocode
+   * mode), the way the order is received and the minimum basket still hold.
+   */
+  private codePromotions(order: OrderRecord): PromotionRecord[] {
+    return this.codeLinked(order)
+      .filter((promotion) => openByHours(promotion.worktime) && this.promotions[promotion.id]?.condition(order, true))
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  }
+
+  /** The promotions the order's code is linked to. */
+  private codeLinked(order: OrderRecord): PromotionRecord[] {
+    const promotionCode = order.promotionCode as PromotionCodeRecord | null;
+    if (!promotionCode || typeof promotionCode !== "object") return [];
+    if (!Array.isArray(promotionCode.promotion)) {
+      if (promotionCode.promotion !== null) {
+        sails.log.debug(`PromotionAdapter: promotionCode.promotion should be array: \n${JSON.stringify(promotionCode, null, 2)}`);
       }
+      return [];
     }
-    // return first isJoint = false
-    let filteredByJointPromotions: PromotionRecord[] = [
-      filteredByCondition.find((promotion) => {
-        return promotion.isJoint === false;
-      }),
-    ];
-
-    // return all isJoint = true
-    if (!filteredByJointPromotions[0]) {
-      filteredByJointPromotions = filteredByCondition.filter((promotion) => {
-        return promotion.isJoint === true;
-      });
-    }
-    return filteredByJointPromotions;
+    return (promotionCode.promotion as PromotionRecord[]).filter((promotion) => typeof promotion === "object" && promotion !== null);
   }
 
   public filterByCondition(promotionsToCheck: PromotionRecord[], target: GroupRecord | DishRecord | OrderRecord): PromotionRecord[] {
@@ -232,16 +259,16 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   }
 
   /**
-   * Method uses for call from Promotion model, afterCreate/update for update configuredPromotion
-   * @param promotionToAdd
-   * @returns
+   * Called by the Promotion model after a configured promotion is created or updated. Switched off, it stays
+   * registered: it no longer applies by itself (the baskets take only enabled ones, `Promotion.getAllByConcept`),
+   * but still through its codes. A deleted one is dropped.
    */
   public recreateConfiguredPromotionHandler(promotionToAdd: PromotionRecord): void {
     if (this.promotions[promotionToAdd.id]) {
       delete this.promotions[promotionToAdd.id]
     }
 
-    if (promotionToAdd.enable !== false) {
+    if (!promotionToAdd.isDeleted) {
       this.promotions[promotionToAdd.id] = new ConfiguredPromotion(promotionToAdd, promotionToAdd.configDiscount);
     }
   }

@@ -2,7 +2,7 @@ import { hasAccess } from "./marketing-helpers";
 
 /**
  * POST …/core/marketing/promotion-delete   { id }
- * Soft-deletes a configured promotion (isDeleted: true + enable: false). The enable:false
+ * Soft-deletes a configured promotion (isDeleted: true + enable: false). The isDeleted
  * makes afterUpdate drop the live ConfiguredPromotion handler from the adapter. Programmed
  * promotions are managed in code and cannot be deleted here (§8.0).
  */

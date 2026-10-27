@@ -58,6 +58,16 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     return this.config.gift?.minBasketTotal ?? this.config.minBasketTotal ?? 0;
   }
 
+  /** The ways of receiving an order it is for; empty - any. */
+  public get serviceTypes(): string[] {
+    return this.config.serviceType ?? [];
+  }
+
+  /** Whether it is for the way this order is received - by itself or through a code alike. */
+  public servesOrder(order: OrderRecord): boolean {
+    return !this.serviceTypes.length || this.serviceTypes.includes(order.serviceType ?? "delivery");
+  }
+
   private get excludeModifiers(): boolean {
     return (this.configDiscount?.excludeModifiers ?? this.config?.excludeModifiers) === true;
   }
@@ -87,7 +97,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
     /**
      * Promocode mode: the code is an explicit activation, so we don't require the
      * automatic dish/group targeting. We only enforce code-eligibility rules — the
-     * minimum basket total.
+     * way the order is received (`servesOrder`) and the minimum basket total.
      *
      * Threshold precedence (NOT max — first defined wins):
      *   gift.minBasketTotal  ??  config.minBasketTotal (top-level)  ??  0
@@ -101,7 +111,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
      */
     if (viaPromocode && findModelInstanceByAttributes(arg) === "Order") {
       const order = arg as OrderRecord;
-      return new Decimal(order.basketTotal ?? 0).gte(this.codeMinBasketTotal);
+      return this.servesOrder(order) && new Decimal(order.basketTotal ?? 0).gte(this.codeMinBasketTotal);
     }
 
     // A dish and a group are asked about first: a concept that matched used to
@@ -131,12 +141,7 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
       // and that is a promotion code's to apply: were it selected here, a code's
       // promotion would reach every basket. So only a targeted one can be.
       if (this.targeted && orderDishes.some((orderDish) => this.discounts(orderDish.dish as DishRecord))) {
-        if(Array.isArray(this.config.serviceType) && this.config.serviceType.length) {
-          if(!this.config.serviceType.includes(order.serviceType ?? "delivery")) {
-            return false
-          }
-        }
-        return true
+        return this.servesOrder(order)
       }
 
       return false;

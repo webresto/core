@@ -16,7 +16,8 @@ const uuid_1 = require("uuid");
 // });
 let promotionRAM = [];
 sails.on("lifted", async () => {
-    let promotions = await Promotion.find({ enable: true, createdByUser: true });
+    // switched off ones too: they still apply through their codes
+    let promotions = await Promotion.find({ createdByUser: true, isDeleted: false });
     for (let i = 0; i < promotions.length; i++) {
         adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(promotions[i]);
     }
@@ -75,10 +76,9 @@ let attributes = {
     },
     productCategoryPromotions: "json",
     /**
-     * User can disable this discount
-     * By default is disabled
-     * promocode ignore this field, and apply promotion by code
-    */
+     * Whether the promotion applies by itself, to the baskets it targets. A promo code ignores it: switched off, the
+     * promotion applies only through its codes. On creation - `PROMOTION_ENABLE_BY_DEFAULT`.
+     */
     enable: {
         type: "boolean"
     },

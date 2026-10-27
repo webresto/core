@@ -15,8 +15,8 @@ Promotion model has this props:
 - `description`: String
 - `isMarkup`: Boolean
 - `isPublic`: Boolean, Show if promotion is available by API for customer
-- `isJoint`: Boolean, Show if promotion is available to use it together with other promotions, first use isJoint = false promotions(once) if there are no false promotions then use isJoint=true
-- `enable`: Boolean, Can we use this promotion, User can disable this promotion
+- `isJoint`: Boolean, Show if promotion is available to use it together with other promotions, first use isJoint = false promotions(once) if there are no false promotions then use isJoint=true. The applied promo code's promotions go first: an exclusive one of them takes the basket alone, joint ones go with the joint automatic promotions, and an exclusive automatic one gives way to them
+- `enable`: Boolean, Whether the promotion applies by itself; switched off, it applies only through its promo codes
 - `isDeleted`: Boolean, No active class in Promotion Adapter
 - `productCategoryPromotions`: json, 
 - `hash`: String, hashsum of promotion to check if promotion is already created

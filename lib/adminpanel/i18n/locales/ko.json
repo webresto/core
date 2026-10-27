@@ -295,7 +295,7 @@
 	"A promo code does nothing on its own — it activates the promotions linked here when applied to an order.": "프로모션 코드 자체로는 아무 작용도 하지 않습니다. 주문에 적용되면 여기에 연결된 프로모션을 활성화합니다.",
 	"Active": "활성",
 	"Active codes": "활성 코드",
-	"Active for customers.": "고객에게 활성화됨.",
+	"Applies by itself. Off — only through its promo codes.": "자동으로 적용됩니다. 끄면 해당 프로모션 코드로만 적용됩니다.",
 	"Add gift items": "사은품 추가",
 	"Added to the cart as a gift. Use a 0₽ dish for a free gift, or a special promo item at its own price.": "장바구니에 사은품으로 추가됩니다. 무료 사은품은 0₽ 메뉴를, 또는 자체 가격의 특별 프로모션 상품을 사용하세요.",
 	"Advanced": "고급",

@@ -295,7 +295,7 @@
 	"A promo code does nothing on its own — it activates the promotions linked here when applied to an order.": "促销码本身不起作用——当应用到订单时，它会激活此处关联的促销活动。",
 	"Active": "有效",
 	"Active codes": "有效促销码",
-	"Active for customers.": "对顾客生效。",
+	"Applies by itself. Off — only through its promo codes.": "自动生效。关闭后仅通过其优惠码生效。",
 	"Add gift items": "添加赠品",
 	"Added to the cart as a gift. Use a 0₽ dish for a free gift, or a special promo item at its own price.": "作为赠品添加到购物车。免费赠品请使用 0₽ 的菜品，或按自身价格使用特价促销商品。",
 	"Advanced": "高级",

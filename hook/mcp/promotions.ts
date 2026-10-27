@@ -15,8 +15,8 @@ declare const mcp: any;
  * ConfiguredPromotion handlers on afterCreate/afterUpdate.
  *
  * NOTE: Promotion.beforeCreate overrides `enable` based on PROMOTION_ENABLE_BY_DEFAULT
- * / NODE_ENV (true on non-production). To reliably (un)register a promotion use
- * promotion-update { enable } afterwards.
+ * / NODE_ENV (true on non-production). To reliably switch a promotion on or off use
+ * promotion-update { enable } afterwards; off, it still applies through its codes.
  */
 export function registerPromotionsTools() {
     if (process.env.MCP_ENABLED !== 'true' && process.env.MCP_INTERNAL_ENABLED !== 'true') return;
@@ -80,9 +80,11 @@ export function registerPromotionsTools() {
             + '  - discount:  { discountType: "flat"|"percentage", discountAmount, dishes:[], groups:[] }\n'
             + '  - gift:      { gift: { minBasketTotal, dishes:[{ dishId, amount }] }, dishes:[], groups:[] }\n'
             + '    each gift dish must be notForSale (free) or promo (special price), otherwise the call fails.\n'
-            + 'A gift-only promo may omit discountType. For a "promocode only" gift set isPublic:false, '
-            + 'isJoint:true and keep dishes:[]/groups:[] so condition() never applies it on its own — '
-            + 'it is then applied solely via a linked PromotionCode.\n\n'
+            + 'A gift-only promo may omit discountType. A "promocode only" promotion is either switched off '
+            + '(enable:false: it applies only through its codes, dishes and groups still choose what it discounts) '
+            + 'or keeps dishes:[]/groups:[] so condition() never applies it on its own.\n'
+            + 'A code\'s promotions go first: isJoint:false takes the basket alone, isJoint:true goes with the '
+            + 'joint automatic promotions and puts an exclusive automatic one aside.\n\n'
             + 'NOTE: enable is forced by Promotion.beforeCreate (true on non-production). '
             + 'Use promotion-update { enable } to control it reliably.',
         mode: 'protected',
@@ -132,8 +134,8 @@ export function registerPromotionsTools() {
         group: 'promotions',
         description:
             'Updates a promotion. Pass id and only the fields to change.\n\n'
-            + 'To enable/register:  { id, enable: true }\n'
-            + 'To disable/unregister:{ id, enable: false }\n'
+            + 'To apply it by itself:       { id, enable: true }\n'
+            + 'To apply it only by its codes:{ id, enable: false }\n'
             + 'To change the gift/discount: { id, configDiscount: { ... } }',
         mode: 'protected',
         schema: {
@@ -146,7 +148,7 @@ export function registerPromotionsTools() {
                 concept:        { type: 'array',   description: 'New concept array.', example: ['origin'] },
                 isJoint:        { type: 'boolean', description: 'Stackable with other promotions.', example: true },
                 isPublic:       { type: 'boolean', description: 'Visible to customer.', example: false },
-                enable:         { type: 'boolean', description: 'Enable (register) / disable (unregister).', example: true },
+                enable:         { type: 'boolean', description: 'On - applies by itself; off - only through its codes.', example: true },
                 sortOrder:      { type: 'number',  description: 'Apply order.', example: 0 },
                 worktime:       { type: 'object',  description: 'Availability schedule.', example: {} },
             },
@@ -167,7 +169,7 @@ export function registerPromotionsTools() {
     mcp.registerTool({
         name: 'promotion-delete',
         group: 'promotions',
-        description: 'Permanently deletes a promotion (and unlinks it from promocodes). To merely disable it use promotion-update with { enable: false }.',
+        description: 'Permanently deletes a promotion (and unlinks it from promocodes). To keep it for its codes only use promotion-update with { enable: false }.',
         mode: 'protected',
         schema: {
             type: 'object',
