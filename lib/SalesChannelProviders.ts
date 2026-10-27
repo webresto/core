@@ -13,7 +13,7 @@
 
 import { SalesChannelRegistry, SalesChannelTypeDefinition } from "./SalesChannelRegistry";
 import type { SalesChannelRecord } from "../models/SalesChannel";
-import type { SalesChannelStatusResult } from "../adapters/sales-channel/SalesChannelAdapter";
+import type { SalesChannelStatusResult } from "../adapters";
 import type { CheckupDefinition, CheckupTarget } from "./SetupChecklistRegistry";
 
 /** A rule refused the operation. `error` is an English i18n key, `params` fill its {placeholders}. */

@@ -106,10 +106,10 @@ sync and the `has_delivery_zone` setup checkup.
 
 **menu.** Contract: `resolvePlaces`. Core rules in the abstract class:
 `resolveContext`, `unaddressedKitchens` (an order with no kitchen reads every
-kitchen of its city, or of every city, as an intersection), `filterProducts`,
-`canAddProduct`, `placeLines` (one kitchen),
-`resolveCookingPlace` (the `KITCHEN_RESOLVE_CHAIN`), `adjustDelivery` (nothing
-added). Default: the `default` and `single-place` modes.
+kitchen of its city, or of every city, as a union like any context; the kitchen
+chosen later drops what it lacks), `filterProducts`, `canAddProduct`,
+`placeLines` (one kitchen), `resolveCookingPlace` (the `KITCHEN_RESOLVE_CHAIN`),
+`adjustDelivery` (nothing added). Default: the `default` and `single-place` modes.
 
 Multi-kitchen route is not in core and none ships: a module would be one menu
 adapter whose `resolvePlaces` names the primary kitchen and the others,

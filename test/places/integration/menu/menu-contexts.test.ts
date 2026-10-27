@@ -9,9 +9,10 @@ import { resetDatabase, withSettings } from "../../support/reset";
  * "can be added", and the stock the menu reports is the ceiling the basket
  * enforces.
  *
- * Before a kitchen the menu is an intersection: with no city, of every kitchen
- * of every city; with a city, of that city's kitchens. With a kitchen, that
- * kitchen's stock.
+ * Before a kitchen the menu is a union: with no city, of every kitchen of every
+ * city; with a city, of that city's kitchens — a product is offered if any of
+ * them can sell it, at the best of their stock. With a kitchen, that kitchen's
+ * stock.
  *
  *              Kitchen 1  Kitchen 2  Kitchen 3
  *   Dish 1     ∞          ∞          ∞          everywhere
@@ -95,14 +96,29 @@ describe("Menu contexts", function () {
   const noKitchenAnywhere = (run: () => Promise<void>) =>
     withRows(Place, Object.values(k).map((id) => [id, { isCookingPoint: false }]), run);
 
+  /** Runs `run` with some stock rows added, and removes them after. */
+  async function withStock(rows: Array<Record<string, unknown>>, run: () => Promise<void>) {
+    const created: any[] = [];
+    for (const values of rows) created.push(await DishPlace.create(values as any).fetch());
+    try {
+      await run();
+    } finally {
+      for (const row of created) await DishPlace.destroy({ id: row.id }).fetch();
+    }
+  }
+
+  /** What the basket answers for an amount of a product in a context. */
+  const verdictOf = async (id: string, amount: number, context: MenuContext) =>
+    (await menu()).canAddProduct(await Dish.findOne({ id }), amount, context);
+
   describe("every context", function () {
     const cases: Array<{ name: string; request: () => MenuRequest; source: string; kitchens: string[]; shown: string[]; dish4: number }> = [
-      { name: "no order", request: () => ({}), source: "all", kitchens: ["kitchen1", "kitchen2", "kitchen3"], shown: ["Dish 1", "Dish 4", "Dish 5"], dish4: 2 },
-      { name: "an order with no city", request: () => ({ order: { cookingPoints: [] } as any }), source: "all", kitchens: ["kitchen1", "kitchen2", "kitchen3"], shown: ["Dish 1", "Dish 4", "Dish 5"], dish4: 2 },
-      { name: "City 1", request: () => ({ order: { address: { city: "City 1" } } as any }), source: "city", kitchens: ["kitchen1", "kitchen2"], shown: ["Dish 1", "Dish 3", "Dish 4", "Dish 5"], dish4: 2 },
+      { name: "no order", request: () => ({}), source: "all", kitchens: ["kitchen1", "kitchen2", "kitchen3"], shown: ALL, dish4: -1 },
+      { name: "an order with no city", request: () => ({ order: { cookingPoints: [] } as any }), source: "all", kitchens: ["kitchen1", "kitchen2", "kitchen3"], shown: ALL, dish4: -1 },
+      { name: "City 1", request: () => ({ order: { address: { city: "City 1" } } as any }), source: "city", kitchens: ["kitchen1", "kitchen2"], shown: ALL, dish4: 5 },
       { name: "City 2", request: () => ({ order: { address: { city: "City 2" } } as any }), source: "city", kitchens: ["kitchen3"], shown: ["Dish 1", "Dish 4", "Dish 5"], dish4: -1 },
-      { name: "City 1 by its id", request: () => ({ order: { address: { city: city1 } } as any }), source: "city", kitchens: ["kitchen1", "kitchen2"], shown: ["Dish 1", "Dish 3", "Dish 4", "Dish 5"], dish4: 2 },
-      { name: "a city nobody knows", request: () => ({ order: { address: { city: "City 9" } } as any }), source: "all", kitchens: ["kitchen1", "kitchen2", "kitchen3"], shown: ["Dish 1", "Dish 4", "Dish 5"], dish4: 2 },
+      { name: "City 1 by its id", request: () => ({ order: { address: { city: city1 } } as any }), source: "city", kitchens: ["kitchen1", "kitchen2"], shown: ALL, dish4: 5 },
+      { name: "a city nobody knows", request: () => ({ order: { address: { city: "City 9" } } as any }), source: "all", kitchens: ["kitchen1", "kitchen2", "kitchen3"], shown: ALL, dish4: -1 },
       { name: "Kitchen 1", request: () => ({ order: { cookingPoints: [k.kitchen1], address: { city: "City 1" } } as any }), source: "order", kitchens: ["kitchen1"], shown: ALL, dish4: 2 },
       { name: "Kitchen 2", request: () => ({ order: { cookingPoints: [k.kitchen2] } as any }), source: "order", kitchens: ["kitchen2"], shown: ["Dish 1", "Dish 3", "Dish 4", "Dish 5"], dish4: 5 },
       { name: "Kitchen 3", request: () => ({ order: { cookingPoints: [k.kitchen3] } as any }), source: "order", kitchens: ["kitchen3"], shown: ["Dish 1", "Dish 4", "Dish 5"], dish4: -1 },
@@ -132,12 +148,12 @@ describe("Menu contexts", function () {
       await expectMenuAgreesWithBasket(context);
     });
 
-    it("narrows as the order learns more: every city ⊆ its city ⊆ its kitchen", async function () {
+    it("narrows as the order learns more: its kitchen ⊆ its city ⊆ every city", async function () {
       const everywhere = await menuFor({});
       for (const [city, kitchen] of [["City 1", k.kitchen1], ["City 1", k.kitchen2], ["City 2", k.kitchen3]]) {
         const inCity = await menuFor({ order: { address: { city } } as any });
-        expect(inCity).to.include.members(everywhere);
-        expect(await menuFor({ order: { cookingPoints: [kitchen] } as any })).to.include.members(inCity);
+        expect(everywhere).to.include.members(inCity);
+        expect(inCity).to.include.members(await menuFor({ order: { cookingPoints: [kitchen] } as any }));
       }
     });
   });
@@ -170,7 +186,71 @@ describe("Menu contexts", function () {
 
       expect(context.source).to.equal("all");
       expect(context.placeRequired).to.equal(true);
-      expect(await menuOf(context)).to.deep.equal(["Dish 1", "Dish 4", "Dish 5"]);
+      expect(await menuOf(context)).to.deep.equal(ALL);
+    });
+  });
+
+  /** Before a kitchen, in both modes of the default menu: what any of the kitchens sells, at the best of their stock. */
+  describe("before a kitchen", function () {
+    const MODES = ["default", "single-place"];
+    const inMode = (mode: string, run: () => Promise<void>) => withSettings({ MENU_PLACE_BASED_MODE: mode }, run);
+    const inCity1 = () => contextOf({ order: { address: { city: "City 1" } } as any });
+
+    it("a product stopped at one of two kitchens is offered at the other's stock, and the basket takes it", async function () {
+      // Dish 2: four at Kitchen 1, stopped at Kitchen 2.
+      await withStock([{ dish: d.dish2, place: k.kitchen1, localBalance: 4 }], async () => {
+        for (const mode of MODES) {
+          await inMode(mode, async () => {
+            const context = await inCity1();
+
+            expect(await menuOf(context), mode).to.include("Dish 2");
+            expect(await getEffectiveBalanceAcross(d.dish2, context), mode).to.equal(4);
+            expect((await verdictOf(d.dish2, 4, context)).available, mode).to.equal(true);
+            await expectMenuAgreesWithBasket(context);
+          });
+        }
+      });
+    });
+
+    it("with one kitchen, its stops show at once", async function () {
+      await withRows(Place, [[k.kitchen1, { isCookingPoint: false }], [k.kitchen2, { isCookingPoint: false }]], async () => {
+        for (const mode of MODES) {
+          await inMode(mode, async () => {
+            const context = await contextOf({});
+            const verdict = await verdictOf(d.dish3, 1, context);
+
+            expect(context.placeIds, mode).to.deep.equal([k.kitchen3]);
+            expect(await menuOf(context), mode).to.deep.equal(["Dish 1", "Dish 4", "Dish 5"]);
+            expect(verdict.reason, mode).to.equal("PRODUCT_STOPPED_AT_PLACE");
+            await expectMenuAgreesWithBasket(context);
+          });
+        }
+        // Shown anyway when the operator asks for it, at a stock of nothing.
+        await withSettings({ SHOW_UNAVAILABLE_DISHES: true }, async () => {
+          const context = await contextOf({});
+
+          expect(await menuOf(context)).to.deep.equal(ALL);
+          expect(await getEffectiveBalanceAcross(d.dish3, context)).to.equal(0);
+        });
+      });
+    });
+
+    it("a product stopped at every kitchen is not offered", async function () {
+      // Dish 3 is stopped at Kitchen 3 already.
+      const stops = [k.kitchen1, k.kitchen2].map((place) => ({ dish: d.dish3, place, localBalance: 0 }));
+      await withStock(stops, async () => {
+        for (const mode of MODES) {
+          await inMode(mode, async () => {
+            for (const context of [await contextOf({}), await inCity1()]) {
+              const verdict = await verdictOf(d.dish3, 1, context);
+
+              expect(await menuOf(context), `${mode}, ${context.source}`).to.not.include("Dish 3");
+              expect(verdict.reason, `${mode}, ${context.source}`).to.equal("PRODUCT_STOPPED_AT_PLACE");
+              expect(await getEffectiveBalanceAcross(d.dish3, context)).to.equal(0);
+            }
+          });
+        }
+      });
     });
   });
 
@@ -178,17 +258,14 @@ describe("Menu contexts", function () {
     const atKitchen1 = () => contextOf({ order: { cookingPoints: [k.kitchen1] } as any });
     const inCity1 = () => contextOf({ order: { address: { city: "City 1" } } as any });
 
-    it("a row switched off stops the product at that kitchen only", async function () {
-      const row = await DishPlace.create({ dish: d.dish1, place: k.kitchen1, enable: false }).fetch();
-      try {
-        expect(await menuFor({})).to.not.include("Dish 1");
-        expect(await menuOf(await inCity1())).to.not.include("Dish 1");
+    it("a row switched off stops the product at that kitchen only: before a kitchen, the others still offer it", async function () {
+      await withStock([{ dish: d.dish1, place: k.kitchen1, enable: false }], async () => {
+        expect(await menuFor({})).to.include("Dish 1");
+        expect(await menuOf(await inCity1())).to.include("Dish 1");
         expect(await menuOf(await atKitchen1())).to.not.include("Dish 1");
         expect(await menuFor({ order: { cookingPoints: [k.kitchen2] } as any })).to.include("Dish 1");
         await expectMenuAgreesWithBasket(await inCity1());
-      } finally {
-        await DishPlace.destroy({ id: row.id }).fetch();
-      }
+      });
     });
 
     it("a product switched off is nowhere, and the basket says why", async function () {
@@ -196,47 +273,39 @@ describe("Menu contexts", function () {
         const context = await atKitchen1();
 
         expect(await menuOf(context)).to.not.include("Dish 1");
-        const verdict = await (await menu()).canAddProduct(await Dish.findOne({ id: d.dish1 }), 1, context);
-        expect(verdict.reason).to.equal("PRODUCT_DISABLED");
+        expect((await verdictOf(d.dish1, 1, context)).reason).to.equal("PRODUCT_DISABLED");
       });
     });
 
     it("an RMS stop counts in the modes that read the RMS", async function () {
-      const row = await DishPlace.create({ dish: d.dish1, place: k.kitchen1, rmsBalance: 0 }).fetch();
-      try {
+      await withStock([{ dish: d.dish1, place: k.kitchen1, rmsBalance: 0 }], async () => {
         for (const [mode, shown] of [["minimum", false], ["rms-only", false], ["local-only", true]] as const) {
           await withSettings({ DISH_PLACE_BALANCE_MODE: mode }, async () => {
             expect((await menuOf(await atKitchen1())).includes("Dish 1"), mode).to.equal(shown);
             await expectMenuAgreesWithBasket(await atKitchen1());
           });
         }
-      } finally {
-        await DishPlace.destroy({ id: row.id }).fetch();
-      }
+      });
     });
 
     it("the smaller of the operator's and the RMS's stock is the ceiling", async function () {
-      const row = await DishPlace.create({ dish: d.dish1, place: k.kitchen2, localBalance: 7, rmsBalance: 3 }).fetch();
-      try {
+      await withStock([{ dish: d.dish1, place: k.kitchen2, localBalance: 7, rmsBalance: 3 }], async () => {
         expect(await getEffectiveBalanceAcross(d.dish1, await contextOf({ order: { cookingPoints: [k.kitchen2] } as any }))).to.equal(3);
-        expect(await getEffectiveBalanceAcross(d.dish1, await inCity1())).to.equal(3);
-      } finally {
-        await DishPlace.destroy({ id: row.id }).fetch();
-      }
+      });
     });
 
     it("SHOW_UNAVAILABLE_DISHES shows what the basket still refuses, by design", async function () {
       await withSettings({ SHOW_UNAVAILABLE_DISHES: true }, async () => {
-        const context = await contextOf({});
+        const context = await contextOf({ order: { cookingPoints: [k.kitchen2] } as any });
 
         expect(await menuOf(context)).to.deep.equal(ALL);
-        expect((await (await menu()).canAddProduct(await Dish.findOne({ id: d.dish2 }), 1, context)).available).to.equal(false);
+        expect((await verdictOf(d.dish2, 1, context)).available).to.equal(false);
       });
     });
 
     it("a maximum wait hides what alone cooks longer, whatever the kitchens hold", async function () {
       const context = await contextOf({ order: { address: { city: "City 1" }, maxWaitMinutes: 30 } as any });
-      expect(await menuOf(context)).to.deep.equal(["Dish 1", "Dish 3", "Dish 4"]);
+      expect(await menuOf(context)).to.deep.equal(["Dish 1", "Dish 2", "Dish 3", "Dish 4"]);
     });
   });
 
@@ -258,12 +327,11 @@ describe("Menu contexts", function () {
         expect(context.placeIds).to.deep.equal([k.kitchen2]);
         expect(context.code).to.equal(undefined);
         expect(await menuOf(context)).to.deep.equal(["Dish 1", "Dish 3", "Dish 4", "Dish 5"]);
-        const verdict = await (await menu()).canAddProduct(await Dish.findOne({ id: d.dish1 }), 1, context);
-        expect(verdict).to.include({ available: true });
+        expect(await verdictOf(d.dish1, 1, context)).to.include({ available: true });
       });
     });
 
-    it("before a kitchen, stays in the intersection of its city: the menu is the one it has open", async function () {
+    it("before a kitchen, stays in the union of its city: the menu is the one it has open", async function () {
       const inCity1 = { order: { address: { city: "City 1" } } as any };
       const open = await contextOf(inCity1);
       const openMenu = await menuOf(open);

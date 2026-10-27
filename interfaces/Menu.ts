@@ -71,9 +71,8 @@ export interface MenuContext {
   /**
    * The points stock is read at. A product is in the menu if any one of them
    * can sell it — the union, so an adapter that names several kitchens gets
-   * the right filter from the defaults without overriding them. The exception
-   * is a context without a kitchen — `city` and `all` — read as an
-   * intersection (`readsEveryPoint`).
+   * the right filter from the defaults without overriding them. A context
+   * without a kitchen — `city` and `all` — is read the same way.
    *
    * Empty means no point is known, which reads as unlimited stock — the legacy
    * answer, and the one an installation with no cooking point configured has
@@ -86,8 +85,9 @@ export interface MenuContext {
    * `coordinate` means it was derived from where the customer is, through the
    * same resolver an order uses. `city` and `all` mean there is no kitchen
    * yet: the enabled kitchens of the order's city, or of every city when the
-   * order names none, and a product is offered only if each of them can sell
-   * it — so nothing shown before the address disappears once it is given.
+   * order names none, and a product is offered if any of them can sell it.
+   * Once the address or point picks the kitchen, the basket is recounted there
+   * and loses what that kitchen lacks.
    */
   source: "requested" | "order" | "coordinate" | "city" | "all" | "none";
   /**

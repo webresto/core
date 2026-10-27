@@ -13,9 +13,6 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthAdapter = void 0;
 process.env.UNIQUE_SLUG === undefined ? "1" : process.env.UNIQUE_SLUG;
@@ -55,9 +52,8 @@ __exportStar(require("./lib/notifications/NotificationService"), exports);
 __exportStar(require("./lib/SetupChecklistRegistry"), exports);
 __exportStar(require("./lib/SetupChecklistService"), exports);
 __exportStar(require("./lib/AuthService"), exports);
-var AuthAdapter_1 = require("./adapters/auth/AuthAdapter");
-Object.defineProperty(exports, "AuthAdapter", { enumerable: true, get: function () { return __importDefault(AuthAdapter_1).default; } });
-__exportStar(require("./adapters/auth/AuthAdapter"), exports);
+var adapters_1 = require("./adapters");
+Object.defineProperty(exports, "AuthAdapter", { enumerable: true, get: function () { return adapters_1.AuthAdapter; } });
 module.exports = function (sails) {
     return {
         defaults: require('./hook/defaults'),

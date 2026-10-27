@@ -8,8 +8,8 @@ import { MenuContext, MenuRequest } from "../../../interfaces/Menu";
  *
  * **`default`** — the menu of the kitchen that cooks: the requested point, the
  * order's kitchen, or the one the customer's coordinate resolves to. Until
- * there is one, the kitchens the order could still end up at, and only what
- * each of them has (`unaddressedKitchens`). A point is never required, so no
+ * there is one, the kitchens the order could still end up at, and what any of
+ * them has (`unaddressedKitchens`). A point is never required, so no
  * address and no chosen kitchen stands before the first product goes into a
  * basket.
  *

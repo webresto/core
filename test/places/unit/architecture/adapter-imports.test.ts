@@ -104,8 +104,14 @@ function adapterOf(target: string): string | null {
   return parts[0];
 }
 
+/** The abstract class's file of a folder: `sales-channel` → `SalesChannelAdapter.ts`. */
+function abstractFile(adapter: string): string {
+  return adapter.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join("") + "Adapter.ts";
+}
+
+/** Compared ignoring case: `rms` holds `RMSAdapter.ts`. */
 function isAbstractFile(adapter: string, name: string): boolean {
-  return name.toLowerCase() === `${adapter.toLowerCase()}adapter.ts`;
+  return name.toLowerCase() === abstractFile(adapter).toLowerCase();
 }
 
 /** Whether a file outside `adapters/` may import this adapter's `default/`. */
@@ -152,7 +158,7 @@ describe("adapter form", function () {
       const dir = path.join(ADAPTERS, adapter);
       const files = walk(dir).map((file) => path.relative(dir, file).split(path.sep));
       if (!files.some((parts) => parts.length === 1 && isAbstractFile(adapter, parts[0]))) {
-        violations.push(`adapters/${adapter}/ has no abstract ${adapter}Adapter.ts`);
+        violations.push(`adapters/${adapter}/ has no abstract ${abstractFile(adapter)}`);
       }
       for (const parts of files) {
         if (parts[0] === "default" && parts.length > 1) continue;

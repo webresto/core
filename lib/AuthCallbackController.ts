@@ -1,6 +1,6 @@
 import AuthService from "./AuthService";
 import { resolveRedirectBack } from "./authRedirect";
-import { AuthCompleteInput } from "../adapters/auth/AuthAdapter";
+import type { AuthCompleteInput } from "../adapters";
 
 /**
  * HTTP entry points every external party uses to finish an attempt:

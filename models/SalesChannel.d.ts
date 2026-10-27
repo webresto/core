@@ -1,8 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
-import type SalesChannelAdapter from "../adapters/sales-channel/SalesChannelAdapter";
-import type { SalesChannelStatusResult } from "../adapters/sales-channel/SalesChannelAdapter";
+import type { SalesChannelAdapter, SalesChannelStatusResult } from "../adapters";
 /**
  * SalesChannel
  *

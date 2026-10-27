@@ -33,5 +33,5 @@ export * from './lib/notifications/NotificationService';
 export * from './lib/SetupChecklistRegistry';
 export * from './lib/SetupChecklistService';
 export * from './lib/AuthService';
-export { default as AuthAdapter } from './adapters/auth/AuthAdapter';
-export * from './adapters/auth/AuthAdapter';
+export { AuthAdapter } from './adapters';
+export type { AuthFlowKind, PhoneProofMode, SecretOrigin, StepType, Offer, InitAuthAdapter, NormalizedProfile, StartResult, AuthCompleteInput, WebhookMeta, Signal, StartContext, } from './adapters';

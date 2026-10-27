@@ -1,6 +1,6 @@
 import * as crypto from "crypto";
 import { v4 as uuid } from "uuid";
-import AuthAdapter, { NormalizedProfile, Offer, Signal, StepType } from "../adapters/auth/AuthAdapter";
+import type { AuthAdapter, NormalizedProfile, Offer, Signal, StepType } from "../adapters";
 import { AuthAttemptRecord, AuthPurpose, AuthStep } from "../models/AuthAttempt";
 import { AuthIdentityProof, AuthIdentityRecord } from "../models/AuthIdentity";
 import { AuthMethodRecord } from "../models/AuthMethod";

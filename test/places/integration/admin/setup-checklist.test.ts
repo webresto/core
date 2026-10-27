@@ -83,11 +83,13 @@ describe("Setup checklist", function () {
     NotificationManager.registerChannel(sms);
   }
 
-  it("a fresh installation is not ready: nothing required is done but the sign-in core ships", async function () {
+  it("a fresh installation is not ready: nothing required is done but the sign-in core ships and the timezone of the environment", async function () {
     const current = await status();
     expect(current.overallReady).to.equal(false);
-    expect(current.counts.required.done).to.equal(1);
+    expect(current.counts.required.done).to.equal(2);
     expect((await item("auth_login_method")).status).to.equal("done");
+    // The run sets TZ in the environment (support/sails.ts), and the setting reads it from there.
+    expect((await item("project_timezone")).status).to.equal("done");
     expect((await item("project_name")).status).to.equal("todo");
   });
 

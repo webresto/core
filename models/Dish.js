@@ -318,16 +318,13 @@ let Model = {
         criteria.enable = true;
         let dishes = await Dish.find(criteria).populate("images");
         dishes = await (await adapters_1.Adapter.get("menu")).filterProducts(dishes, context);
-        for await (let dish of dishes) {
-            const reason = (0, checkExpression_1.default)(dish);
-            if (!reason) {
-                await Dish.getDishModifiers(dish, context);
-                if (dish.images.length >= 2)
-                    dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
-            }
-            else {
-                dishes.splice(dishes.indexOf(dish), 1);
-            }
+        // Filter first, populate after: removing rows from the array being iterated
+        // skipped the row right after each removed one.
+        dishes = dishes.filter((dish) => !(0, checkExpression_1.default)(dish));
+        for (const dish of dishes) {
+            await Dish.getDishModifiers(dish, context);
+            if (dish.images.length >= 2)
+                dish.images.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
         }
         dishes.sort((a, b) => a.sortOrder - b.sortOrder);
         await emitter.emit("core:product-get-dishes", dishes);
@@ -343,12 +340,13 @@ let Model = {
     async getDishModifiers(dish, context) {
         const adapter = await adapters_1.Adapter.get("menu");
         if (dish.modifiers) {
-            let index = 0;
+            // Groups that keep an option, collected apart: removing a group from the
+            // array being iterated skipped the group right after it.
+            const kept = [];
             // group modofiers
-            for await (let modifier of dish.modifiers) {
-                let childIndex = 0;
+            for (const modifier of dish.modifiers) {
                 let childModifiers = [];
-                if (dish.modifiers[index].id !== undefined) {
+                if (modifier.id !== undefined) {
                     let criteria = { concept: dish.concept ?? undefined };
                     if (modifier.id) {
                         // id is the restocore id. Also accept legacy rows where this field
@@ -358,11 +356,9 @@ let Model = {
                     else {
                         throw `Group modifier id not found`;
                     }
-                    dish.modifiers[index].group = (await Group.find(criteria).limit(1))[0];
+                    modifier.group = (await Group.find(criteria).limit(1))[0];
                 }
-                if (!modifier.childModifiers)
-                    modifier.childModifiers = [];
-                for await (let childModifier of modifier.childModifiers) {
+                for (const childModifier of modifier.childModifiers ?? []) {
                     let criteria = { concept: dish.concept ?? undefined };
                     if (childModifier.id) {
                         // Prefer the restocore id and fall back to old RMS-id rows.
@@ -372,33 +368,26 @@ let Model = {
                         throw `Dish modifier id not found`;
                     }
                     let childModifierDish = (await Dish.find({ where: criteria, limit: 1 }).populate('images'))[0];
-                    const childIsStopped = childModifierDish
-                        ? !(await adapter.canAddProduct(childModifierDish, 1, context)).available
-                        : false;
-                    if (!childModifierDish || childIsStopped) {
-                        // delete if dish not found
+                    if (!childModifierDish) {
                         sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.id + " from dish:" + dish.name + " not found");
                     }
-                    else {
-                        try {
-                            childModifier.dish = childModifierDish;
-                            childModifiers.push(childModifier);
-                        }
-                        catch (error) {
-                            sails.log.error("DISH > getDishModifiers: problem with: " + childModifier.id + " in dish:" + dish.name);
-                        }
+                    else if (!(await adapter.canAddProduct(childModifierDish, 1, context)).available) {
+                        sails.log.warn("DISH > getDishModifiers: Modifier " + childModifier.id + " from dish:" + dish.name + " is unavailable in the menu context");
                     }
-                    childIndex++;
+                    else {
+                        childModifier.dish = childModifierDish;
+                        childModifiers.push(childModifier);
+                    }
                 }
-                //
-                dish.modifiers[index].childModifiers = childModifiers;
+                modifier.childModifiers = childModifiers;
                 // If groupMod not have options delete it
-                if (modifier.childModifiers && !modifier.childModifiers.length) {
+                if (!childModifiers.length) {
                     sails.log.warn("DISH > getDishModifiers: GroupModifier " + modifier.id + " from dish:" + dish.name + " not have modifiers");
-                    dish.modifiers.splice(index, 1);
+                    continue;
                 }
-                index++;
+                kept.push(modifier);
             }
+            dish.modifiers = kept;
         }
         return dish;
     },

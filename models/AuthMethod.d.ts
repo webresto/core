@@ -1,8 +1,7 @@
 import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import type AuthAdapter from "../adapters/auth/AuthAdapter";
-import type { AuthFlowKind, PhoneProofMode, SecretOrigin, Offer } from "../adapters/auth/AuthAdapter";
+import type { AuthAdapter, AuthFlowKind, PhoneProofMode, SecretOrigin, Offer } from "../adapters";
 export type AuthMethodKind = "identity" | "phone_proof";
 export type AuthMethodHealth = "ready" | "needs_setup" | "error" | "conflict";
 /** Public projection of an AuthMethod row — the ONLY shape allowed to reach the frontend. `config` never leaves this file. */

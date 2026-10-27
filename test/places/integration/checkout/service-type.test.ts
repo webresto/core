@@ -147,13 +147,13 @@ describe("Checkout: service type", function () {
     expect(order.message).to.equal(DROPPED);
   });
 
-  it("a pickup point that does not cook gives no kitchen, keeps what every kitchen of the city has, and is refused", async function () {
+  it("a pickup point that does not cook gives no kitchen, keeps what a kitchen of the city has, and is refused", async function () {
     const id = await basketAtKitchen1();
     const order = await pickUpAt(id, point1);
 
     expect(order.cookingPoints).to.deep.equal([]);
-    // No kitchen: the basket is read at every kitchen of its city.
-    expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
+    // No kitchen: the basket is read at the kitchens of its city, and Kitchen 1 sells Dish 2.
+    expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 2": 1 });
     const refusal = await check(id);
     expect(refusal.code).to.equal(24);
     expect(refusal.error).to.contain("PLACE_NOT_SERVING");
@@ -227,12 +227,12 @@ describe("Checkout: service type", function () {
       expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 3": 2 });
     });
 
-    it("a point that does not cook reads the tightest stock of the city's kitchens", async function () {
+    it("a point that does not cook reads the best stock of the city's kitchens", async function () {
       const id = await threeOfDish3AtKitchen1();
 
       await pickUpAt(id, point1);
 
-      expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 3": 2 });
+      expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 3": 3 });
     });
   });
 
@@ -276,12 +276,12 @@ describe("Checkout: service type", function () {
       expect(await menuOf(id)).to.deep.equal(pickup);
     });
 
-    it("at a point that does not cook is the intersection of the city's kitchens", async function () {
+    it("at a point that does not cook is the union of the city's kitchens", async function () {
       const id = await basketAtKitchen1();
 
       await pickUpAt(id, point1);
 
-      expect(await menuOf(id)).to.deep.equal({ "Dish 1": ANY, "Dish 3": 2 });
+      expect(await menuOf(id)).to.deep.equal({ "Dish 1": ANY, "Dish 2": ANY, "Dish 3": 5 });
     });
   });
 

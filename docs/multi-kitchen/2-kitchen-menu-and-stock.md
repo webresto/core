@@ -84,10 +84,14 @@ at. With a kitchen, that kitchen's menu: the kitchen asked about explicitly;
 the order's kitchen; the kitchen chosen from the customer's coordinate by the
 same chain as for the order. With no kitchen yet, every kitchen the order could
 still end up at: the kitchens of the chosen city, or of every city when none is
-chosen. Then a product is in the menu only if **each** of them has it:
-whichever kitchen the address later picks, what was shown before the address
-is there. The basket accepts a product by the same rule, and counts all of it
-already in the basket, not only what is being added.
+chosen. Then a product is in the menu if **any** of them has it, and its stock
+is the best of theirs (unlimited if any kitchen's is). The basket accepts a
+product by the same rule, and counts all of it already in the basket, not only
+what is being added. When the address or the point picks the kitchen, the
+basket is recalculated there: what that kitchen lacks is removed and the
+customer is told. The storefront can show it before the choice is confirmed by
+reading the menu at that kitchen (`cookingPointId`). With one kitchen this is
+that kitchen's menu, its stops included.
 
 The "can this be sold" check is one for the menu, the basket and the
 recalculation. It answers two different questions, and they are kept apart on

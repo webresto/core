@@ -1,5 +1,4 @@
 import { openByHours } from "../hours";
-import type { MenuContext } from "../../interfaces/Menu";
 
 /**
  * Which cooking point a question is being asked about.
@@ -7,8 +6,8 @@ import type { MenuContext } from "../../interfaces/Menu";
  * An order is cooked at the first of `Order.cookingPoints`, filled in by the
  * kitchen resolver. There is no installation-wide default kitchen: an order
  * without one is read at the kitchens it could still end up at — its city's,
- * or every city's — and a product counts only where each of them has it
- * (`readsEveryPoint`).
+ * or every city's — and a product counts if any of them has it. The kitchen
+ * chosen later recounts the basket and drops what it lacks.
  */
 
 /** An association can arrive populated or as a bare id. */
@@ -103,7 +102,6 @@ export function placeAcceptsOrdersNow(place: any, at?: Date): boolean {
 /**
  * Enabled kitchens of the city an order's address names, when the order has no
  * kitchen of its own — a customer who picked a city and has no kitchen yet.
- * Read as an intersection (`readsEveryPoint`).
  *
  * `OrderAddress.city` carries the city's name (the geocoder reads it as text),
  * `Place.city` its id, so the city is looked up by either. No clock, like every
@@ -139,17 +137,4 @@ export async function findCityId(named: string | null | undefined): Promise<stri
  */
 export async function getEnabledCookingPlaceIds(): Promise<string[]> {
   return (await Place.find({})).filter(isEnabledKitchen).map((place: any) => String(place.id));
-}
-
-/**
- * Whether a context's points are read as an intersection: a product counts
- * only if each of them can sell it.
- *
- * True where the order has no kitchen yet — `city` and `all`. Whichever of
- * those kitchens the address later picks, what was shown there is still on
- * offer. Every other context names the kitchens that will cook, and reads them
- * as a union.
- */
-export function readsEveryPoint(context: Pick<MenuContext, "source">): boolean {
-  return context.source === "city" || context.source === "all";
 }

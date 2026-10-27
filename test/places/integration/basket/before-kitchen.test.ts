@@ -4,16 +4,18 @@ import { resetDatabase, withSettings } from "../../support/reset";
 import { add, deliverTo, lines, newBasket, thrown, updateOrder } from "../../support/storefront";
 
 /**
- * A basket that has no kitchen yet takes only what every kitchen it could end
- * up at can sell: with no city, every kitchen of every city; with a city, that
- * city's. Switching the city drops what the new one lacks. With no kitchen at
- * all, the default mode lets everything in and single-place mode nothing.
+ * A basket that has no kitchen yet takes what any kitchen it could end up at
+ * can sell, up to the best of their stock: with no city, every kitchen of every
+ * city; with a city, that city's. The kitchen an address or a switch of city
+ * picks drops what it lacks, and says so. With no kitchen at all, the default
+ * mode lets everything in and single-place mode nothing.
  *
  *              Kitchen 1  Kitchen 2  Kitchen 3
  *   Dish 1     ∞          ∞          ∞
  *   Dish 2     ∞          0          0          only Kitchen 1
  *   Dish 3     ∞          ∞          0          not in City 2
  *   Dish 4     2          5          ∞
+ *   Dish 5     0          ∞          ∞          not at Kitchen 1
  *
  *   City 1: Kitchen 1 in Zone 1, Kitchen 2. City 2: Kitchen 3.
  */
@@ -35,13 +37,14 @@ describe("Basket before a kitchen", function () {
     await DeliveryZone.create({ name: "Zone 1", polygon: [[9.9, 9.9], [10.05, 9.9], [10.05, 10.1], [9.9, 10.1], [9.9, 9.9]], deliveryCost: 100, minDeliveryTime: 30 }).fetch();
 
     const group = await Group.create({ name: "Group 1", enable: true }).fetch();
-    for (const n of [1, 2, 3, 4]) d[`dish${n}`] = (await Dish.create({ name: `Dish ${n}`, price: 100, enable: true, parentGroup: group.id }).fetch()).id;
+    for (const n of [1, 2, 3, 4, 5]) d[`dish${n}`] = (await Dish.create({ name: `Dish ${n}`, price: 100, enable: true, parentGroup: group.id }).fetch()).id;
     const stock = (dish: string, place: string, localBalance: number) => DishPlace.create({ dish, place, localBalance }).fetch();
     await stock(d.dish2, k.kitchen2, 0);
     await stock(d.dish2, k.kitchen3, 0);
     await stock(d.dish3, k.kitchen3, 0);
     await stock(d.dish4, k.kitchen1, 2);
     await stock(d.dish4, k.kitchen2, 5);
+    await stock(d.dish5, k.kitchen1, 0);
 
     // `emitter.off` does not unsubscribe: one subscriber for the file.
     emitter.on("core:order-cooking-place-changed", "before-kitchen-test", (...args: unknown[]) => {
@@ -56,28 +59,48 @@ describe("Basket before a kitchen", function () {
   const inCity = (id: string, city: string) => updateOrder(id, { serviceType: "delivery", address: { city }, pickupPoint: null });
   const refused = async (id: string, dish: string) => (await thrown(add(id, dish))) !== null;
 
-  it("with no city, takes only what each kitchen of every city can sell, up to the tightest stock", async function () {
+  it("with no city, takes what any kitchen of any city can sell", async function () {
     const id = await newBasket();
     await add(id, d.dish1);
-    await add(id, d.dish4, 2);
+    await add(id, d.dish2);
+    await add(id, d.dish3);
+    // Kitchen 3 sets Dish 4 no ceiling.
+    await add(id, d.dish4, 6);
 
-    expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 4": 2 });
-    expect(await refused(id, d.dish3)).to.equal(true);
-    expect(await refused(id, d.dish2)).to.equal(true);
-    // Kitchen 1's two are the ceiling, and the two in the basket count.
-    expect((await thrown(add(id, d.dish4))).message).to.contain("Available quantity: 2");
+    expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 2": 1, "Dish 3": 1, "Dish 4": 6 });
     expect((await Order.findOne({ id })).cookingPoints).to.deep.equal([]);
   });
 
-  it("with a city, takes what each kitchen of that city can sell", async function () {
+  it("with a city, takes what any kitchen of that city can sell, up to the best stock", async function () {
     const id = await newBasket();
     await add(id, d.dish1);
     await inCity(id, "City 1");
 
-    await add(id, d.dish3);
-    expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 3": 1 });
-    expect(await refused(id, d.dish2)).to.equal(true);
+    await add(id, d.dish2);
+    await add(id, d.dish4, 5);
+    expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 2": 1, "Dish 4": 5 });
+    // Kitchen 2's five are the ceiling, and the five in the basket count.
+    expect((await thrown(add(id, d.dish4))).message).to.contain("Available quantity: 5");
     expect((await Order.findOne({ id })).cookingPoints).to.deep.equal([]);
+  });
+
+  it("takes what one kitchen stops and another sells; the kitchen the address picks drops it, and says so — in both modes", async function () {
+    for (const mode of ["default", "single-place"]) {
+      await withSettings({ MENU_PLACE_BASED_MODE: mode }, async () => {
+        const id = await newBasket();
+        await add(id, d.dish1);
+        await inCity(id, "City 1");
+        await add(id, d.dish5);
+        expect(await lines(id), mode).to.deep.equal({ "Dish 1": 1, "Dish 5": 1 });
+
+        // Zone 1 is Kitchen 1's, which stops Dish 5.
+        const order = await deliverTo(id, IN_ZONE_1);
+
+        expect(order.cookingPoints, mode).to.deep.equal([k.kitchen1]);
+        expect(await lines(id), mode).to.deep.equal({ "Dish 1": 1 });
+        expect(order.message, mode).to.equal("Some products are not available here and were removed: Dish 5");
+      });
+    }
   });
 
   it("switching the city without an address drops what the new city lacks, and says so", async function () {
@@ -97,16 +120,17 @@ describe("Basket before a kitchen", function () {
     expect(order.cookingPoints).to.deep.equal([k.kitchen3]);
   });
 
-  it("an address with no coordinate still reads the basket at every kitchen of its city", async function () {
+  it("an address with no coordinate still reads the basket at the kitchens of its city", async function () {
     await withSettings({ SOFT_DELIVERY_CALCULATION: false }, async () => {
       const id = await newBasket();
       await add(id, d.dish1);
       await deliverTo(id, { city: "City 1", formatted: "Street 1", home: "1" });
 
       expect((await Order.findOne({ id })).cookingPoints).to.deep.equal([]);
-      expect(await refused(id, d.dish2)).to.equal(true);
-      await add(id, d.dish3);
-      expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 3": 1 });
+      await add(id, d.dish4, 5);
+      // Kitchen 2's five: the unlimited Kitchen 3 is in another city.
+      expect(await refused(id, d.dish4)).to.equal(true);
+      expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 4": 5 });
     });
   });
 
@@ -133,22 +157,6 @@ describe("Basket before a kitchen", function () {
         const id = await newBasket();
         expect((await thrown(add(id, d.dish1))).message).to.contain("MENU_PLACE_REQUIRED");
       }));
-    });
-  });
-
-  describe("single-place mode", function () {
-    it("reads a basket without a kitchen the way the default mode does, and the kitchen's menu once there is one", async function () {
-      await withSettings({ MENU_PLACE_BASED_MODE: "single-place" }, async () => {
-        const id = await newBasket();
-        await add(id, d.dish1);
-        await inCity(id, "City 1");
-        await add(id, d.dish3);
-        expect(await refused(id, d.dish2)).to.equal(true);
-
-        await deliverTo(id, IN_ZONE_1);
-        await add(id, d.dish2);
-        expect(await lines(id)).to.deep.equal({ "Dish 1": 1, "Dish 2": 1, "Dish 3": 1 });
-      });
     });
   });
 });

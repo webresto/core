@@ -33,11 +33,11 @@ Rules core enforces on every write path (admin UI, HTTP API, MCP):
 
 ### Writing a provider module
 
-Extend `SalesChannelAdapter` (`@webresto/core/adapters/sales-channel/SalesChannelAdapter`) and
+Extend `SalesChannelAdapter` (exported by `@webresto/core/adapters`) and
 call `SalesChannel.alive()` from the module's boot hook:
 
 ```ts
-const SalesChannelAdapter = require("@webresto/core/adapters/sales-channel/SalesChannelAdapter").default;
+const { SalesChannelAdapter } = require("@webresto/core/adapters");
 
 class TelegramBotChannel extends SalesChannelAdapter {
   constructor() {

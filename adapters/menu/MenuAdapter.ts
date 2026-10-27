@@ -11,10 +11,8 @@ import {
   isEnabledKitchen,
   placeAcceptsOrdersNow,
   primaryCookingPoint,
-  readsEveryPoint,
   toPlaceId,
 } from "../../lib/menu/cooking-place";
-import { UNLIMITED_BALANCE } from "../../lib/menu/dish-place-balance";
 import { productFitsMaxWait } from "../../lib/order/order-timing";
 import {
   KitchenResolution,
@@ -43,9 +41,8 @@ import { DishRecord } from "../../models/Dish";
  * core's rule and reads the same for any of them: the context names points in
  * the plural and they are read as a union — a product is in the menu if *any*
  * of them can sell it — so an adapter that names several kitchens gets a filter
- * and an add-to-basket check that already agree with it. The one exception is
- * an order with no kitchen yet (`unaddressedKitchens`): the kitchens it could
- * still end up at, read as an intersection.
+ * and an add-to-basket check that already agree with it. An order with no
+ * kitchen yet (`unaddressedKitchens`) is read the same way.
  *
  * A multi-kitchen route plugs in through `placeLines` and `adjustDelivery`.
  * Core ships the contract and no route: what a route is and how it is priced
@@ -73,8 +70,9 @@ export default abstract class MenuAdapter {
 
   /**
    * The menu of an order with no kitchen yet: the kitchens it could still end
-   * up at, and a product only if each of them can sell it (`readsEveryPoint`).
-   * Whichever of them the address later picks, what was shown stays on offer.
+   * up at, read as a union like any other context — a product is offered if
+   * any of them can sell it. The kitchen the address or point later picks
+   * recounts the basket and drops what it lacks, saying so.
    *
    * The order's city when it names one — `city` — else every city — `all`.
    * A city with no enabled kitchen falls through to every city. No clock, like
@@ -151,8 +149,7 @@ export default abstract class MenuAdapter {
    * What the context's points can sell.
    *
    * The default is the availability service, point by point, kept if any point
-   * can sell it — each of them where the context `readsEveryPoint`. No points
-   * means no stock is known, and nothing is dropped.
+   * can sell it. No points means no stock is known, and nothing is dropped.
    * `SHOW_UNAVAILABLE_DISHES` is honoured here rather than at the call sites:
    * it is a statement about the menu, and it used to be checked in one place
    * and forgotten in three others.
@@ -165,15 +162,14 @@ export default abstract class MenuAdapter {
     if (!products.length || !context.placeIds.length) return products;
     if (await Settings.get("SHOW_UNAVAILABLE_DISHES")) return products;
 
-    const sellingPoints = new Map<string, number>();
+    const sellable = new Set<string>();
     for (const placeId of context.placeIds) {
       const availability = await getProductsAvailability(products, placeId);
       for (const [productId, verdict] of availability) {
-        if (verdict.available) sellingPoints.set(productId, (sellingPoints.get(productId) ?? 0) + 1);
+        if (verdict.available) sellable.add(productId);
       }
     }
-    const needed = readsEveryPoint(context) ? context.placeIds.length : 1;
-    return products.filter((product) => (sellingPoints.get(String(product.id)) ?? 0) >= needed);
+    return products.filter((product) => sellable.has(String(product.id)));
   }
 
   /**
@@ -189,9 +185,6 @@ export default abstract class MenuAdapter {
    * first point's that did. When none did, the refusal with the most left:
    * "only two left" is worth saying, "stopped everywhere" is what is left. No
    * points reads as unlimited, the same as the filter.
-   *
-   * Where the context `readsEveryPoint`, each point must allow it: the first
-   * refusal is the answer, else the verdict of the point with the least left.
    */
   public async canAddProduct(
     product: AvailabilityProduct,
@@ -199,16 +192,6 @@ export default abstract class MenuAdapter {
     context: MenuContext,
   ): Promise<ProductAvailability> {
     if (!context.placeIds.length) return getProductAvailability(product, null, amount);
-
-    if (readsEveryPoint(context)) {
-      let tightest: ProductAvailability | null = null;
-      for (const placeId of context.placeIds) {
-        const verdict = await getProductAvailability(product, placeId, amount);
-        if (!verdict.available) return verdict;
-        if (!tightest || stockOf(verdict.balance) < stockOf(tightest.balance)) tightest = verdict;
-      }
-      return tightest!;
-    }
 
     let refused: ProductAvailability | null = null;
     for (const placeId of context.placeIds) {
@@ -353,11 +336,6 @@ export default abstract class MenuAdapter {
     diagnostics.push("no strategy in the chain named a cooking point");
     return { placeId: null, strategy: null, diagnostics };
   }
-}
-
-/** Stock as a number to compare: `-1` is unlimited. */
-function stockOf(balance: number): number {
-  return balance === UNLIMITED_BALANCE ? Infinity : balance;
 }
 
 /** A strategy either names a kitchen or has no opinion and lets the next try. */

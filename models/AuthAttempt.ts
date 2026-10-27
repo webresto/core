@@ -2,7 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import { NormalizedProfile, StepType } from "../adapters/auth/AuthAdapter";
+import type { NormalizedProfile, StepType } from "../adapters";
 import { UserRecord } from "./User";
 
 export type AuthAttemptStatus = "started" | "awaiting_user" | "done" | "failed" | "expired" | "superseded";

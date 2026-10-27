@@ -1,4 +1,3 @@
-import { readsEveryPoint } from "./cooking-place";
 import type { MenuContext } from "../../interfaces/Menu";
 import {
   UNLIMITED_BALANCE,
@@ -136,24 +135,19 @@ export async function getProductAvailability(
  * Stock of one product across the points of a menu context, for the storefront:
  * as many as `MenuAdapter.canAddProduct` will let into a basket.
  *
- * A union takes the best-stocked point, unlimited if any point is. An
- * intersection (`readsEveryPoint`) takes the worst-stocked one, unlimited only
- * if every point is. Unlimited when no point is known. Lives here so the
- * GraphQL `Dish.balance` field does not implement either a second time.
+ * The best-stocked point, unlimited if any point is; unlimited when no point is
+ * known. Lives here so the GraphQL `Dish.balance` field does not implement it
+ * a second time.
  */
 export async function getEffectiveBalanceAcross(
   productId: string,
-  context: Pick<MenuContext, "placeIds" | "source">,
+  context: Pick<MenuContext, "placeIds">,
 ): Promise<number> {
-  const every = readsEveryPoint(context);
   let answer: number | null = null;
   for (const placeId of context.placeIds) {
     const balance = await getEffectiveBalanceFor(productId, placeId);
-    if (balance === UNLIMITED_BALANCE) {
-      if (every) continue;
-      return UNLIMITED_BALANCE;
-    }
-    if (answer === null || (every ? balance < answer : balance > answer)) answer = balance;
+    if (balance === UNLIMITED_BALANCE) return UNLIMITED_BALANCE;
+    if (answer === null || balance > answer) answer = balance;
   }
   return answer ?? UNLIMITED_BALANCE;
 }

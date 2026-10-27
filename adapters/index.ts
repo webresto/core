@@ -24,7 +24,12 @@ export type { SalesChannelStatusResult, SalesChannelReadiness, InitSalesChannelA
 export { GeoAdapter, DeliveryAdapter, MenuAdapter, RMSAdapter, PaymentAdapter, BonusProgramAdapter, AuthAdapter, AbstractPromotionAdapter, AbstractPromotionHandler };
 export type { RMSOutOfStockEventItem } from "./rms/RMSAdapter";
 export type { BonusTransaction } from "./bonusprogram/BonusProgramAdapter";
-export type { AuthFlowKind, NormalizedProfile } from "./auth/AuthAdapter";
+export type {
+  AuthFlowKind, PhoneProofMode, SecretOrigin, StepType, Offer, InitAuthAdapter, NormalizedProfile,
+  StartResult, AuthCompleteInput, WebhookMeta, Signal, StartContext,
+} from "./auth/AuthAdapter";
+// Core's own phone code, registered at boot like a module's auth method.
+export { CoreOtpAdapter } from "./auth/default/CoreOtpAdapter";
 export type { ResolvedCaptcha } from "./captcha/CaptchaAdapter";
 // Core's boot starts what its own delivery adapter keeps running.
 export { startDefaultDelivery } from "./delivery/default/start";

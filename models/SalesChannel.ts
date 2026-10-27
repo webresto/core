@@ -3,8 +3,7 @@ import { ORMModel, CriteriaQuery } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { RequiredField, OptionalAll } from "../interfaces/toolsTS";
 import { SalesChannelRegistry } from "../lib/SalesChannelRegistry";
-import type SalesChannelAdapter from "../adapters/sales-channel/SalesChannelAdapter";
-import type { SalesChannelStatusResult } from "../adapters/sales-channel/SalesChannelAdapter";
+import type { SalesChannelAdapter, SalesChannelStatusResult } from "../adapters";
 
 /**
  * SalesChannel

@@ -2,8 +2,7 @@ import ORM from "../interfaces/ORM";
 import { ORMModel } from "../interfaces/ORMModel";
 import { v4 as uuid } from "uuid";
 import { OptionalAll, RequiredField } from "../interfaces/toolsTS";
-import type AuthAdapter from "../adapters/auth/AuthAdapter";
-import type { AuthFlowKind, PhoneProofMode, SecretOrigin, Offer } from "../adapters/auth/AuthAdapter";
+import type { AuthAdapter, AuthFlowKind, PhoneProofMode, SecretOrigin, Offer } from "../adapters";
 import { isPrimaryWorker } from "../lib/cluster";
 
 export type AuthMethodKind = "identity" | "phone_proof";

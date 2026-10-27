@@ -5,7 +5,7 @@
 import slugifyLib from "slugify";
 import { SalesChannelRegistry } from "../../../SalesChannelRegistry";
 import { describeChannelProvider, refusalText, SalesChannelRefusal } from "../../../SalesChannelProviders";
-import type { SalesChannelStatusResult } from "../../../../adapters/sales-channel/SalesChannelAdapter";
+import type { SalesChannelStatusResult } from "../../../../adapters";
 import {
   getModulePermissions,
   hasAnyPermission,
