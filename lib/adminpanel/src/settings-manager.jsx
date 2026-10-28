@@ -3,6 +3,7 @@ import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { extractApiErrorMessage, requireAdminApi } from './lib/admin-api';
 import { getSchemaTypes, isIntegerSchema, validateValueBySchema } from './lib/setting-schema';
 import { ModuleToaster } from './components/notifications/shared';
+import { useAsk } from './components/AskDialog';
 
 const APPEARANCE_STORAGE_KEY = 'appearance';
 
@@ -673,6 +674,7 @@ function SettingListItem({ s, isActive, onSelect, t }) {
 
 function SettingsManagerContent({ bootId }) {
   const { t } = useTranslation();
+  const [ask, dialog] = useAsk();
   const apiBase = '/core/settings-manager';
   const isMobile = useIsMobile();
   useAppearance(); // subscribe to theme changes to trigger re-render
@@ -795,9 +797,9 @@ function SettingsManagerContent({ bootId }) {
       .catch(e => { setError(e.message); setLoading(false); });
   }, [apiBase]);
 
-  function canLeaveCurrentSetting() {
+  async function canLeaveCurrentSetting() {
     if (!hasUnsavedChanges) return true;
-    return window.confirm(t('You have unsaved changes. Discard them and switch settings?'));
+    return ask({ title: t('Unsaved changes'), text: t('You have unsaved changes. Discard them and switch settings?'), yes: t('Continue'), no: t('Cancel') });
   }
 
   function applySelection(s) {
@@ -812,9 +814,9 @@ function SettingsManagerContent({ bootId }) {
     }
   }
 
-  function selectSetting(s) {
+  async function selectSetting(s) {
     if (!s || s.key === selected?.key) return;
-    if (!canLeaveCurrentSetting()) return;
+    if (!(await canLeaveCurrentSetting())) return;
     applySelection(s);
   }
 
@@ -846,13 +848,13 @@ function SettingsManagerContent({ bootId }) {
   // editor too. `applySelection` writes the hash itself, so selecting a setting lands here as a
   // no-op; only a hash pointing elsewhere switches anything.
   useEffect(() => {
-    function handleHashChange() {
+    async function handleHashChange() {
       const key = readHashKey();
       const current = selectedRef.current;
       if (!key || key === current?.key) return;
       const found = settings.find(s => s.key === key);
       if (!found) return;
-      if (!canLeaveCurrentSetting()) {
+      if (!(await canLeaveCurrentSetting())) {
         // Declined: put the address back on the setting still in the editor.
         if (current) window.location.hash = encodeURIComponent(current.key);
         return;
@@ -1067,6 +1069,7 @@ function SettingsManagerContent({ bootId }) {
 
   return (
     <div ref={rootRef} className="flex w-full min-w-0 overflow-hidden" style={rootStyle}>
+      {dialog}
       {/* Left panel: list */}
       <div className="w-80 flex flex-col overflow-hidden border-r" style={{ minWidth: 260, maxWidth: 420, background: 'var(--muted)' }}>
         <div className="flex-shrink-0 p-3 border-b">

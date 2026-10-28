@@ -1,10 +1,9 @@
+import { hasAccess } from "./marketing-helpers";
 import { describeSettingValueProblem, getSettingSchema } from './settings-schema';
 
 export default async function UpdateSettingController(req: any, res: any) {
   const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
-  if (!req.user?.isAdministrator) {
-    return res.sendStatus(403);
-  }
+  if (!hasAccess(req, res, "settings-manager")) return;
 
   const { key } = req.params;
   if (!key) return res.status(400).json({ error: t('Key is required') });

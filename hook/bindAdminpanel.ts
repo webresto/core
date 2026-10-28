@@ -133,6 +133,9 @@ export default function bindAdminpanel() {
           ...(link.accessRightsToken ? { accessRightsToken: link.accessRightsToken } : {}),
         });
       }
+      // the panel's own link to the user filters has no right: one keeps it off the marketer's menu
+      const filters = adminizer.config.navbar.additionalLinks.find((link: any) => link.id === "user-filters");
+      if (filters) filters.accessRightsToken = "user-filters";
     }
   })
 }

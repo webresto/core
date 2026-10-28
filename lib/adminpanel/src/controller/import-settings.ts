@@ -1,3 +1,4 @@
+import { hasAccess } from "./marketing-helpers";
 import { describeSettingValueProblem, getSettingSchema } from './settings-schema';
 
 interface ImportEntry {
@@ -15,9 +16,7 @@ interface ImportPayload {
 
 export default async function ImportSettingsController(req: any, res: any) {
   const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
-  if (!req.user?.isAdministrator) {
-    return res.sendStatus(403);
-  }
+  if (!hasAccess(req, res, "settings-manager")) return;
 
   const body: ImportPayload = req.body;
   if (!Array.isArray(body?.settings)) {

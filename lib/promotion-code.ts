@@ -51,3 +51,21 @@ export function promotionCodeStatus(code: PromotionCodeTerms, now: Date = new Da
 export function promotionCodeWorks(code: PromotionCodeTerms, now: Date = new Date()): boolean {
   return promotionCodeStatus(code, now) === "active" && openByHours(code.workTime ? [code.workTime] : null, now);
 }
+
+/**
+ * `PromotionState.type` of the entries about the order's code, each `byCode: true`. A promotion of the code that gives
+ * nothing now, and why: below its minimum basket - `{ promotionId, minBasketTotal, basketTotal }`; not for the way the
+ * order is received - `{ promotionId, serviceTypes }`; out of the promotion's hours - `{ promotionId }`. And the
+ * promotions that would apply without the code and do not with it - `{ promotions: [{ id, name, description }] }`.
+ */
+export const PROMOCODE_MIN_BASKET_TOTAL = "promocode-min-basket-total";
+export const PROMOCODE_SERVICE_TYPE = "promocode-service-type";
+export const PROMOCODE_PROMOTION_HOURS = "promocode-promotion-hours";
+export const PROMOCODE_SETS_ASIDE = "promocode-sets-aside";
+
+const PROMOCODE_NOTICES = new Set([PROMOCODE_MIN_BASKET_TOTAL, PROMOCODE_SERVICE_TYPE, PROMOCODE_PROMOTION_HOURS, PROMOCODE_SETS_ASIDE]);
+
+/** Whether an order's `promotionState` entry tells about its code rather than stands for a promotion that applied. */
+export function isPromotionCodeNotice(state: { type?: string } | null | undefined): boolean {
+  return !!state?.type && PROMOCODE_NOTICES.has(state.type);
+}

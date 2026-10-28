@@ -33,6 +33,8 @@ export const ADMIN_MODULE_ENTRIES = {
   SalesChannelsManager: "src/sales-channels-manager.jsx",
   DeliveryZonesManager: "src/delivery-zones-manager.jsx",
   AddressesUpload: "src/addresses-upload.jsx",
+  AuthMethods: "src/auth-methods.jsx",
+  MaintenanceManager: "src/maintenance-manager.jsx",
 } as const;
 
 export type AdminModuleName = keyof typeof ADMIN_MODULE_ENTRIES;

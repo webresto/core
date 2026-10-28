@@ -8,17 +8,7 @@ import { PromotionRecord } from "../../../models/Promotion";
 import { DishRecord } from "../../../models/Dish";
 import { GroupRecord } from "../../../models/Group";
 import { PromotionCodeRecord } from "../../../models/PromotionCode";
-
-/**
- * `PromotionState.type` of the entries about the order's code, each `byCode: true`. A promotion of the code that gives
- * nothing now, and why: below its minimum basket - `{ promotionId, minBasketTotal, basketTotal }`; not for the way the
- * order is received - `{ promotionId, serviceTypes }`; out of the promotion's hours - `{ promotionId }`. And the
- * promotions that would apply without the code and do not with it - `{ promotions: [{ id, name, description }] }`.
- */
-const PROMOCODE_MIN_BASKET_TOTAL = "promocode-min-basket-total";
-const PROMOCODE_SERVICE_TYPE = "promocode-service-type";
-const PROMOCODE_PROMOTION_HOURS = "promocode-promotion-hours";
-const PROMOCODE_SETS_ASIDE = "promocode-sets-aside";
+import { PROMOCODE_MIN_BASKET_TOTAL, PROMOCODE_PROMOTION_HOURS, PROMOCODE_SERVICE_TYPE, PROMOCODE_SETS_ASIDE } from "../../../lib/promotion-code";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
 

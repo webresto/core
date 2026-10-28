@@ -869,5 +869,13 @@
   "{count} enabled, but the provider module is not installed: {modules}": "{count} enabled, but the provider module is not installed: {modules}",
   "{count} of {total} working": "{count} of {total} working",
   "{count} ready, none enabled": "{count} ready, none enabled",
-  "Found by a geocoder": "Found by a geocoder"
+  "Found by a geocoder": "Found by a geocoder",
+  "Promotion count": "Promotion count",
+  "Promotions switched on": "Promotions switched on",
+  "Promo code count": "Promo code count",
+  "Promo codes switched on": "Promo codes switched on",
+  "Promo code orders": "Promo code orders",
+  "Today's orders with a promo code": "Today's orders with a promo code",
+  "Promotion orders": "Promotion orders",
+  "Today's orders with a promotion": "Today's orders with a promotion"
 }

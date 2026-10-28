@@ -269,6 +269,41 @@ export const adminPanelModules: AdminPanelModule[] = [
     ],
   },
   {
+    id: "maintenance-manager",
+    page: {
+      id: "maintenance-manager",
+      title: "Scheduled maintenance",
+      route: "/maintenance-manager",
+      icon: "build",
+      accessRightsToken: "maintenance-manager",
+      section: "Platform",
+      controller: "src/controller/maintenance-manager",
+    },
+    routes: [
+      { method: "get", route: "/core/maintenance", controller: "src/controller/get-maintenances" },
+      { method: "post", route: "/core/maintenance", controller: "src/controller/save-maintenance" },
+      { method: "post", route: "/core/maintenance/:id/delete", controller: "src/controller/delete-maintenance" },
+      { method: "post", route: "/core/maintenance/:id", controller: "src/controller/save-maintenance" },
+    ],
+  },
+  {
+    id: "auth-methods",
+    page: {
+      id: "auth-methods",
+      title: "Sign-in methods",
+      route: "/auth-methods",
+      icon: "key",
+      accessRightsToken: "auth-methods",
+      section: "Platform",
+      controller: "src/controller/auth-methods",
+    },
+    routes: [
+      { method: "get", route: "/core/auth-methods", controller: "src/controller/get-auth-methods" },
+      { method: "post", route: "/core/auth-methods/order", controller: "src/controller/order-auth-methods" },
+      { method: "post", route: "/core/auth-methods/:id", controller: "src/controller/update-auth-method" },
+    ],
+  },
+  {
     id: "settings-manager",
     page: {
       id: "settings-manager",
@@ -276,6 +311,7 @@ export const adminPanelModules: AdminPanelModule[] = [
       route: "/settings-manager",
       icon: "settings",
       section: "System",
+      accessRightsToken: "settings-manager",
       controller: "src/controller/settings-manager",
     },
     routes: [
@@ -491,6 +527,10 @@ export const adminPanelAccessTokens: AdminPanelAccessToken[] = [
   { id: "sales-channels-manager", name: "Sales Channels", description: "Legacy full access to the Sales Channels module and its API endpoints", department: "Store" },
   { id: "sales-channels-view", name: "Sales Channels view", description: "Read-only access to the Sales Channels module", department: "Store" },
   { id: "sales-channels-manage", name: "Sales Channels manage", description: "Access to manage Sales Channels module settings and write operations", department: "Store" },
+  { id: "maintenance-manager", name: "Scheduled maintenance", description: "The periods the site takes no orders, with the text the customers see", department: "System" },
+  { id: "auth-methods", name: "Sign-in methods", description: "The sign-in buttons and the ways to confirm a phone: their switch, order, look and limits", department: "System" },
+  { id: "user-filters", name: "User filters", description: "The link to the user filters of the lists in the menu", department: "System" },
+  { id: "settings-manager", name: "Settings", description: "Access to the Settings module and its API endpoints", department: "System" },
   { id: "setup-checklist", name: "Setup checklist", description: "Access to the Setup checklist page and its API endpoints", department: "System" },
   { id: "delivery-zones-view", name: "Delivery zones view", description: "Read-only access to the Delivery zones module", department: "Store" },
   { id: "delivery-zones-manage", name: "Delivery zones manage", description: "Edit delivery zones", department: "Store" },
@@ -503,7 +543,8 @@ export const adminPanelAccessTokens: AdminPanelAccessToken[] = [
  */
 export const adminPanelNavbarLinks: AdminPanelNavbarLink[] = [
   { id: "restoapp-catalog", title: "Products", linkType: "admin", link: "/catalog/products", icon: "book", accessRightsToken: "catalog-products", section: "Catalog" },
-  { id: "restoapp-catalog-preview", title: "Preview", linkType: "absolute", link: "/menu", icon: "web", section: "Catalog" },
+  // the catalog's look at the site; the others open it from the dashboard (widget site-link)
+  { id: "restoapp-catalog-preview", title: "Preview", linkType: "absolute", link: "/menu", icon: "web", accessRightsToken: "catalog-products", section: "Catalog" },
 ];
 
 export const adminPanelWidgets: AdminPanelWidget[] = [
@@ -513,13 +554,23 @@ export const adminPanelWidgets: AdminPanelWidget[] = [
   { id: "notifications-today-count", module: "widgets/NotificationsTodayCount" },
   { id: "sales-channels-count", module: "widgets/SalesChannelsCount" },
   { id: "setup-checklist-status", module: "widgets/SetupChecklist", needsRoutePrefix: true },
+  // the marketer's
+  { id: "promotions-count", module: "widgets/PromotionsCount" },
+  { id: "promotion-codes-count", module: "widgets/PromotionCodesCount" },
+  { id: "promotion-code-orders-today", module: "widgets/TodayPromotionCodeOrders" },
+  { id: "promotion-orders-today", module: "widgets/TodayPromotionOrders" },
+  { id: "site-link", module: "widgets/SiteLink" },
 ];
 
 /**
  * Widgets shown on a fresh dashboard. `setup-checklist-status_0` carries Adminizer's
- * single-underscore instance suffix for custom widgets.
+ * single-underscore instance suffix for custom widgets. The list is one for everyone, and a user
+ * without a saved dashboard sees those of it his rights allow: the admin - all, the marketer - his.
  */
-export const adminPanelDashboardWidgets: string[] = ["dish-count", "order-count", "dishes-on-stop", "sales-channels-count", "setup-checklist-status_0"];
+export const adminPanelDashboardWidgets: string[] = [
+  "dish-count", "order-count", "dishes-on-stop", "sales-channels-count", "setup-checklist-status_0",
+  "promotions-count", "promotion-codes-count", "promotion-code-orders-today", "promotion-orders-today", "site-link",
+];
 
 export const adminPanelControls: AdminPanelControl[] = [
   { name: "order-logs-viewer", type: "jsonEditor", module: "controls/OrderLogsViewerControl", export: "OrderLogsViewerControl", asset: "OrderLogsViewer.js" },
