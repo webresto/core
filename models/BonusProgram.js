@@ -91,6 +91,19 @@ let Model = {
         }
         cb();
     },
+    // a storefront reads the bonuses of its user again
+    afterCreate(record, cb) {
+        emitter.emit("core:bonus-program-changed", record);
+        cb();
+    },
+    afterUpdate(record, cb) {
+        emitter.emit("core:bonus-program-changed", record);
+        cb();
+    },
+    afterDestroy(record, cb) {
+        emitter.emit("core:bonus-program-changed", record);
+        cb();
+    },
     /**
      * Method for registration alive bonus program adapter
      * @param bonusProgramAdapter
@@ -149,13 +162,17 @@ let Model = {
         }
     },
     /**
-     * Method for registration alive bonus program adapter
-     * @returns
-     * @param adapter
+     * Whether the program serves: enabled, with its adapter alive (`getAdapter` throws otherwise)
+     * @param adapterOrId
      */
-    async isAlive(adapter) {
-        let bonusProgram = await BonusProgram.getAdapter(adapter);
-        return bonusProgram !== undefined;
+    async isAlive(adapterOrId) {
+        try {
+            await BonusProgram.getAdapter(adapterOrId);
+            return true;
+        }
+        catch {
+            return false;
+        }
     },
     /**
      * Returns an array with currently possible bonus programs by order

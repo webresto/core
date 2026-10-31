@@ -13,6 +13,7 @@ import { registerSalesChannelsTools } from './sales-channels';
 import { registerDeliveryTools } from './delivery';
 import { registerCitiesTools } from './cities';
 import { registerStockTools } from './stock';
+import { registerDeviceTools } from './devices';
 import { registerAddressTools, registerDeliveryZoneTools } from '../../adapters';
 
 declare const mcp: any;
@@ -39,6 +40,7 @@ const CORE_GROUPS: Array<{ name: string; description: string }> = [
     { name: 'cities',         description: 'Cities the places, zones and address catalogs belong to: list, create, update.' },
     { name: 'addresses',      description: 'Address catalog of a city: load a file by URL in the background, statistics, search as the storefront does.' },
     { name: 'stock',          description: 'Stock of dishes per place: list what limits a kitchen, set a balance, a stop or a switch.' },
+    { name: 'devices',        description: 'What a storefront device shows: a message (toast) and a question (DialogBox) with the answer of the customer.' },
 ];
 
 export function registerCoreMcpTools() {
@@ -63,6 +65,7 @@ export function registerCoreMcpTools() {
     registerDeliveryTools();
     registerCitiesTools();
     registerStockTools();
+    registerDeviceTools();
     // The zones and the address catalog are the default adapters' models, so their tools live there.
     registerDeliveryZoneTools();
     registerAddressTools();

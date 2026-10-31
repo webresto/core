@@ -34,6 +34,9 @@ export interface BonusProgramRecord extends attributes, ORM {
 declare let Model: {
     beforeCreate(init: BonusProgramRecord, cb: (err?: string) => void): void;
     beforeUpdate(valuesToUpdate: Partial<BonusProgramRecord>, cb: (err?: string) => void): void;
+    afterCreate(record: BonusProgramRecord, cb: (err?: string) => void): void;
+    afterUpdate(record: BonusProgramRecord, cb: (err?: string) => void): void;
+    afterDestroy(record: BonusProgramRecord, cb: (err?: string) => void): void;
     /**
      * Method for registration alive bonus program adapter
      * @param bonusProgramAdapter
@@ -47,11 +50,10 @@ declare let Model: {
      */
     getAdapter(adapterOrId: string): Promise<BonusProgramAdapter>;
     /**
-     * Method for registration alive bonus program adapter
-     * @returns
-     * @param adapter
+     * Whether the program serves: enabled, with its adapter alive (`getAdapter` throws otherwise)
+     * @param adapterOrId
      */
-    isAlive(adapter: string): Promise<boolean>;
+    isAlive(adapterOrId: string): Promise<boolean>;
     /**
      * Returns an array with currently possible bonus programs by order
      * @return BonusProgram[]

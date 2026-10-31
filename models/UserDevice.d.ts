@@ -50,6 +50,12 @@ declare let Model: {
         userAgent?: string;
     }): Promise<void>;
     setNotificationToken(deviceId: string, token: NotificationToken): Promise<void>;
+    /**
+     * Signs the devices out. The carts a device was assembling for its account (NEW, CART, CHECKOUT) stay
+     * the account's but leave the device: its next cart is a guest one, and the account's cart no longer
+     * comes to it by the subscription `order`.
+     */
+    logout(criteria: CriteriaQuery<UserDeviceRecord>): Promise<void>;
     checkSession(sessionId: string, userId: string, client?: {
         lastIP?: string;
         userAgent?: string;

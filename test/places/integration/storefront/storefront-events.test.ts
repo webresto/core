@@ -8,7 +8,7 @@ import { stopHoursSweep, sweepHours } from "../../../../lib/hours-sweep";
 /**
  * What a storefront shows changed: the events graphql turns into `storefrontChanged`. Every way a write reaches what
  * a storefront shows tells - the switches of the stock manager, a delete for good, the photos, the zones, the ways to
- * pay; what opens and closes by the hours, with no write, is told by the sweep of the hours.
+ * pay, the bonus programs; what opens and closes by the hours, with no write, is told by the sweep of the hours.
  *
  *   City 1: Kitchen 1 (10:00–20:00 every day), Kitchen 2 (no hours). Group 1: Dish 1.
  *   Zone 1 (no hours: zones have none). Promotion 1 - 10:00–20:00 every day.
@@ -24,6 +24,7 @@ describe("Storefront events", function () {
     "core:city-changed",
     "core:delivery-zone-changed",
     "core:payment-method-changed",
+    "core:bonus-program-changed",
     "core:promotion-changed",
   ] as const;
   const EVERY_DAY: WorkTime["dayOfWeek"] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -143,6 +144,14 @@ describe("Storefront events", function () {
     await PaymentMethod.destroy({ id: method.id }).fetch();
 
     expect(told).to.deep.equal(Array(3).fill(`core:payment-method-changed ${method.id}`));
+  });
+
+  it("a bonus program created, changed, deleted tells", async function () {
+    const program = await BonusProgram.create!({ name: "Bonus 2", adapter: "bonus-2" }).fetch();
+    await BonusProgram.updateOne!({ id: program.id }, { enable: true });
+    await BonusProgram.destroy!({ id: program.id }).fetch();
+
+    expect(told).to.deep.equal(Array(3).fill(`core:bonus-program-changed ${program.id}`));
   });
 
   describe("the sweep of the hours", function () {

@@ -78,7 +78,7 @@ describe("Bonuses", function () {
     expect(await orderOf(id)).to.deep.include({ bonusesTotal: 0, spendBonus: null });
   });
 
-  it("placing the order writes the spending to the system, and the copy follows", async function () {
+  it("placing the order writes the spending to the system, and the copy follows at once", async function () {
     system.balances.set(user.id, 1000);
     const id = await basket();
     await spend(id, 10);
@@ -86,7 +86,6 @@ describe("Bonuses", function () {
     await Order.order({ id });
 
     expect(system.balances.get(user.id)).to.equal(990);
-    await UserBonusProgram.sync(user, bonusProgram);
     expect((await membership(user.id)).balance).to.equal(990);
   });
 
@@ -148,6 +147,72 @@ describe("Bonuses", function () {
     } finally {
       await setProgram({ enable: true });
     }
+  });
+
+  // The copy is synced on every request of a logged-in device (`syncAll`), no more often than
+  // TIME_TO_SYNC_BONUSES_IN_MINUTES (15 by default). A written membership goes out with its user to the
+  // subscription `user`: `User.publish`, which graphql gives, is a recorder here.
+  describe("the copy of the balance and the user", function () {
+    let published: string[] = [];
+    let users: { publish?: (id: string) => Promise<void> };
+    before(function () {
+      users = User as unknown as { publish?: (id: string) => Promise<void> };
+      users.publish = async (id: string) => { published.push(id); };
+    });
+    after(function () {
+      delete users.publish;
+    });
+    beforeEach(function () {
+      published = [];
+    });
+
+    it("a sync writes its time; a changed balance goes out with the user, an unchanged one does not", async function () {
+      system.balances.set(user.id, 700);
+      await UserBonusProgram.sync(user, bonusProgram);
+      const changed = await membership(user.id);
+      expect(changed.balance).to.equal(700);
+      expect(Date.now() - Date.parse(changed.syncedToTime)).to.be.within(0, 60_000);
+      expect(published).to.deep.equal([user.id]);
+
+      published = [];
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      await UserBonusProgram.sync(user, bonusProgram);
+      const unchanged = await membership(user.id);
+      expect(unchanged.balance).to.equal(700);
+      expect(Date.parse(unchanged.syncedToTime)).to.be.above(Date.parse(changed.syncedToTime));
+      expect(published).to.deep.equal([]);
+    });
+
+    it("syncAll leaves a membership synced lately", async function () {
+      system.balances.set(user.id, 800);
+      await UserBonusProgram.sync(user, bonusProgram);
+      system.balances.set(user.id, 900);
+
+      await UserBonusProgram.syncAll(user.id);
+      // the syncs of syncAll are not awaited: a sync started would have written by now
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect((await membership(user.id)).balance).to.equal(800);
+    });
+
+    it("syncAll passes a program switched off by, without throwing", async function () {
+      await UserBonusProgram.update!({ user: user.id, bonusProgram }, { syncedToTime: "0" }).fetch();
+      system.balances.set(user.id, 600);
+      await setProgram({ enable: false });
+      try {
+        await UserBonusProgram.syncAll(user.id);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        expect((await membership(user.id)).balance).to.not.equal(600);
+      } finally {
+        await setProgram({ enable: true });
+      }
+    });
+
+    it("joining and leaving a program go out with the user", async function () {
+      const customer = (await User.create!({ firstName: "Customer", lastName: "5", phone: { code: "1", number: "5550000005" } }).fetch()).id as string;
+      await UserBonusProgram.registration(customer, "bonus-1");
+      await UserBonusProgram.delete(customer, "bonus-1");
+      expect(published).to.deep.equal([customer, customer]);
+    });
   });
 
   // A login by the fixed code of the stand, the code carried by a channel of this file

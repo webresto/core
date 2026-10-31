@@ -69,6 +69,19 @@ let Model = {
     async setNotificationToken(deviceId, token) {
         await UserDevice.updateOne({ id: deviceId }).set({ notificationToken: token });
     },
+    /**
+     * Signs the devices out. The carts a device was assembling for its account (NEW, CART, CHECKOUT) stay
+     * the account's but leave the device: its next cart is a guest one, and the account's cart no longer
+     * comes to it by the subscription `order`.
+     */
+    async logout(criteria) {
+        const devices = await UserDevice.update(criteria, { isLoggedIn: false }).fetch();
+        for (const device of devices) {
+            if (!device.user)
+                continue;
+            await Order.update({ deviceId: device.id, user: device.user, state: ["NEW", "CART", "CHECKOUT"] }, { deviceId: "" }).fetch();
+        }
+    },
     async checkSession(sessionId, userId, client = {}) {
         let ud = await UserDevice.findOne({ sessionId: sessionId });
         if (!ud) {

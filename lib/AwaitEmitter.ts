@@ -32,6 +32,7 @@ import { PlaceRecord } from "../models/Place";
 import { CityRecord } from "../models/City";
 import { DeliveryZoneRecord } from "../models/DeliveryZone";
 import { PaymentMethodRecord } from "../models/PaymentMethod";
+import { BonusProgramRecord } from "../models/BonusProgram";
 import { SelectedMediaFileRecord } from "../models/SelectedMediaFile";
 
 /**
@@ -117,10 +118,14 @@ declare global {
     "core:delivery-zone-changed": [DeliveryZoneRecord]
     /** A way to pay was created, changed or deleted. */
     "core:payment-method-changed": [PaymentMethodRecord]
+    /** A bonus program was created, changed or deleted. */
+    "core:bonus-program-changed": [BonusProgramRecord]
     /** Any setting was created or changed (`settings:<key>` - one of them). */
     "core:settings-changed": [SettingsRecord]
     "dialog-box:new": [DialogBox]
     "dialog-box:answer-received": [string, string]
+    /** A message to a device: the storefront gets it by the subscription `message` (graphql) and shows it as a toast. */
+    "send-message": [{ deviceId: string; type: string; title: string; message?: string }]
     "core:order-dish-changed": [OrderDishRecord],
     "core:add-product-before-write": [OrderRecord, DishRecord]
     "promotion-process:debug": [number, OrderRecord, PromotionRecord, any],

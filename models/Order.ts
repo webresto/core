@@ -1385,6 +1385,8 @@ let Model = {
         }
 
         await bonusProgramAdapter.writeTransaction(user, userBonusProgram, transaction)
+        // the copy of the balance follows at once, and the user goes out with it (sync never throws)
+        await UserBonusProgram.sync(user, order.spendBonus!.bonusProgramId)
       }
 
       // await Order.next(order.id,'ORDER');
