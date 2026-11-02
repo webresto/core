@@ -1,5 +1,6 @@
 import {
   getAllowedOrderTransitionsByRole,
+  isCompletedOrderState,
   isOperatorUser,
   isValidOrderState,
 } from "../../../order/OrderStateFlow";
@@ -72,14 +73,17 @@ export default async function UpdateOrderKanbanStateController(req: any, res: an
       });
     }
 
-    if (operatorLimited) {
-      await Order.update({ id }, { state: nextState }).fetch();
-    } else {
-      try {
+    // The role only narrows which states may be chosen (above); the move itself is the same for everyone.
+    // DONE and REJECT finish the order: doFinalize saves the delivered address, matches a guest to an
+    // account and emits core:order-after-done — a bare state change would skip all of it.
+    try {
+      if (isCompletedOrderState(nextState)) {
+        await Order.doFinalize({ id }, nextState as "DONE" | "REJECT");
+      } else {
         await Order.next({ id }, nextState);
-      } catch (transitionError: any) {
-        return res.status(400).json({ error: transitionError?.message || String(transitionError) });
       }
+    } catch (transitionError: any) {
+      return res.status(400).json({ error: transitionError?.message || String(transitionError) });
     }
 
     const updatedOrder = await Order.findOne({ id });

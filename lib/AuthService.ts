@@ -463,6 +463,12 @@ export class AuthService {
     // identity or not at all.
     if (incumbentBound && !target && row.kind !== "identity") throw AUTH_FAIL.noIncumbent;
 
+    // Back on the phone screen and "send me the code" again before the pause is over: a new
+    // attempt could only mint a code it may not send yet, and the code already delivered would
+    // stop matching. The live attempt is handed back as it is — same code, its own countdown.
+    const live = await this.liveCodeAttempt(input, target, row);
+    if (live) return live;
+
     // A second attempt from the same device for the same purpose replaces the first: otherwise a
     // user who opened MAX twice leaves the first attempt spinning "open MAX" until its TTL and
     // never sees "expired" (design2 Д15).
@@ -517,6 +523,28 @@ export class AuthService {
     // send straight away. A target that arrives later from a provider profile is delivered
     // lazily instead (see beginPhoneProof).
     return await this.applyFirstUsable(attempt, rows, { deliverNow: Boolean(target) });
+  }
+
+  /**
+   * The attempt start() continues instead of opening a new one: the same device, purpose, number
+   * and method, its code delivered and unexpired, and the pause before another code to that number
+   * still running. Past the pause a new start is a fair "send a new code" and goes the usual way.
+   */
+  private static async liveCodeAttempt(input: StartInput, target: string | undefined, row: AuthMethodRecord): Promise<AuthAttemptRecord | null> {
+    if (!target) return null;
+    const [attempt] = await AuthAttempt.find!({
+      deviceId: input.deviceId,
+      purpose: input.purpose,
+      target,
+      methodAdapter: row.adapter,
+      methodOffer: row.offer,
+      status: "awaiting_user",
+      stepType: "enter_code",
+    } as any).sort("createdAt DESC").limit(1);
+    const now = Date.now();
+    if (!attempt?.sentAt || Number(attempt.secretExpiresAt || 0) <= now || Number(attempt.expiresAt || 0) <= now) return null;
+    if (now - Number(attempt.sentAt) >= (await this.resendIntervalSec(row)) * 1000) return null;
+    return attempt;
   }
 
   /**
