@@ -11,6 +11,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { ensureDefaultGroups } from "../lib/adminpanel/ensureDefaultGroups";
+import { migrateOrderKanbanGrants } from "../lib/adminpanel/migrateOrderKanbanGrants";
 import {
   AdminPanelModule,
   adminPanelAccessTokens,
@@ -120,6 +121,14 @@ export default function bindAdminpanel() {
       await ensureDefaultGroups(adminizer, adminizer.config.defaultGroups);
     } catch (e) {
       sails.log.error('Default admin groups initialization failed', e);
+    }
+
+    // The orders board by points: a group that ticked `order-kanban` keeps the board it had.
+    try {
+      const migrated = await migrateOrderKanbanGrants(adminizer);
+      if (migrated) sails.log.info(`Adminpanel > order-kanban: ${migrated} group(s) given every point`);
+    } catch (e) {
+      sails.log.error('order-kanban grants migration failed', e);
     }
 
     if (Array.isArray(adminizer.config.navbar?.additionalLinks)) {

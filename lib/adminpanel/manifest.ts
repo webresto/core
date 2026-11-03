@@ -21,6 +21,7 @@
  */
 import * as path from "path";
 import { checkStockManagerToken } from "./stock-manager-rights";
+import { checkOrderKanbanToken, orderKanbanOptions } from "./order-kanban-rights";
 
 /** Route under the admin panel's route prefix, e.g. `/stock-manager`. */
 export type AdminPanelRoutePath = string;
@@ -177,10 +178,12 @@ export const adminPanelModules: AdminPanelModule[] = [
       controller: "src/controller/order-kanban",
     },
     routes: [
+      { method: "get", route: "/core/order-kanban/places", controller: "src/controller/get-order-kanban-places" },
       { method: "get", route: "/core/order-kanban/orders", controller: "src/controller/get-order-kanban-orders" },
       { method: "get", route: "/core/order-kanban/order", controller: "src/controller/get-order-kanban-order" },
       { method: "get", route: "/core/order-kanban/stream", controller: "src/controller/order-kanban-stream" },
       { method: "post", route: "/core/order-kanban/state", controller: "src/controller/update-order-kanban-state" },
+      { method: "post", route: "/core/order-kanban/kitchen", controller: "src/controller/assign-order-kanban-kitchen" },
     ],
   },
   {
@@ -463,7 +466,16 @@ export const adminPanelAccessTokens: AdminPanelAccessToken[] = [
     },
     check: checkStockManagerToken,
   },
-  { id: "order-kanban", name: "Current Orders", description: "Access to Current Orders module and its API endpoints", department: "Orders" },
+  // Contextual, like stock-manager: the group picks the points whose orders it may see, plus
+  // «Без кухни»; the token alone only opens the page.
+  {
+    id: "order-kanban",
+    name: "Current Orders",
+    description: "Access to Current Orders module and its API endpoints, for selected points",
+    department: "Orders",
+    getOptions: orderKanbanOptions,
+    check: checkOrderKanbanToken,
+  },
   { id: "ai-assistant-openharness", name: "RestoApp Assistant", description: "Use the streaming RestoApp Assistant data agent", department: "AI assistant" },
   {
     id: "globaly-operator-can-create",

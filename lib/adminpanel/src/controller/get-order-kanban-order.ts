@@ -4,6 +4,9 @@ import {
   isOperatorUser,
 } from "../../../order/OrderStateFlow";
 import { courierRoute, primaryCookingPoint, toPlaceId } from "../../../menu/cooking-place";
+import { orderIsOfPlace, orderPlaceKey } from "../../../order/orders-of-place";
+import { requireOrderKanbanAccess } from "./access-rights";
+import { kanbanPlacesOf } from "./order-kanban-places";
 
 function parseTimestamp(value: unknown): number {
   const timestamp = new Date(value as any).getTime();
@@ -237,6 +240,7 @@ function mapOrder(
     paid: Boolean(order?.paid),
     serviceType: order?.serviceType || "delivery",
     kitchenName,
+    placeId: orderPlaceKey(order),
     zoneName,
     routeStops: route,
     route: route.map((stop) => stop.name),
@@ -271,12 +275,9 @@ function mapOrder(
 export default async function GetOrderKanbanOrderController(req: any, res: any) {
   const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   try {
-    const { config } = req.adminizer || {};
-    if (config?.auth?.enable && !req.user) {
-      return res.redirect(`${config.routePrefix}/model/userap/login`);
-    } else if (req.adminizer?.accessRightsHelper && !req.adminizer.accessRightsHelper.hasPermission(`order-kanban`, req.user)) {
-      return res.sendStatus(403);
-    }
+    if (!(await requireOrderKanbanAccess(req, res))) return;
+    const allowedPlaces = await kanbanPlacesOf(req, res);
+    if (allowedPlaces === false) return;
 
     const id = String(req.query.id || "").trim();
     if (!id) {
@@ -287,6 +288,11 @@ export default async function GetOrderKanbanOrderController(req: any, res: any) 
     const order = await loadFullOrder(id);
 
     if (!order?.id) {
+      return res.status(404).json({ error: t("Order not found") });
+    }
+    // An order of a point the user does not hold is not found, not forbidden: by direct id the
+    // board must tell them no more than the list does (plan C1).
+    if (allowedPlaces !== null && !orderIsOfPlace(order, allowedPlaces)) {
       return res.status(404).json({ error: t("Order not found") });
     }
 

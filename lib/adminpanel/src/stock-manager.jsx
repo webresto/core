@@ -25,6 +25,7 @@ import { LimitedStockSection } from './components/LimitedStockSection';
 import { GroupsGrid } from './components/GroupsGrid';
 import { DishesGrid } from './components/DishesGrid';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
+import { readCurrentPlace, writeCurrentPlace } from './current-place';
 
 import { HelpButton } from './components/HelpButton';
 
@@ -274,11 +275,11 @@ function StockManagerContent({ canManage = false }) {
       const json = await fetchJsonNoCache(`${base}/core/stock-places`);
       const loadedPlaces = json.results || [];
       setPlaces(loadedPlaces);
-      const savedPlaceId = localStorage.getItem('stockManagerPlaceId');
+      const savedPlaceId = readCurrentPlace();
       const initialPlace = loadedPlaces.find(place => place.id === savedPlaceId) || loadedPlaces[0];
       // Persisted as well, so a point that is no longer granted does not come
       // back as the preferred one on the next visit.
-      localStorage.setItem('stockManagerPlaceId', initialPlace ? initialPlace.id : '');
+      writeCurrentPlace(initialPlace ? initialPlace.id : '');
       setSelectedPlaceId(initialPlace ? initialPlace.id : null);
       return loadedPlaces;
     } catch (err) {
@@ -706,7 +707,7 @@ function StockManagerContent({ canManage = false }) {
   const isSearching = (q || '').trim().length > 0;
 
   function handlePlaceChange(placeId) {
-    localStorage.setItem('stockManagerPlaceId', placeId || '');
+    writeCurrentPlace(placeId);
     setCurrentGroup(null);
     setGroupStack([]);
     setDishes([]);

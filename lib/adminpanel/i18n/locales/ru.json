@@ -1157,5 +1157,14 @@
   "The maintenance is not found": "Обслуживание не найдено",
   "A date is wrong": "Неверная дата",
   "The end is before the start": "Конец раньше начала",
-  "User filters": "Фильтры пользователя"
+  "User filters": "Фильтры пользователя",
+  "Point": "Точка",
+  "Select point": "Выберите точку",
+  "Without kitchen": "Без кухни",
+  "Assign kitchen": "Назначить кухню",
+  "No points are assigned to your Current Orders access. Contact an administrator.": "К доступу «Текущие заказы» не привязано ни одной точки. Обратитесь к администратору.",
+  "Invalid point": "Неверная точка",
+  "This order is collected at the point the customer chose": "Этот заказ получают на точке, которую выбрал клиент",
+  "The order already has a kitchen": "У заказа уже есть кухня",
+  "Orders no kitchen has been resolved for": "Заказы, для которых кухня не определена"
 }

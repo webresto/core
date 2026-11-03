@@ -5,7 +5,10 @@ import {
   isCompletedOrderState,
   isOperatorUser,
 } from "../../../order/OrderStateFlow";
-import { courierRoute, primaryCookingPoint } from "../../../menu/cooking-place";
+import { courierRoute } from "../../../menu/cooking-place";
+import { ORDERS_OF_PLACE_MAX, orderIsOfPlace, orderPlaceId, orderPlaceKey } from "../../../order/orders-of-place";
+import { requireOrderKanbanAccess } from "./access-rights";
+import { kanbanPlacesOf } from "./order-kanban-places";
 
 // Non-completed states that the kanban board actually renders as columns
 // (mirrors VISIBLE_BOARD_STATES minus DONE/REJECT on the frontend).
@@ -74,23 +77,6 @@ function isOrderInActiveWindow(order: any, sinceMs: number): boolean {
   return orderedAtMs >= sinceMs;
 }
 
-/** A populated association arrives as a record, an unpopulated one as its id. */
-function toId(value: unknown): string {
-  if (!value) return "";
-  if (typeof value === "object") return String((value as { id?: unknown }).id || "");
-  return String(value);
-}
-
-/**
- * Where the order is cooked: a courier order goes to the resolved kitchen,
- * pickup and dine-in to the point the customer picked.
- */
-function getKitchenId(order: any): string {
-  return order?.serviceType && order.serviceType !== "delivery"
-    ? toId(order?.pickupPoint)
-    : primaryCookingPoint(order) ?? "";
-}
-
 function mapOrder(
   order: any,
   operatorLimited: boolean,
@@ -118,7 +104,9 @@ function mapOrder(
     tag: order?.tag || "",
     paid: Boolean(order?.paid),
     serviceType: order?.serviceType || "delivery",
-    kitchenName: placeNames.get(getKitchenId(order)) || "",
+    kitchenName: placeNames.get(orderPlaceId(order) ?? "") || "",
+    /** The point the order is led by, or `no-kitchen`: the column of the point switch. */
+    placeId: orderPlaceKey(order),
     // Every kitchen the courier collects from, in driving order; empty for an
     // order cooked in one place.
     route: courierRoute(order).map((id) => placeNames.get(id) || id),
@@ -135,15 +123,12 @@ function mapOrder(
 
 export default async function GetOrderKanbanOrdersController(req: any, res: any) {
   try {
-    const { config } = req.adminizer || {};
-    if (config?.auth?.enable && !req.user) {
-      return res.redirect(`${config.routePrefix}/model/userap/login`);
-    } else if (req.adminizer?.accessRightsHelper && !req.adminizer.accessRightsHelper.hasPermission(`order-kanban`, req.user)) {
-      return res.sendStatus(403);
-    }
+    if (!(await requireOrderKanbanAccess(req, res))) return;
+    const allowedPlaces = await kanbanPlacesOf(req, res);
+    if (allowedPlaces === false) return;
 
     const requestedLimit = Number.parseInt(String(req.query.limit || "250"), 10);
-    const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 500) : 250;
+    const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), ORDERS_OF_PLACE_MAX) : 250;
     const includeDone = String(req.query.includeDone || "0") === "1";
     const newWindowMinutes = parseNewWindowMinutes(req.query.newMinutes);
     const newSinceMs = Date.now() - newWindowMinutes * 60 * 1000;
@@ -192,8 +177,14 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
       return isOrderInActiveWindow(order, newSinceMs);
     });
 
+    // Only the points of this request. Until C2 gives an order its stops, `Order` has no column
+    // naming its point, so the filter is this pass in memory over a bounded read.
+    const filteredByPlace = allowedPlaces === null
+      ? filteredByState
+      : filteredByState.filter((order: any) => orderIsOfPlace(order, allowedPlaces));
+
     const filteredByQuery = q
-      ? filteredByState.filter((order: any) => {
+      ? filteredByPlace.filter((order: any) => {
         const customer = order?.customer && typeof order.customer === "object" ? order.customer : {};
         const phone = customer?.phone && typeof customer.phone === "object"
           ? `${customer.phone.code || ""}${customer.phone.number || ""}`
@@ -210,13 +201,13 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
         ].map((item) => String(item || "").toLowerCase()).join(" ");
         return haystack.includes(q);
       })
-      : filteredByState;
+      : filteredByPlace;
 
     // The kitchen is a card caption, collected in one query for the whole list
     // rather than one per card. The zone's name came with the delivery result.
     const placeIds = new Set<string>();
     for (const order of filteredByQuery) {
-      const placeId = getKitchenId(order);
+      const placeId = orderPlaceId(order);
       if (placeId) placeIds.add(placeId);
       for (const stop of courierRoute(order)) placeIds.add(stop);
     }
@@ -234,6 +225,7 @@ export default async function GetOrderKanbanOrdersController(req: any, res: any)
         completedSince: new Date(completedSinceMs).toISOString(),
         operatorLimited,
         operatorAllowedTargets: ORDER_OPERATOR_ALLOWED_TARGET_STATES,
+        places: allowedPlaces,
       }
     });
   } catch (error) {

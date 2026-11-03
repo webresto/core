@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
+import { readCurrentPlace, writeCurrentPlace } from './current-place';
 
 const { Button, Badge, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } = window.UIComponents;
 
@@ -164,6 +165,20 @@ function getBaseAdminPath() {
 function withNoCacheTs(endpoint) {
   const joinChar = endpoint.includes('?') ? '&' : '?';
   return `${endpoint}${joinChar}_ts=${Date.now()}`;
+}
+
+/** The orders no kitchen was resolved for; the board shows them as a point of their own (plan C1). */
+const NO_KITCHEN = 'no-kitchen';
+
+/** The board's own exact selection: it may be a pickup point or «Без кухни», which stock has not. */
+const PLACE_STORAGE_KEY = 'orderKanbanPlaceId';
+
+function getInitialPlaceId() {
+  try {
+    return localStorage.getItem(PLACE_STORAGE_KEY) || readCurrentPlace() || '';
+  } catch {
+    return '';
+  }
 }
 
 async function fetchJsonNoCache(endpoint, options = {}) {
@@ -348,6 +363,7 @@ function normalizeOrder(order) {
     paid: Boolean(order.paid),
     serviceType: order.serviceType || 'delivery',
     kitchenName: order.kitchenName || '',
+    placeId: order.placeId || '',
     route: Array.isArray(order.route) ? order.route : [],
     zoneName: order.zoneName || '',
     rmsOrderNumber: order.rmsOrderNumber || '',
@@ -415,7 +431,7 @@ function normalizeOrderDetails(order) {
   };
 }
 
-function OrderDetailsPopup({ order, loading, language, t, onClose }) {
+function OrderDetailsPopup({ order, loading, language, t, onClose, kitchens = [], assigning = false, onAssignKitchen }) {
   const isDark = document.documentElement.classList.contains('dark');
   const overlayBackground = isDark ? 'rgba(2, 6, 23, 0.8)' : 'rgba(2, 6, 23, 0.56)';
   const popupPayloadBackground = isDark ? '#020617' : '#0f172a';
@@ -540,6 +556,25 @@ function OrderDetailsPopup({ order, loading, language, t, onClose }) {
           <div style={rowStyle}><strong>{t('Paid')}</strong><span>{boolText(order.paid)}</span></div>
           <div style={rowStyle}><strong>{t('Service type')}</strong><span>{t(SERVICE_TYPE_LABEL[order.serviceType] || order.serviceType)}</span></div>
           <div style={rowStyle}><strong>{t('Kitchen')}</strong><span>{formatKitchenLine(order, t) || '-'}</span></div>
+          {order.placeId === NO_KITCHEN && kitchens.length > 0 && typeof onAssignKitchen === 'function' ? (
+            <div style={rowStyle}>
+              <strong>{t('Assign kitchen')}</strong>
+              <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 6 }}>
+                {kitchens.map((kitchen) => (
+                  <Button
+                    key={kitchen.id}
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={assigning}
+                    onClick={() => onAssignKitchen(order.id, kitchen.id)}
+                  >
+                    {kitchen.title}
+                  </Button>
+                ))}
+              </span>
+            </div>
+          ) : null}
           {!loading && order.routeStops?.length > 1 ? (
             <div style={rowStyle}>
               <strong>{t('Courier route')}</strong>
@@ -1279,6 +1314,10 @@ function OrderKanbanContent() {
   const [selectedOrderLoading, setSelectedOrderLoading] = useState(false);
   const [collapsedColumns, setCollapsedColumns] = useState(getInitialCollapsedColumns);
   const [streamStatus, setStreamStatus] = useState('connecting');
+  const [places, setPlaces] = useState([]);
+  const [placesLoaded, setPlacesLoaded] = useState(false);
+  const [selectedPlaceId, setSelectedPlaceId] = useState(getInitialPlaceId);
+  const [assigningKitchen, setAssigningKitchen] = useState(false);
   const [error, setError] = useState('');
   const eventSourceRef = useRef(null);
   const reconnectTimerRef = useRef(null);
@@ -1337,6 +1376,54 @@ function OrderKanbanContent() {
     }
   }, []);
 
+  // The points the person holds, as Stock Manager does it: the board opens on one of them, and the
+  // whole board — list, stream, card, move — is about that point and no other (plan C1).
+  useEffect(() => {
+    let disposed = false;
+    (async () => {
+      try {
+        const base = getBaseAdminPath();
+        const json = await fetchJsonNoCache(`${base}/core/order-kanban/places`);
+        if (disposed) return;
+        const loaded = Array.isArray(json.results) ? json.results : [];
+        setPlaces(loaded);
+        setSelectedPlaceId((current) => {
+          const kept = loaded.some((place) => place.id === current) ? current : (loaded[0]?.id || '');
+          try {
+            localStorage.setItem(PLACE_STORAGE_KEY, kept);
+          } catch {
+            // ignore
+          }
+          return kept;
+        });
+      } catch (placesError) {
+        if (!disposed) setPlaces([]);
+      } finally {
+        if (!disposed) setPlacesLoaded(true);
+      }
+    })();
+    return () => {
+      disposed = true;
+    };
+  }, []);
+
+  const selectedPlaceIdRef = useRef(selectedPlaceId);
+  useEffect(() => {
+    selectedPlaceIdRef.current = selectedPlaceId;
+  }, [selectedPlaceId]);
+
+  const handlePlaceChange = useCallback((placeId) => {
+    try {
+      localStorage.setItem(PLACE_STORAGE_KEY, placeId || '');
+    } catch {
+      // ignore
+    }
+    // The shared key holds real points only: Stock Manager has no «Без кухни» to open on.
+    if (placeId && placeId !== NO_KITCHEN) writeCurrentPlace(placeId);
+    setSelectedOrderId('');
+    setSelectedPlaceId(placeId);
+  }, []);
+
   const loadOrders = useCallback(async ({ showLoader = false } = {}) => {
     if (!mountedRef.current) return;
     const requestId = ++loadRequestIdRef.current;
@@ -1356,7 +1443,9 @@ function OrderKanbanContent() {
         setLoading(true);
       }
       const base = getBaseAdminPath();
-      const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1&newMinutes=${getBoardPeriodMinutes(boardPeriod)}`;
+      const endpoint = `${base}/core/order-kanban/orders?limit=300&includeDone=1`
+        + `&newMinutes=${getBoardPeriodMinutes(boardPeriod)}`
+        + (selectedPlaceId ? `&placeId=${encodeURIComponent(selectedPlaceId)}` : '');
       const json = await fetchJsonNoCache(endpoint, { signal: abortController.signal });
 
       if (!mountedRef.current || requestId !== loadRequestIdRef.current) return;
@@ -1377,7 +1466,7 @@ function OrderKanbanContent() {
       if (!mountedRef.current || requestId !== loadRequestIdRef.current) return;
       setLoading(false);
     }
-  }, [boardPeriod]);
+  }, [boardPeriod, selectedPlaceId]);
 
   const applyOrderHintFromStream = useCallback((payload) => {
     const orderId = payload?.orderId;
@@ -1462,7 +1551,11 @@ function OrderKanbanContent() {
       setStreamStatus((prev) => (prev === 'connected' ? 'reconnecting' : 'connecting'));
 
       const base = getBaseAdminPath();
-      const source = new window.EventSource(`${base}/core/order-kanban/stream`, { withCredentials: true });
+      const source = new window.EventSource(
+        `${base}/core/order-kanban/stream`
+          + (selectedPlaceIdRef.current ? `?placeId=${encodeURIComponent(selectedPlaceIdRef.current)}` : ''),
+        { withCredentials: true },
+      );
       eventSourceRef.current = source;
       lastStreamSignalAtRef.current = Date.now();
 
@@ -1533,7 +1626,11 @@ function OrderKanbanContent() {
 
       closeEventSource();
     };
-  }, [applyOrderHintFromStream, closeEventSource, scheduleRefreshFromEvent]);
+    // The stream is per point: changing it reconnects, so events of the point left behind stop.
+  }, [applyOrderHintFromStream, closeEventSource, scheduleRefreshFromEvent, selectedPlaceId]);
+
+  /** Kitchens the person holds: the choice «Назначить кухню» offers. */
+  const kitchens = useMemo(() => places.filter((place) => place.isCookingPoint), [places]);
 
   const selectedOrderSummary = useMemo(() => {
     return orders.find((order) => order.id === selectedOrderId) || null;
@@ -1572,7 +1669,8 @@ function OrderKanbanContent() {
       try {
         const base = getBaseAdminPath();
         const json = await fetchJsonNoCache(
-          `${base}/core/order-kanban/order?id=${encodeURIComponent(selectedOrderId)}`,
+          `${base}/core/order-kanban/order?id=${encodeURIComponent(selectedOrderId)}`
+            + (selectedPlaceId ? `&placeId=${encodeURIComponent(selectedPlaceId)}` : ''),
           { credentials: 'same-origin', signal: abortController.signal }
         );
         if (!mountedRef.current || requestId !== detailsRequestIdRef.current) return;
@@ -1589,7 +1687,7 @@ function OrderKanbanContent() {
         setSelectedOrderLoading(false);
       }
     })();
-  }, [selectedOrderId]);
+  }, [selectedOrderId, selectedPlaceId]);
 
   const selectedOrder = useMemo(() => {
     if (selectedOrderDetails?.id === selectedOrderId) return selectedOrderDetails;
@@ -1632,7 +1730,7 @@ function OrderKanbanContent() {
           'Content-Type': 'application/json',
           ...(csrf ? { 'X-XSRF-TOKEN': csrf } : {}),
         },
-        body: JSON.stringify({ id: orderId, nextState }),
+        body: JSON.stringify({ id: orderId, nextState, ...(selectedPlaceId ? { placeId: selectedPlaceId } : {}) }),
       });
       if (json?.success === false) {
         throw new Error(json?.error || 'State update failed');
@@ -1654,6 +1752,35 @@ function OrderKanbanContent() {
       setUpdatingOrderId('');
     }
   }
+
+  /**
+   * «Назначить кухню» (plan C6): an order that reached the staff without a kitchen is given the one
+   * that will cook it. The board then re-reads, and the order leaves «Без кухни» for that point.
+   */
+  const assignKitchen = useCallback(async (orderId, placeId) => {
+    setAssigningKitchen(true);
+    setError('');
+    try {
+      const base = getBaseAdminPath();
+      const csrf = getCsrfToken();
+      const json = await fetchJsonNoCache(`${base}/core/order-kanban/kitchen`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrf ? { 'X-XSRF-TOKEN': csrf } : {}),
+        },
+        body: JSON.stringify({ id: orderId, placeId }),
+      });
+      if (json?.success === false) throw new Error(json?.error || 'Kitchen assignment failed');
+      setSelectedOrderId('');
+      await loadOrders({ showLoader: false });
+    } catch (assignError) {
+      setError(assignError?.message || String(assignError));
+    } finally {
+      setAssigningKitchen(false);
+    }
+  }, [loadOrders]);
 
   const filteredOrders = useMemo(() => {
     const newSinceMs = getBoardPeriodSinceMs(boardPeriod);
@@ -1781,6 +1908,22 @@ function OrderKanbanContent() {
           style={{ minWidth: 260, flex: '1 1 320px' }}
         />
 
+        {places.length > 1 && (
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--muted-foreground)' }}>
+            <span>{t('Point')}</span>
+            <Select value={selectedPlaceId || undefined} onValueChange={handlePlaceChange}>
+              <SelectTrigger size="sm" style={{ minWidth: 160 }} aria-label={t('Point')}>
+                <SelectValue placeholder={t('Select point')} />
+              </SelectTrigger>
+              <SelectContent>
+                {places.map((place) => (
+                  <SelectItem key={place.id} value={place.id}>{place.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+        )}
+
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--muted-foreground)' }}>
           <span>{t('Board period')}</span>
           <Select
@@ -1860,7 +2003,19 @@ function OrderKanbanContent() {
         </div>
       ) : null}
 
-      {loading ? (
+      {placesLoaded && places.length === 0 ? (
+        <div
+          style={{
+            border: '1px dashed var(--border)',
+            borderRadius: 10,
+            padding: 32,
+            textAlign: 'center',
+            color: 'var(--muted-foreground)',
+          }}
+        >
+          {t('No points are assigned to your Current Orders access. Contact an administrator.')}
+        </div>
+      ) : loading ? (
         <div style={{ padding: 12, color: 'var(--muted-foreground)' }}>{t('loading')}</div>
       ) : viewMode === 'stack' ? (
         <OrderStackView
@@ -2008,6 +2163,9 @@ function OrderKanbanContent() {
         language={language}
         t={t}
         onClose={() => setSelectedOrderId('')}
+        kitchens={kitchens}
+        assigning={assigningKitchen}
+        onAssignKitchen={assignKitchen}
       />
     </div>
   );
