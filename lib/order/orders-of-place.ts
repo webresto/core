@@ -63,6 +63,16 @@ export function orderPlaceKey(order: Partial<OrderRecord> | null | undefined): s
   return orderPlaceId(order) ?? NO_KITCHEN;
 }
 
+/**
+ * Whether this point has a stop of this order — that is, whether the order is on that point's board
+ * at all. A delivery routed over two kitchens is on both, and only the leading one may move it
+ * ({@link orderPlaceKey}).
+ */
+export async function orderIsAtPlace(orderId: string, place: string): Promise<boolean> {
+  const where = place === NO_KITCHEN ? { order: orderId, place: null } : { order: orderId, place };
+  return (await OrderStop.count!(where as any)) > 0;
+}
+
 /** Whether the order is led by one of these points (ids of `Place`, or {@link NO_KITCHEN}). */
 export function orderIsOfPlace(order: Partial<OrderRecord> | null | undefined, places: Iterable<string>): boolean {
   const key = orderPlaceKey(order);

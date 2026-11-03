@@ -122,6 +122,9 @@ describe("Order kanban by points", function () {
   it("answers only what changed since a moment", async function () {
     const before = Date.now() + 1;
     expect(await ordersOfPlace([kitchen1, kitchen2], { since: before })).to.deep.equal([]);
+    // `updatedAt` has millisecond resolution, so the write must land after the moment we ask about;
+    // without this pause a fast machine does both inside one millisecond and the answer is empty.
+    await new Promise((resolve) => setTimeout(resolve, 5));
 
     await transitionOrder({ id: atKitchen2 }, "COOKING", { user: ADMIN, source: "mobile-api" });
 
@@ -210,6 +213,31 @@ describe("Order kanban by points", function () {
     const assigner = await call(AssignOrderKanbanKitchenController, request(operatorOf(NO_KITCHEN, kitchen1), {}, { id: noKitchen, placeId: kitchen1 }));
     expect(assigner.status).to.equal(200);
     expect((await Order.findOne!({ id: noKitchen })).cookingPoints).to.deep.equal([kitchen1]);
+  });
+
+  it("sends the customer the «on the way» notification when the phone moves the order", async function () {
+    const { NotificationService } = require("../../../../lib/notifications/NotificationService");
+    const emitted: string[] = [];
+    const real = NotificationService.emit;
+    NotificationService.emit = async (eventKey: string, ...rest: unknown[]) => {
+      emitted.push(eventKey);
+      return real.call(NotificationService, eventKey, ...rest);
+    };
+
+    try {
+      await transitionOrder({ id: atKitchen1 }, "COOKING", { user: ADMIN, source: "mobile-api" });
+      await transitionOrder({ id: atKitchen1 }, "ON_THE_WAY", { user: ADMIN, source: "mobile-api" });
+      // The event is fired detached from the transition: `next` does not wait for it, so neither
+      // does the caller — the test waits for the event itself, and says what it saw instead.
+      const deadline = Date.now() + 20000;
+      while (!emitted.includes("order_on_the_way") && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    } finally {
+      NotificationService.emit = real;
+    }
+
+    expect(emitted, "the move went through, but no notification followed").to.contain("order_on_the_way");
   });
 
   it("writes the move to the journal with who asked and from where", async function () {

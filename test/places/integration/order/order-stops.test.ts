@@ -121,6 +121,9 @@ describe("Order stops", function () {
     const quiet = await order({ serviceType: "delivery", cookingPoints: [kitchen1] });
     const moved = await order({ serviceType: "delivery", cookingPoints: [kitchen1] });
     const since = Date.now() + 1;
+    // `updatedAt` has millisecond resolution, so the write must land after the moment we ask about;
+    // without this pause a fast machine does both inside one millisecond and the answer is empty.
+    await new Promise((resolve) => setTimeout(resolve, 5));
 
     await transitionOrder({ id: moved }, "COOKING", { user: ADMIN, source: "mobile-api" });
 
