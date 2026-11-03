@@ -22,6 +22,7 @@
 import * as path from "path";
 import { checkStockManagerToken } from "./stock-manager-rights";
 import { checkOrderKanbanToken, orderKanbanOptions } from "./order-kanban-rights";
+import { checkOrderEntryToken, orderEntryOptions } from "./order-entry-rights";
 
 /** Route under the admin panel's route prefix, e.g. `/stock-manager`. */
 export type AdminPanelRoutePath = string;
@@ -475,6 +476,16 @@ export const adminPanelAccessTokens: AdminPanelAccessToken[] = [
     department: "Orders",
     getOptions: orderKanbanOptions,
     check: checkOrderKanbanToken,
+  },
+  // Contextual, like the two above: the group picks the points its people may take orders for.
+  // The right to take an order, not to lead one — that is `order-kanban`.
+  {
+    id: "order-entry",
+    name: "Order entry",
+    description: "Take orders for selected cooking points (the POS of the mobile app)",
+    department: "Orders",
+    getOptions: orderEntryOptions,
+    check: checkOrderEntryToken,
   },
   { id: "ai-assistant-openharness", name: "RestoApp Assistant", description: "Use the streaming RestoApp Assistant data agent", department: "AI assistant" },
   {
