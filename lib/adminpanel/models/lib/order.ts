@@ -13,6 +13,15 @@ export class OrderConfig {
 
   static editFields: FieldsModels = {
     /**
+     * Dine-in: what the venue calls the table the order is served at. Written by whoever takes the
+     * order — the POS of the mobile app today — and read by the board, the kitchen and the print.
+     */
+    table: {
+      title: "Table",
+      type: "string",
+      tooltip: "Столик для заказа в зале: номер или название, как его называют в заведении",
+    },
+    /**
      * Read-only: the kitchens are resolved on every recalculation, and there is
      * no operator to overrule them. Shown so they can be read, never edited.
      */

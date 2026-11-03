@@ -232,6 +232,18 @@ let attributes = {
   comment: "string",
   personsCount: "string",
 
+  /**
+   * The table a dine-in order is served at, as the venue calls it: "12", "У окна", "Терраса-3".
+   *
+   * A string and not a relation, because there is no directory of tables yet: a POS writes what the
+   * waiter typed, the board and the print show it, and an RMS that takes table ids (iiko's
+   * `tableIds`) maps it when the directory arrives. Empty for delivery and pickup.
+   */
+  table: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
+
   /** The desired date and delivery time*/
   date: {
     type: "string",

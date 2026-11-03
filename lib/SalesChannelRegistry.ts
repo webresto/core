@@ -230,6 +230,19 @@ export class SalesChannelRegistry {
         comingSoon: true,
       },
       {
+        // The POS of the mobile admin app: a member of staff taking an order on a terminal or by
+        // phone (order-entry.plan.md). Its provider is the app-mobile-api hook, which ships with
+        // the server, so this type is not «coming soon» — unlike the staff website above.
+        type: "mobile-pos",
+        title: "Staff POS (mobile app)",
+        category: "staff",
+        providerModule: null,
+        icon: "point_of_sale",
+        capabilities: ["orders:create", "admin:order-entry", "menu:browse", "customers:identify"],
+        supportsMultipleInstances: false,
+        sourceModule: "core",
+      },
+      {
         type: "telegram-bot",
         title: "Telegram bot",
         category: "messenger",
