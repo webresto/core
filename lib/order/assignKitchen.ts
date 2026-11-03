@@ -1,6 +1,7 @@
 import { OrderRecord } from "../../models/Order";
 import { primaryCookingPoint } from "../menu/cooking-place";
 import { NO_KITCHEN, orderPlaceKey } from "./orders-of-place";
+import { syncOrderStops } from "./order-stops";
 
 /**
  * Giving a placed order the kitchen that will cook it (plan C6).
@@ -53,6 +54,8 @@ export async function assignOrderKitchen(
   if (!place || place.isCookingPoint !== true || place.enable === false) return { ok: false, reason: "no_such_place" };
 
   await Order.update!({ id: order.id }, { cookingPoints: [String(place.id)] }).fetch();
+  // The order leaves «Без кухни» for that kitchen: its stop moves with it (plan C2).
+  await syncOrderStops({ id: String(order.id) });
   await Order.log!({ id: order.id }, "info", source, `${source}: ${KITCHEN_ASSIGNED_MESSAGE}`, {
     placeId: String(place.id),
     placeTitle: place.title ?? null,

@@ -15,11 +15,11 @@ import { ORDER_KITCHEN_PROGRESS_STATES, ORDER_COMPLETED_STATES } from "./OrderSt
  * not work for a kitchen. The states are core's own (`OrderStateFlow`), so the board, the phone and
  * the flow cannot drift apart.
  *
- * Until task C2 gives the order its stops (`OrderStop` with `(place, orderState)` indexed), the
- * selection is a bounded read of the active — or lately completed — orders of the whole chain,
- * filtered by point in memory: `Order` has no column naming the leading point, and `cookingPoints`
- * is a json list. {@link ORDERS_OF_PLACE_MAX} is that bound, and a chain busy enough to reach it
- * needs C2 rather than a larger number. When C2 lands, only the two functions below change.
+ * The selection is a query over `OrderStop` (C2) — one row per point with work to do, carrying a
+ * copy of the order's state and times, indexed by `(place, orderState)` and `(place, completedAt)`.
+ * `Order` itself has no column naming the leading point: a delivery keeps its kitchens in a json
+ * list. {@link orderPlaceKey} still answers "which point is this order led by" for one record in
+ * hand — the stops are how one *finds* the records.
  */
 
 /** Orders no kitchen has been resolved for: an option of the `order-kanban` token, not a `Place`. */
@@ -31,7 +31,7 @@ export const ACTIVE_ORDER_STATES = ORDER_KITCHEN_PROGRESS_STATES;
 /** How far back the «Завершённые» tab looks. */
 export const DONE_WINDOW_DAYS = 7;
 
-/** Upper bound of orders read before the point filter. */
+/** Upper bound of rows one selection reads; a safety net, not the shape of the query. */
 export const ORDERS_OF_PLACE_MAX = 2000;
 
 export type OrdersTab = "active" | "done";
@@ -74,43 +74,70 @@ function seconds(milliseconds: number): number {
   return Math.floor(milliseconds / 1000);
 }
 
-function tabWhere(tab: OrdersTab, now: number, since?: number | null): Record<string, unknown> {
+/** The `where` of the stops of these points in one tab. `null` — nothing is granted. */
+function stopsWhere(places: string | string[], tab: OrdersTab, now: number): Record<string, unknown> | null {
+  const keys = [...new Set((Array.isArray(places) ? places : [places]).map(String))];
+  if (!keys.length) return null;
+
+  const ids = keys.filter((key) => key !== NO_KITCHEN);
+  const unassigned = keys.includes(NO_KITCHEN);
   const where: Record<string, unknown> = tab === "done"
-    ? { state: { in: ORDER_COMPLETED_STATES }, completedAt: { ">=": seconds(now - DONE_WINDOW_DAYS * 24 * 60 * 60 * 1000) } }
-    : { state: { in: ACTIVE_ORDER_STATES } };
-  // `updatedAt` is epoch milliseconds (Waterline's autoUpdatedAt), `completedAt` is seconds.
-  if (typeof since === "number" && Number.isFinite(since)) where.updatedAt = { ">=": since };
+    ? { orderState: { in: ORDER_COMPLETED_STATES }, completedAt: { ">=": seconds(now - DONE_WINDOW_DAYS * 24 * 60 * 60 * 1000) } }
+    : { orderState: { in: ACTIVE_ORDER_STATES } };
+
+  // «Без кухни» is a stop whose point is null, so one query answers for both kinds of point.
+  if (ids.length && unassigned) where.or = [{ place: { in: ids } }, { place: null }];
+  else if (unassigned) where.place = null;
+  else where.place = { in: ids };
   return where;
 }
 
 /**
  * The orders of these points, newest first. `places` are ids of `Place` and {@link NO_KITCHEN}; an
  * empty list means no point is granted and the answer is empty — never "all of them".
+ *
+ * An order routed over two kitchens has a stop at each, and a person holding both sees it once.
  */
 export async function ordersOfPlace(
   places: string | string[],
   { tab = "active", since = null, limit = ORDERS_OF_PLACE_MAX, now = Date.now() }: OrdersOfPlaceQuery = {},
 ): Promise<OrderRecord[]> {
-  const keys = new Set((Array.isArray(places) ? places : [places]).map(String));
-  if (!keys.size) return [];
+  const where = stopsWhere(places, tab, now);
+  if (!where) return [];
 
-  const rows: OrderRecord[] = await Order.find!({
-    where: tabWhere(tab, now, since),
+  const stops = await OrderStop.find!({
+    where,
     sort: tab === "done" ? [{ completedAt: "DESC" }, { updatedAt: "DESC" }] : [{ orderedAt: "DESC" }, { createdAt: "DESC" }],
     limit,
   } as any);
 
-  return rows.filter((order) => keys.has(orderPlaceKey(order)));
+  const ids = [...new Set(stops.map((stop: any) => String(typeof stop.order === "object" ? stop.order.id : stop.order)))];
+  if (!ids.length) return [];
+
+  // `updatedAt` is epoch milliseconds (Waterline's autoUpdatedAt): the polling of the client asks
+  // for what moved, and the stops carry no such copy on purpose — one column, one owner.
+  const orderWhere: Record<string, unknown> = { id: { in: ids } };
+  if (typeof since === "number" && Number.isFinite(since)) orderWhere.updatedAt = { ">=": since };
+  const rows: OrderRecord[] = await Order.find!({ where: orderWhere } as any);
+
+  // The order of the stops is the order of the answer: `Order.find` with `in` gives its own.
+  const byId = new Map(rows.map((order) => [String(order.id), order]));
+  return ids.map((id) => byId.get(id)).filter((order): order is OrderRecord => Boolean(order));
 }
 
 /** How many orders each tab of these points holds — the numbers on the chips. */
 export async function countOrdersOfPlace(
   places: string | string[],
-  { limit = ORDERS_OF_PLACE_MAX, now = Date.now() }: Omit<OrdersOfPlaceQuery, "tab" | "since"> = {},
+  { now = Date.now() }: Omit<OrdersOfPlaceQuery, "tab" | "since" | "limit"> = {},
 ): Promise<Record<OrdersTab, number>> {
-  const [active, done] = await Promise.all([
-    ordersOfPlace(places, { tab: "active", limit, now }),
-    ordersOfPlace(places, { tab: "done", limit, now }),
-  ]);
-  return { active: active.length, done: done.length };
+  const counted = async (tab: OrdersTab) => {
+    const where = stopsWhere(places, tab, now);
+    if (!where) return 0;
+    // One stop per point, so an order routed over two kitchens of the same person counts twice —
+    // which is why the ids are counted and not the rows.
+    const stops = await OrderStop.find!({ where, limit: ORDERS_OF_PLACE_MAX } as any);
+    return new Set(stops.map((stop: any) => String(typeof stop.order === "object" ? stop.order.id : stop.order))).size;
+  };
+  const [active, done] = await Promise.all([counted("active"), counted("done")]);
+  return { active, done };
 }

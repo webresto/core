@@ -94,9 +94,15 @@ import { ORDER_KANBAN_TOKEN } from "../../order-kanban-rights";
 
 export const STOCK_MANAGER_TOKEN = "stock-manager";
 
-/** A group may have the token but no selected points; that grants the page, not stock data. */
-export function requireStockManagerAccess(req: any, res: any): boolean {
-  return requireToken(req, res, STOCK_MANAGER_TOKEN);
+/**
+ * A group may have the token but no selected points; that grants the page, not stock data.
+ *
+ * Asynchronous, and not `requireToken`: `stock-manager` is contextual, and the frozen synchronous
+ * `hasPermission` denies every token carrying a `check` — the whole web Stock Manager used to answer
+ * 403 to the very staff it is for, and worked only for an administrator.
+ */
+export async function requireStockManagerAccess(req: any, res: any): Promise<boolean> {
+  return requireContextualToken(req, res, STOCK_MANAGER_TOKEN);
 }
 
 export function getStockManagerPlaceRights(req: any): string[] | null {

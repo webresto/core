@@ -3,7 +3,7 @@ import { getStockManagerPlaceRights, requireStockManagerAccess } from "./access-
 export default async function GetStockPlacesController(req: any, res: any) {
   try {
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    if (!requireStockManagerAccess(req, res)) return;
+    if (!(await requireStockManagerAccess(req, res))) return;
 
     const rights = getStockManagerPlaceRights(req);
     const where: any = { isCookingPoint: true, enable: true };

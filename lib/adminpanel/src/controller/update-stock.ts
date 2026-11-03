@@ -1,6 +1,7 @@
 import { getDishPlaceBalanceMode, UNLIMITED_BALANCE } from "../../../menu/dish-place-balance";
 import { requireStockManagerAccess } from "./access-rights";
-import { requireStockPlaceAccess, toDishPlaceResponse } from "./stock-place-items";
+import { requireStockPlaceAccess } from "./stock-place-items";
+import { toDishPlaceResponse } from "../../../menu/stock-items";
 
 /**
  * Writes the operator stock of one product at one cooking point.
@@ -11,7 +12,7 @@ import { requireStockPlaceAccess, toDishPlaceResponse } from "./stock-place-item
 export default async function UpdateStockController(req: any, res: any) {
   const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   try {
-    if (!requireStockManagerAccess(req, res)) return;
+    if (!(await requireStockManagerAccess(req, res))) return;
     const placeId = await requireStockPlaceAccess(req, res);
     if (!placeId) return;
 

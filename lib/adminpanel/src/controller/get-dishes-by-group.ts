@@ -1,5 +1,6 @@
 import { requireStockManagerAccess } from "./access-rights";
-import { getStockProducts, requireStockPlaceAccess } from "./stock-place-items";
+import { requireStockPlaceAccess } from "./stock-place-items";
+import { getStockProducts } from "../../../menu/stock-items";
 
 export default async function GetDishesByGroupController(req: any, res: any) {
     const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
@@ -9,7 +10,7 @@ export default async function GetDishesByGroupController(req: any, res: any) {
         res.set('Expires', '0');
         res.set('Surrogate-Control', 'no-store');
 
-        if (!requireStockManagerAccess(req, res)) return;
+        if (!(await requireStockManagerAccess(req, res))) return;
         const placeId = await requireStockPlaceAccess(req, res);
         if (!placeId) return;
 

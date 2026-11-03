@@ -7,6 +7,7 @@ import AssignOrderKanbanKitchenController from "../../../../lib/adminpanel/src/c
 import { AccessRightsHelper } from "../../../../../../node_modules/adminizer/helpers/accessRightsHelper.js";
 import { checkOrderKanbanToken, NO_KITCHEN } from "../../../../lib/adminpanel/order-kanban-rights";
 import { countOrdersOfPlace, ordersOfPlace } from "../../../../lib/order/orders-of-place";
+import { syncOrderStops } from "../../../../lib/order/order-stops";
 import { transitionOrder } from "../../../../lib/order/transitionOrder";
 import { assignOrderKitchen } from "../../../../lib/order/assignKitchen";
 import { resetDatabase } from "../../support/reset";
@@ -67,9 +68,14 @@ describe("Order kanban by points", function () {
     });
   }
 
+  /**
+   * An order placed without going through `Order.order` — so its stops are written by hand, the way
+   * the real path writes them (plan C2): a point's board selects by them and by nothing else.
+   */
   async function placed(values: Record<string, unknown>): Promise<string> {
     const order = await Order.create!({}).fetch();
     await Order.update!({ id: order.id }, { ...values, state: "ORDER", orderedAt: Math.floor(Date.now() / 1000) }).fetch();
+    await syncOrderStops({ id: order.id as string });
     return order.id as string;
   }
 
@@ -97,6 +103,7 @@ describe("Order kanban by points", function () {
   it("never lists a basket", async function () {
     const basket = await Order.create!({}).fetch();
     await Order.update!({ id: basket.id }, { state: "CART", serviceType: "delivery", cookingPoints: [kitchen1] }).fetch();
+    await syncOrderStops({ id: basket.id as string });
 
     expect((await ordersOfPlace(kitchen1)).map((order) => order.id)).to.deep.equal([atKitchen1]);
     expect(await countOrdersOfPlace(kitchen1)).to.deep.equal({ active: 1, done: 0 });

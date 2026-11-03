@@ -39,6 +39,7 @@ import { coreI18n } from "../hook/bindLocales";
 import { or } from "ajv/dist/compile/codegen";
 import { ProductModifier } from "../lib/ProductModifier";
 import { getAllowedOrderTransitions } from "../lib/order/OrderStateFlow";
+import { syncOrderStops } from "../lib/order/order-stops";
 import { orderDateToInstant } from "../utils/zonedTime";
 import { NotificationService } from "../lib/notifications/NotificationService";
 
@@ -1421,6 +1422,10 @@ let Model = {
       // await Order.update({id: order.id}).fetch();
       await Order.update({ id: order.id }, data).fetch();
 
+      // The route is decided here, when the order stops being a basket: its stops are what every
+      // point's board selects by (plan C2).
+      await syncOrderStops({ id: String(order.id) });
+
       // The order is placed whatever the RMS answers below, so its stock is
       // spent now: an installation without an RMS, or with one that is down,
       // still sells what its kitchens have and no more.
@@ -2789,6 +2794,8 @@ let Model = {
     // Perform transition
     const updated = (await Order.update(query, patch).fetch())[0];
     if (updated) {
+      // The stops carry copies of the state and the times a board selects by (plan C2).
+      await syncOrderStops({ id: String(updated.id) });
       Order.emitAndLogDetached({id: updated.id}, "core:order-after-count", updated);
       if (nextState === "ON_THE_WAY") {
         // Typed customer notification (notifications pipeline); detached.

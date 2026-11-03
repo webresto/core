@@ -10,6 +10,7 @@ import { isTimezoneSupported, normalizeTimezone } from "../lib/timezone";
 import { registerCoreMcpTools } from "./mcp";
 import { registerAuthSetupCheckups } from "../lib/authSetupCheckups";
 import { isPrimaryWorker, workerIndex } from "../lib/cluster";
+import { backfillOrderStops } from "../lib/order/order-stops";
 import AuthService from "../lib/AuthService";
 import { CoreOtpAdapter, startDefaultDelivery } from "../adapters";
 import { addHoursSubject, startHoursSweep } from "../lib/hours-sweep";
@@ -187,6 +188,15 @@ export default async function () {
     if (!isPrimaryWorker()) {
       sails.log.info(`RestoCore > notification loops skipped on PM2 worker ${workerIndex()} (loops run only on worker 0)`);
     } else {
+      // The stops of orders placed before `order_stop` existed (plan C2): without them a point's
+      // board would open empty after the upgrade. Idempotent — only orders that have none.
+      try {
+        const written = await backfillOrderStops();
+        if (written) sails.log.info(`RestoCore > order stops written for ${written} order(s) that had none`);
+      } catch (e) {
+        sails.log.error("RestoCore > order stops backfill failed", e);
+      }
+
       // Notification delivery: retry pending + escalate unread sent
       const deliveryInterval = (await Settings.get("NOTIFICATION_DELIVERY_RETRY_INTERVAL_SECONDS")) ?? 60;
       const escalationInterval = (await Settings.get("NOTIFICATION_ESCALATION_INTERVAL_SECONDS")) ?? 60;

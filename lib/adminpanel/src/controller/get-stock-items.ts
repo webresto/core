@@ -1,5 +1,6 @@
 import { requireStockManagerAccess } from "./access-rights";
-import { getLimitedStockProducts, requireStockPlaceAccess } from "./stock-place-items";
+import { requireStockPlaceAccess } from "./stock-place-items";
+import { getLimitedStockProducts } from "../../../menu/stock-items";
 
 export default async function GetStockItemsController(req: any, res: any) {
   try {
@@ -8,7 +9,7 @@ export default async function GetStockItemsController(req: any, res: any) {
     res.set('Expires', '0');
     res.set('Surrogate-Control', 'no-store');
 
-    if (!requireStockManagerAccess(req, res)) return;
+    if (!(await requireStockManagerAccess(req, res))) return;
     const placeId = await requireStockPlaceAccess(req, res);
     if (!placeId) return;
 

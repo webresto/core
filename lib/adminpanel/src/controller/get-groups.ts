@@ -2,7 +2,7 @@ import { requireStockManagerAccess } from "./access-rights";
 import { requireStockPlaceAccess } from "./stock-place-items";
 
 export default async function GetGroupsController(req: any, res: any) {
-    if (!requireStockManagerAccess(req, res)) return;
+    if (!(await requireStockManagerAccess(req, res))) return;
     if (!(await requireStockPlaceAccess(req, res))) return;
     try {
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
