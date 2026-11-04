@@ -13,8 +13,8 @@
  * phrase itself comes back, which is what the MCP tools want.
  */
 
-import { SalesChannelRegistry } from "../SalesChannelRegistry";
-import { describeChannelProvider, ChannelProviderView } from "../SalesChannelProviders";
+import { SalesChannelRegistry, SalesChannelTypeDefinition } from "../SalesChannelRegistry";
+import { channelTypeTag, describeChannelProvider, ChannelProviderView, isProviderInstalled, isTypeAvailable } from "../SalesChannelProviders";
 import type { SalesChannelRecord } from "../../models/SalesChannel";
 import type { SalesChannelStatusResult } from "../../adapters";
 
@@ -60,6 +60,67 @@ export function channelProviderText(
   return providerModule ? `${providerModule} · ${t("Provider installed")}` : t("Provider installed");
 }
 
+/**
+ * The second line of `ProviderMissingNotice`: what to do about a provider that is not installed. Only
+ * there — a type that is "coming soon" has nothing to install, and one that did not load is a restart.
+ */
+export function channelProviderHint(
+  view: Pick<ChannelProviderView, "providerAlive" | "providerInstalled" | "typeComingSoon">,
+  t: Translate = identity,
+): string | null {
+  if (view.providerAlive || view.typeComingSoon || view.providerInstalled !== false) return null;
+  return t("Install the provider module to make this channel work.");
+}
+
+/**
+ * The state line of a type card: `TypeCard` and the messages of `TypeActions` on the admin page. A type
+ * that is "coming soon" has no line — the badge says it — and what does not load is said here at once.
+ */
+export function channelTypeStateText(
+  view: { available: boolean; installed: boolean; alive: boolean },
+  t: Translate = identity,
+): string | null {
+  if (!view.available) return null;
+  if (!view.installed) return t("Provider not installed");
+  if (!view.alive) return t("Provider did not load: restart the server to finish installing it");
+  return t("Provider installed");
+}
+
+/** A type of the catalog as a screen sees it, the same for the admin page and the mobile app. */
+export interface ChannelTypeView extends SalesChannelTypeDefinition {
+  /** Provider module present, not removed or disabled; unknown (no Module model) counts as installed. */
+  installed: boolean;
+  /** Its adapter is registered in this process, so channels of the type can be created. */
+  alive: boolean;
+  /** Not "Coming soon". */
+  available: boolean;
+  /** The marketplace tag to search providers of this type by. */
+  marketplaceTag: string;
+  stateText: string | null;
+}
+
+/** Without `canManage` the view carries neither the provider's module nor its settings page. */
+export function describeChannelType(
+  def: SalesChannelTypeDefinition,
+  options: { installed?: Set<string> | null; canManage?: boolean; t?: Translate } = {},
+): ChannelTypeView {
+  const canManage = options.canManage === true;
+  const flags = {
+    // Unknown (no Module model) counts as installed so a minimal install is not downgraded.
+    installed: isProviderInstalled(def.providerModule, options.installed ?? null) !== false,
+    alive: Boolean(SalesChannel.getAdapter(def.type)),
+    available: isTypeAvailable(def),
+  };
+  return {
+    ...def,
+    settingsUrl: canManage ? def.settingsUrl : null,
+    providerModule: canManage ? def.providerModule : null,
+    ...flags,
+    marketplaceTag: channelTypeTag(def.type),
+    stateText: channelTypeStateText(flags, options.t || identity),
+  };
+}
+
 /** "Все концепции" when the list is empty: an unbound channel writes every concept. */
 export function conceptsText(concepts: string[], t: Translate = identity): string {
   return concepts.length ? concepts.join(" · ") : t("All concepts");
@@ -102,6 +163,8 @@ export interface ChannelView {
   /** The words: the badge, and why the channel does or does not work. */
   statusText: string;
   providerText: string;
+  /** What to do about a provider that is not installed; null when there is nothing to do. */
+  providerHint: string | null;
   countries: string[];
   concepts: string[];
   platforms: string[];
@@ -194,6 +257,7 @@ export function describeChannel(channel: SalesChannelRecord | any, options: Chan
     statusMessage: provider.statusMessage ? t(provider.statusMessage) : null,
     statusText: channelStatusText(provider.status, t),
     providerText: channelProviderText(provider, providerModule, t),
+    providerHint: channelProviderHint(provider, t),
     countries,
     concepts,
     platforms,

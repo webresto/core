@@ -1,24 +1,11 @@
 import { getSalesChannelPermissions, hasAccess } from "./sales-channels-helpers";
 import { SalesChannelRegistry, SalesChannelTypeDefinition } from "../../../SalesChannelRegistry";
-import { channelTypeTag, getInstalledProviderAppIds, isProviderInstalled, isTypeAvailable } from "../../../SalesChannelProviders";
+import { getInstalledProviderAppIds } from "../../../SalesChannelProviders";
+import { describeChannelType } from "../../../sales-channels/view";
 
-/**
- * A type definition as the admin UI sees it: `installed` (provider module present, not
- * removed or disabled), `alive` (its adapter is registered, so channels can be created),
- * `available` (not "Coming soon") and the marketplace tag to search providers by.
- */
+/** A type definition as the admin UI sees it: the one view of a type, `lib/sales-channels/view.ts`. */
 export function mapChannelType(def: SalesChannelTypeDefinition, installed: Set<string> | null, canManage: boolean) {
-  const providerInstalled = isProviderInstalled(def.providerModule, installed);
-  return {
-    ...def,
-    settingsUrl: canManage ? def.settingsUrl : null,
-    providerModule: canManage ? def.providerModule : null,
-    // Unknown (no Module model) counts as installed so a minimal install is not downgraded.
-    installed: providerInstalled !== false,
-    alive: Boolean(SalesChannel.getAdapter(def.type)),
-    available: isTypeAvailable(def),
-    marketplaceTag: channelTypeTag(def.type),
-  };
+  return describeChannelType(def, { installed, canManage });
 }
 
 /**
