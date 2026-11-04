@@ -21,10 +21,18 @@ declare let attributes: {
     isJoint: boolean;
     productCategoryPromotions: any;
     /**
-     * Whether the promotion applies by itself, to the baskets it targets. A promo code ignores it: switched off, the
-     * promotion applies only through its codes. On creation - `PROMOTION_ENABLE_BY_DEFAULT`.
+     * "Works": whether the promotion applies at all. Switched off, it applies nowhere - neither by itself nor through
+     * a promo code (C22, `marketing.plan.md`). On creation - `PROMOTION_ENABLE_BY_DEFAULT`.
+     *
+     * It used to mean "applies by itself", and a code applied a switched-off promotion all the same. That is what
+     * `onlyByCode` means now; the migration of C22 moved the records that relied on the old meaning.
      */
     enable: boolean;
+    /**
+     * "Only by promo code": the promotion applies through its codes and never by itself, and the storefront does not
+     * show it on a dish or a group (it is out of `promotionRAM`, which is what `getAllByConcept` answers from).
+     */
+    onlyByCode: boolean;
     promotionCode: PromotionCodeRecord[] | string[];
     /** No active class in Discount Adapter */
     isDeleted: boolean;
@@ -48,6 +56,7 @@ declare let Model: {
      * Returns the error message, or null when the gift config is fine.
      */
     validateGift(configDiscount: IconfigDiscount): Promise<string | null>;
+    /** The promotions that apply by themselves for these concepts: `promotionRAM`, which "only by code" is out of. */
     getAllByConcept(concept: string[]): PromotionRecord[];
 };
 declare global {

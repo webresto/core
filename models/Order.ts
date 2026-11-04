@@ -22,6 +22,7 @@ import { isValue } from "../utils/isValue";
 import { PaymentMethodRecord } from "./PaymentMethod";
 import { OrderDishRecord } from "./OrderDish";
 import { PromotionCodeRecord } from "./PromotionCode";
+import { promotionCodeGives } from "../lib/promotion-code";
 import { PlaceRecord } from "./Place";
 import { DishRecord } from "./Dish";
 import { placeIsOpen, primaryCookingPoint, toPlaceId } from "../lib/menu/cooking-place";
@@ -2633,14 +2634,18 @@ let Model = {
       const validPromotionCode = await PromotionCode.getValidPromotionCode(normalizedPromotionCodeString);
       const isValidTill = "2099-01-01T00:00:00.000Z" // TODO: recursive check Codes and Promotions
 
-      if (validPromotionCode) {
-        let description = validPromotionCode.description;
+      // A code switches on the promotions it is linked to and does nothing by itself: one of nothing but
+      // switched-off promotions (or of none at all) is refused here, at the apply, instead of sitting on the
+      // order and discounting nothing (C22, `marketing.plan.md`). The cash desk and the storefront then say
+      // "the code did not fit", which they can already do.
+      const givesSomething = validPromotionCode ? promotionCodeGives(validPromotionCode) : false;
+      if (validPromotionCode && !givesSomething) {
+        await Order.log({ id: order.id }, "warn", "core", `Promotion code [${normalizedPromotionCodeString}] has no promotion that works`, { promotionCodeId: validPromotionCode.id });
+        sails.log.debug(`Every promotion of ${normalizedPromotionCodeString} is switched off, order: [${order.id}]`);
+      }
 
-        if (!validPromotionCode.promotion) {
-          sails.log.error(`No valid promotions for ${normalizedPromotionCodeString}`);
-          description += " [Error: No valid promotions]";
-          await Order.log({ id: order.id }, "warn", "core", `Promotion code [${normalizedPromotionCodeString}] has no valid promotions`, { promotionCodeId: validPromotionCode.id });
-        }
+      if (validPromotionCode && givesSomething) {
+        let description = validPromotionCode.description;
 
         updateData = {
           promotionCode: validPromotionCode.id,

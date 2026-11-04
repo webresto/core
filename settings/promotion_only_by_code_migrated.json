@@ -1,0 +1,8 @@
+{
+  "key": "PROMOTION_ONLY_BY_CODE_MIGRATED",
+  "type": "boolean",
+  "name": "Promotion onlyByCode migration done",
+  "description": "Set by core after the one-off move of C22: promotions that were switched off and linked to a promo code became `enable: true, onlyByCode: true`. Clearing it makes that move run again at the next boot.",
+  "defaultValue": false,
+  "isRequired": false
+}

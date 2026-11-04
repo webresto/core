@@ -16,7 +16,8 @@ Promotion model has this props:
 - `isMarkup`: Boolean
 - `isPublic`: Boolean, Show if promotion is available by API for customer
 - `isJoint`: Boolean, Show if promotion is available to use it together with other promotions, first use isJoint = false promotions(once) if there are no false promotions then use isJoint=true. The applied promo code's promotions go first: an exclusive one of them takes the basket alone, joint ones go with the joint automatic promotions, and an exclusive automatic one gives way to them
-- `enable`: Boolean, Whether the promotion applies by itself; switched off, it applies only through its promo codes
+- `enable`: Boolean, "Works": whether the promotion applies at all. Switched off, it applies nowhere — by itself or through a promo code (C22 of `marketing.plan.md`)
+- `onlyByCode`: Boolean, "Only by promo code": the promotion does not apply by itself and is not shown on the storefront; its promo codes still apply it
 - `isDeleted`: Boolean, No active class in Promotion Adapter
 - `productCategoryPromotions`: json, 
 - `hash`: String, hashsum of promotion to check if promotion is already created
@@ -46,7 +47,7 @@ During the passage of the Chekout, promotions will be relying.
 
 **Promotions in the interface**
 A dish carries the promotion the basket would apply to a line of it (`PromotionAdapter.displayDish`): `salePrice` — the price of one after the discount (a flat amount off, never below zero, or the percentage of the price), `discountAmount` and `discountType` as configured. GraphQL reads them on every `Dish` and names the type `FIXED` or `PERCENT`.
-The promotion is picked by the basket's rule — one that is not joint takes the line alone, otherwise the joint ones go by `sortOrder` and the first takes it — and it is shown only when it is `isPublic: true`; otherwise, and with no promotion at all, the three fields are `null`. Worktime, enable, concept, the chosen products and groups (`*` — any) and exclusions are respected. A promotion that chooses no product and no group is the whole receipt's, applied by a promotion code, and is never shown on a dish.
+The promotion is picked by the basket's rule — one that is not joint takes the line alone, otherwise the joint ones go by `sortOrder` and the first takes it — and it is shown only when it is `isPublic: true`; otherwise, and with no promotion at all, the three fields are `null`. Worktime, both switches (`enable`, and `onlyByCode`, which keeps a promotion out of the storefront), concept, the chosen products and groups (`*` — any) and exclusions are respected. A promotion that chooses no product and no group is the whole receipt's, applied by a promotion code, and is never shown on a dish.
 
 > ⚠️  You can use this mechanism to display the user's personal promotions, as he transfers the user when calculating the promotion
 

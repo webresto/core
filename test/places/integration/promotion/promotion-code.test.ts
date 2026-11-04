@@ -9,8 +9,11 @@ import { add, CUSTOMER, newBasket, pickUpAt, thrown, updateOrder } from "../../s
  * applies to nothing by itself and to the whole receipt through its code. The
  * code is read case-insensitively and rechecked at every recount, so a code the
  * operator switches off leaves baskets that already had it. Applying or removing
- * a code sends the basket back to CART. A code's promotions go first, and apply
- * whether they are switched on or off.
+ * a code sends the basket back to CART. A code's promotions go first.
+ *
+ * A promotion has two switches since C22 (`marketing.plan.md`): `enable` is "works at all" - off, it applies
+ * nowhere, and a code of nothing but such promotions is refused at the apply - and `onlyByCode` is "does not apply
+ * by itself", which is what a promotion meant for a code alone is marked with.
  *
  *   Group 1: Dish 1 at 10.1, Dish 2 at 15.2. The basket: five and four — 111.3.
  *   Code CODE1 → Promotion 1, 1.45 off the receipt.
@@ -265,9 +268,9 @@ describe("Promotion codes", function () {
     });
 
     it("takes the lines first", async function () {
-      // Promotion 2 joint now, and the code's 10% off each Dish 1 - switched off, so only through the code
+      // Promotion 2 joint now, and the code's 10% off each Dish 1 - "only by code", so only through the code
       await automatic("promotion-2", dish1, true);
-      await change({ enable: false, configDiscount: { discountType: "percentage", discountAmount: 10, dishes: [dish1], groups: ["*"], excludeModifiers: true } });
+      await change({ onlyByCode: true, configDiscount: { discountType: "percentage", discountAmount: 10, dishes: [dish1], groups: ["*"], excludeModifiers: true } });
       const id = await basket();
       expect(await discount(id)).to.equal(9);
 
@@ -277,10 +280,11 @@ describe("Promotion codes", function () {
     });
   });
 
-  describe("its promotion switched off", function () {
+  /** The promotion is marked "only by promo code": it applies through the code and nowhere else (C22). */
+  describe("its promotion only by code", function () {
     beforeEach(async function () {
       // 10% off each Dish 1
-      await change({ enable: false, configDiscount: { discountType: "percentage", discountAmount: 10, dishes: [dish1], groups: ["*"], excludeModifiers: true } });
+      await change({ onlyByCode: true, configDiscount: { discountType: "percentage", discountAmount: 10, dishes: [dish1], groups: ["*"], excludeModifiers: true } });
     });
 
     it("applies only through the code, to what it chooses", async function () {
@@ -291,9 +295,51 @@ describe("Promotion codes", function () {
       expect((await line(id, dish2)).discountTotal).to.equal(0);
     });
 
+    it("is not shown on the product either: the menu is what applies by itself", async function () {
+      await change({ isPublic: true });
+      const dish = Adapter.getPromotionAdapter().displayDish({ ...(await Dish.findOne({ id: dish1 })) });
+      expect({ salePrice: dish.salePrice, discountType: dish.discountType }).to.deep.equal({ salePrice: null, discountType: null });
+    });
+
     it("deleted, gives nothing through the code", async function () {
       await change({ isDeleted: true });
       expect((await apply(await basket(), "CODE1")).discountTotal).to.equal(0);
+    });
+  });
+
+  /**
+   * The promotion is switched off: it applies nowhere, the code included - the owner's decision of C22. The code
+   * that has nothing else is refused at the apply, so the cash desk and the storefront say "the code did not fit"
+   * instead of taking a code that discounts nothing.
+   */
+  describe("its promotion switched off", function () {
+    beforeEach(async function () {
+      // 10% off each Dish 1
+      await change({ enable: false, configDiscount: { discountType: "percentage", discountAmount: 10, dishes: [dish1], groups: ["*"], excludeModifiers: true } });
+    });
+
+    it("applies neither by itself nor by the code, and the code is refused", async function () {
+      const id = await basket();
+      expect(await discount(id)).to.equal(0);
+
+      const order = await apply(id, "CODE1");
+      expect(order).to.include({ promotionCode: null, promotionCodeString: "CODE1", discountTotal: 0 });
+      expect(order.promotionCodeDescription).to.equal("Promocode expired or not valid");
+      expect((await line(id, dish1)).discountTotal).to.equal(0);
+    });
+
+    it("of two promotions of the code, the working one applies and the order says the other is off", async function () {
+      await Promotion.createOrUpdate({
+        id: "promotion-2", name: "Promotion 2", badge: "badge-1", description: "Description 2", externalId: "promotion-2",
+        isJoint: true, isPublic: false, createdByUser: true, concept: ["origin"],
+        configDiscount: { discountType: "flat", discountAmount: 1, dishes: [dish2], groups: ["*"], excludeModifiers: true },
+      } as any);
+      await Promotion.update({ id: "promotion-2" }, { enable: true, onlyByCode: true, sortOrder: 0 }).fetch();
+      await PromotionCode.addToCollection("code-1", "promotion", "promotion-2");
+
+      const order = await apply(await basket(), "CODE1");
+      expect(order).to.include({ promotionCode: "code-1", discountTotal: 4 });
+      expect(entry(order, "promocode-promotion-disabled")).to.deep.include({ state: { promotionId: "promotion-1" }, byCode: true });
     });
   });
 

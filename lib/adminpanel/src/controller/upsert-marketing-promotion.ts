@@ -10,7 +10,7 @@ function stringArray(value: any): string[] {
 
 /**
  * POST …/core/marketing/promotion   (upsert — configured promotions only)
- * Body: { id?, name, description, concept[], isJoint, isPublic, enable, sortOrder, worktime,
+ * Body: { id?, name, description, concept[], isJoint, isPublic, enable, onlyByCode, sortOrder, worktime,
  *         configDiscount: { discountType, discountAmount, dishes[], groups[], serviceType[],
  *                           excludeModifiers, exclude: { dishes[], groups[] } } }
  *
@@ -92,11 +92,12 @@ export default async function UpsertMarketingPromotionController(req: any, res: 
 
     const saved = await Promotion.createOrUpdate(values);
 
-    // enable / sortOrder / worktime are stripped by createOrUpdate — persist them explicitly.
+    // enable / onlyByCode / sortOrder / worktime are stripped by createOrUpdate — persist them explicitly.
     const enable = body.enable !== false;
+    const onlyByCode = body.onlyByCode === true;
     const sortOrder = toNumber(body.sortOrder);
     const worktime = body.worktime ?? null;
-    await Promotion.update({ id: saved.id }, { enable, sortOrder, worktime, isDeleted: false }).fetch();
+    await Promotion.update({ id: saved.id }, { enable, onlyByCode, sortOrder, worktime, isDeleted: false }).fetch();
 
     const fresh = await Promotion.findOne({ id: saved.id });
     let activeIds: Set<string> | undefined;

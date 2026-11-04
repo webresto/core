@@ -11,6 +11,7 @@ import { registerCoreMcpTools } from "./mcp";
 import { registerAuthSetupCheckups } from "../lib/authSetupCheckups";
 import { isPrimaryWorker, workerIndex } from "../lib/cluster";
 import { backfillOrderStops } from "../lib/order/order-stops";
+import { migrateOnlyByCode } from "../lib/marketing/only-by-code";
 import AuthService from "../lib/AuthService";
 import { CoreOtpAdapter, startDefaultDelivery } from "../adapters";
 import { addHoursSubject, startHoursSweep } from "../lib/hours-sweep";
@@ -195,6 +196,21 @@ export default async function () {
         if (written) sails.log.info(`RestoCore > order stops written for ${written} order(s) that had none`);
       } catch (e) {
         sails.log.error("RestoCore > order stops backfill failed", e);
+      }
+
+      // The two switches of a promotion (C22): the promotions that were off and worked through their codes are
+      // marked "only by code" and switched on, which is the behaviour they had. Once, remembered in the settings.
+      try {
+        const moved = await migrateOnlyByCode();
+        if (moved.ran) {
+          sails.log.info(
+            `RestoCore > promotions: ${moved.movedToOnlyByCode} of them are "only by promo code" now, ` +
+              `${moved.leftOff} switched-off one(s) with no code left alone` +
+              (moved.names.length ? `: ${moved.names.join(", ")}` : ""),
+          );
+        }
+      } catch (e) {
+        sails.log.error("RestoCore > promotions: the onlyByCode migration failed", e);
       }
 
       // Notification delivery: retry pending + escalate unread sent

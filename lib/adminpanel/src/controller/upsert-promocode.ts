@@ -1,5 +1,6 @@
 import { hasAccess } from "./marketing-helpers";
 import { mapPromotionCode } from "./get-promocodes";
+import { promotionCodeTaken } from "../../../marketing/promotion-codes";
 
 const ALLOWED_TYPES = ["static"];
 
@@ -8,8 +9,8 @@ const ALLOWED_TYPES = ["static"];
  * Body: { id?, code, description (required), type, enable, startDate, stopDate, workTime,
  *         externalId, prefix, generateConfig, customData, promotionIds: string[] }
  *
- * Enforces code uniqueness here (the model leaves `code` non-unique + nullable, and
- * getValidPromotionCode picks a single match — duplicates would be ambiguous).
+ * Code uniqueness is enforced by `promotionCodeTaken` of core (the model leaves `code` non-unique + nullable,
+ * and getValidPromotionCode picks a single match — duplicates would be ambiguous).
  */
 export default async function UpsertPromoCodeController(req: any, res: any) {
   const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
@@ -25,12 +26,10 @@ export default async function UpsertPromoCodeController(req: any, res: any) {
     const type = ALLOWED_TYPES.includes(String(body.type || "").trim()) ? String(body.type).trim() : "static";
     const code = body.code === null || body.code === undefined ? null : String(body.code).trim().toUpperCase() || null;
 
-    // Uniqueness guard: a code must be free, or already belong to the record being saved.
-    if (code) {
-      const existing = await PromotionCode.findOne({ code });
-      if (existing && existing.id !== id) {
-        return res.status(409).json({ error: t("This promo code is already in use"), field: "code" });
-      }
+    // Uniqueness guard: a code must be free, or already belong to the record being saved. The check is core's
+    // (plan C19), so creating a code from a phone refuses exactly as this does.
+    if (await promotionCodeTaken(code, id)) {
+      return res.status(409).json({ error: t("This promo code is already in use"), field: "code" });
     }
 
     const promotionIds: string[] = Array.isArray(body.promotionIds)

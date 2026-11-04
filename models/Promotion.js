@@ -15,13 +15,23 @@ const uuid_1 = require("uuid");
 //   }, CHECK_INTERVAL);
 // });
 let promotionRAM = [];
+/**
+ * The promotions that apply by themselves: switched on, and not marked "only by promo code" (C22).
+ *
+ * `onlyByCode` is read as `!= true` and not as `false`: the column is added by a migration and a record written
+ * before it has no value, which is "applies by itself" - the behaviour it had.
+ */
+async function automaticPromotions() {
+    return Promotion.find({ enable: true, onlyByCode: { "!=": true }, isDeleted: false });
+}
 sails.on("lifted", async () => {
-    // switched off ones too: they still apply through their codes
+    // Switched off ones too: the adapter keeps a handler for every configured promotion, and whether it applies is
+    // asked of the handler later (`codePromotions`, `getAllByConcept`).
     let promotions = await Promotion.find({ createdByUser: true, isDeleted: false });
     for (let i = 0; i < promotions.length; i++) {
         adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(promotions[i]);
     }
-    promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
+    promotionRAM = await automaticPromotions();
 });
 let attributes = {
     id: {
@@ -76,11 +86,22 @@ let attributes = {
     },
     productCategoryPromotions: "json",
     /**
-     * Whether the promotion applies by itself, to the baskets it targets. A promo code ignores it: switched off, the
-     * promotion applies only through its codes. On creation - `PROMOTION_ENABLE_BY_DEFAULT`.
+     * "Works": whether the promotion applies at all. Switched off, it applies nowhere - neither by itself nor through
+     * a promo code (C22, `marketing.plan.md`). On creation - `PROMOTION_ENABLE_BY_DEFAULT`.
+     *
+     * It used to mean "applies by itself", and a code applied a switched-off promotion all the same. That is what
+     * `onlyByCode` means now; the migration of C22 moved the records that relied on the old meaning.
      */
     enable: {
         type: "boolean"
+    },
+    /**
+     * "Only by promo code": the promotion applies through its codes and never by itself, and the storefront does not
+     * show it on a dish or a group (it is out of `promotionRAM`, which is what `getAllByConcept` answers from).
+     */
+    onlyByCode: {
+        type: "boolean",
+        defaultsTo: false,
     },
     promotionCode: {
         collection: "promotioncode",
@@ -103,7 +124,7 @@ let Model = {
             // call recreation of discountHandler
             adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
-        promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
+        promotionRAM = await automaticPromotions();
         emitter.emit("core:promotion-changed", record);
         cb();
     },
@@ -112,14 +133,14 @@ let Model = {
             // call recreation of discountHandler
             adapters_1.Adapter.getPromotionAdapter().recreateConfiguredPromotionHandler(record);
         }
-        promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
+        promotionRAM = await automaticPromotions();
         emitter.emit("core:promotion-changed", record);
         cb();
     },
     async afterDestroy(record, cb) {
         // delete promotion in adapter
         adapters_1.Adapter.getPromotionAdapter().deletePromotion(record.id);
-        promotionRAM = await Promotion.find({ enable: true, isDeleted: false });
+        promotionRAM = await automaticPromotions();
         emitter.emit("core:promotion-changed", record);
         cb();
     },
@@ -139,17 +160,21 @@ let Model = {
         let sortOrder = values.sortOrder;
         let isDeleted = values.isDeleted;
         let enable = values.enable;
+        let onlyByCode = values.onlyByCode;
         let worktime = values.worktime;
         // Deleting user space variables
         try {
             delete (values.sortOrder);
             delete (values.isDeleted);
             delete (values.enable);
+            delete (values.onlyByCode);
             delete (values.worktime);
             let hash = (0, hashCode_1.default)(JSON.stringify(values));
-            const promotion = await Promotion.findOne({ id: values.id });
+            // Only an id is looked up: `findOne({ id: undefined })` matches every row, so a promotion created without
+            // one silently updated some other promotion - or threw "More than one matching record" once there were two.
+            const promotion = values.id ? await Promotion.findOne({ id: values.id }) : null;
             if (!promotion)
-                return Promotion.create({ hash, ...values, sortOrder, isDeleted, enable, worktime }).fetch();
+                return Promotion.create({ hash, ...values, sortOrder, isDeleted, enable, onlyByCode, worktime }).fetch();
             if (hash === promotion.hash) {
                 return promotion;
             }
@@ -181,6 +206,7 @@ let Model = {
         }
         return null;
     },
+    /** The promotions that apply by themselves for these concepts: `promotionRAM`, which "only by code" is out of. */
     getAllByConcept(concept) {
         if (typeof concept === "string")
             concept = [concept];

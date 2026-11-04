@@ -217,7 +217,7 @@ function GiftDishPicker({ t, value, onChange, names, setNames }) {
 // ─────────────────────────────── configured promotion form ───────────────────────────────
 function emptyDraft() {
   return {
-    id: '', name: '', description: '', concept: [], enable: true, sortOrder: 0,
+    id: '', name: '', description: '', concept: [], enable: true, onlyByCode: false, sortOrder: 0,
     isJoint: false, isPublic: false, worktime: null,
     scope: 'all', discountType: 'percentage', discountAmount: 0,
     groups: [], dishes: [], excludeGroups: [], excludeDishes: [],
@@ -234,7 +234,7 @@ function fromRecord(r) {
   const gift = cd.gift && Array.isArray(cd.gift.dishes) ? cd.gift : null;
   return {
     id: r.id, name: r.name || '', description: r.description || '', concept: r.concept || [],
-    enable: r.enable !== false, sortOrder: r.sortOrder || 0,
+    enable: r.enable !== false, onlyByCode: r.onlyByCode === true, sortOrder: r.sortOrder || 0,
     isJoint: Boolean(r.isJoint), isPublic: Boolean(r.isPublic), worktime: r.worktime ?? null,
     scope: (groups.length || dishes.length) ? 'selected' : 'all',
     discountType: cd.discountType === 'flat' ? 'flat' : 'percentage',
@@ -333,8 +333,12 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
         </div>
         <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px,100%),1fr))' }}>
           <div style={{ ...styles.field, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div><Label style={styles.fieldLabel}>{t('Enabled')}</Label><div style={styles.help}>{t('Applies by itself. Off — only through its promo codes.')}</div></div>
+            <div><Label style={styles.fieldLabel}>{t('Works')}</Label><div style={styles.help}>{t('Off — the promotion applies nowhere, its promo codes included.')}</div></div>
             <Switch checked={Boolean(draft.enable)} onCheckedChange={(v) => setField('enable', v === true)} />
+          </div>
+          <div style={{ ...styles.field, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div><Label style={styles.fieldLabel}>{t('Only by promo code')}</Label><div style={styles.help}>{t('It does not apply by itself and is not shown on the storefront; its promo codes still apply it.')}</div></div>
+            <Switch checked={Boolean(draft.onlyByCode)} onCheckedChange={(v) => setField('onlyByCode', v === true)} disabled={!draft.enable} />
           </div>
           <div style={styles.field}>
             <Label style={styles.fieldLabel}>{t('Priority (sort order)')}</Label>
@@ -342,6 +346,11 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
             <span style={styles.help}>{t('Lower applies earlier.')}</span>
           </div>
         </div>
+        {!draft.enable && (
+          <div style={{ ...styles.help, padding: '10px 12px', borderRadius: 10, background: 'var(--muted)' }}>
+            {t('Switched off: the promotion applies nowhere. A promo code linked to it will not work either — that is what “Only by promo code” is for.')}
+          </div>
+        )}
       </section>
 
       {/* Discount */}
@@ -499,12 +508,16 @@ function ProgrammedDetail({ t, language, item, onToggle, savingToggle, isMobile,
             <Badge variant="outline">{t('Programmed')}</Badge>
             {item.badge && <Badge variant="outline">{item.badge}</Badge>}
           </div>
-          <Switch checked={item.enable} onCheckedChange={(v) => onToggle(item.id, v === true)} disabled={savingToggle} />
+          <Switch checked={item.enable} onCheckedChange={(v) => onToggle(item.id, { enable: v === true })} disabled={savingToggle} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={styles.help}>{t('Only by promo code')}</span>
+          <Switch checked={Boolean(item.onlyByCode)} onCheckedChange={(v) => onToggle(item.id, { onlyByCode: v === true })} disabled={savingToggle || !item.enable} />
         </div>
       </div>
 
       <div style={{ ...styles.help, padding: '10px 12px', borderRadius: 10, background: 'var(--muted)' }}>
-        {t('This promotion is defined in code/a module. Its discount parameters cannot be changed here — only enable and priority.')}
+        {t('This promotion is defined in code/a module. Its discount parameters cannot be changed here — only its switches and priority.')}
       </div>
 
       <section style={styles.subsection}>
@@ -524,7 +537,7 @@ function ProgrammedDetail({ t, language, item, onToggle, savingToggle, isMobile,
         <h3 style={styles.subsectionTitle}>{t('Priority (sort order)')}</h3>
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
           <Input type="number" step="1" value={sortOrder} onChange={(e) => setSortOrder(e.target.value === '' ? 0 : Number(e.target.value))} style={{ maxWidth: 160 }} />
-          <Button type="button" variant="outline" disabled={savingToggle || sortOrder === (item.sortOrder || 0)} onClick={() => onToggle(item.id, item.enable, sortOrder)}>{t('Save')}</Button>
+          <Button type="button" variant="outline" disabled={savingToggle || sortOrder === (item.sortOrder || 0)} onClick={() => onToggle(item.id, { enable: item.enable }, sortOrder)}>{t('Save')}</Button>
         </div>
         <span style={styles.help}>{t('Lower applies earlier.')}</span>
       </section>
@@ -540,12 +553,14 @@ function PromotionCard({ t, language, item, active, onOpen, onToggle, savingTogg
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
         <strong style={{ fontSize: 14 }}>{item.name}</strong>
         <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex' }}>
-          <Switch checked={item.enable} onCheckedChange={(v) => onToggle(item.id, v === true)} disabled={savingToggle} />
+          <Switch checked={item.enable} onCheckedChange={(v) => onToggle(item.id, { enable: v === true })} disabled={savingToggle} />
         </span>
       </div>
       <div style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>{discountText(item.discount, t, language)}</div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <Badge variant={item.createdByUser ? 'secondary' : 'outline'}>{item.createdByUser ? t('Configured') : t('Programmed')}</Badge>
+        {!item.enable && <Badge variant="destructive">{t('Switched off')}</Badge>}
+        {item.enable && item.onlyByCode && <Badge variant="outline">{t('Only by promo code')}</Badge>}
         {item.isJoint ? <Badge variant="outline">{t('Stacks')}</Badge> : <Badge variant="outline">{t('Exclusive')}</Badge>}
         {item.isPublic && <Badge variant="outline">{t('Storefront')}</Badge>}
         {item.discount?.hasGift && <Badge variant="secondary">🎁 {t('Gift')}</Badge>}
@@ -593,7 +608,8 @@ function PromotionsManagerContent() {
     const params = new URLSearchParams();
     if (search.trim()) params.set('q', search.trim());
     if (kind !== 'all') params.set('kind', kind);
-    if (enableFilter !== 'all') params.set('enable', enableFilter);
+    if (enableFilter === 'code-only') params.set('onlyByCode', 'true');
+    else if (enableFilter !== 'all') params.set('enable', enableFilter);
     const res = await api(`/core/marketing/promotions?${params.toString()}`);
     if (res.ok) setItems(res.payload?.results || []);
     setLoading(false);
@@ -684,7 +700,7 @@ function PromotionsManagerContent() {
     const body = {
       id: draft.id || undefined, name: draft.name, description: draft.description,
       concept: draft.concept, isJoint: draft.isJoint, isPublic: draft.isPublic,
-      enable: draft.enable, sortOrder: draft.sortOrder, worktime: draft.worktime ?? null,
+      enable: draft.enable, onlyByCode: draft.onlyByCode, sortOrder: draft.sortOrder, worktime: draft.worktime ?? null,
       configDiscount: buildConfigDiscount(draft),
     };
     const res = await api('/core/marketing/promotion', { method: 'POST', body: JSON.stringify(body) });
@@ -707,9 +723,10 @@ function PromotionsManagerContent() {
     setHash('list');
   };
 
-  const onToggle = async (id, enable, sortOrder) => {
+  // `patch` is what changed: { enable } or { onlyByCode } — the two switches of a promotion (C22).
+  const onToggle = async (id, patch, sortOrder) => {
     setSavingToggle(true);
-    const body = { id, enable };
+    const body = { id, ...patch };
     if (sortOrder !== undefined) body.sortOrder = sortOrder;
     const res = await api('/core/marketing/promotion-toggle', { method: 'POST', body: JSON.stringify(body) });
     setSavingToggle(false);
@@ -755,8 +772,9 @@ function PromotionsManagerContent() {
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('All statuses')}</SelectItem>
-              <SelectItem value="on">{t('Enabled')}</SelectItem>
-              <SelectItem value="off">{t('Disabled')}</SelectItem>
+              <SelectItem value="on">{t('Works')}</SelectItem>
+              <SelectItem value="code-only">{t('Only by promo code')}</SelectItem>
+              <SelectItem value="off">{t('Switched off')}</SelectItem>
             </SelectContent>
           </Select>
 

@@ -886,5 +886,14 @@
   "Invalid point": "Invalid point",
   "This order is collected at the point the customer chose": "This order is collected at the point the customer chose",
   "The order already has a kitchen": "The order already has a kitchen",
-  "Orders no kitchen has been resolved for": "Orders no kitchen has been resolved for"
+  "Orders no kitchen has been resolved for": "Orders no kitchen has been resolved for",
+  "Works": "Works",
+  "Only by promo code": "Only by promo code",
+  "Switched off": "Switched off",
+  "Off — the promotion applies nowhere, its promo codes included.": "Off — the promotion applies nowhere, its promo codes included.",
+  "It does not apply by itself and is not shown on the storefront; its promo codes still apply it.": "It does not apply by itself and is not shown on the storefront; its promo codes still apply it.",
+  "Switched off: the promotion applies nowhere. A promo code linked to it will not work either — that is what “Only by promo code” is for.": "Switched off: the promotion applies nowhere. A promo code linked to it will not work either — that is what “Only by promo code” is for.",
+  "This promotion is defined in code/a module. Its discount parameters cannot be changed here — only its switches and priority.": "This promotion is defined in code/a module. Its discount parameters cannot be changed here — only its switches and priority.",
+  "Gives nothing: every promotion is switched off": "Gives nothing: every promotion is switched off",
+  "Every promotion of this code is switched off — the code will not work. Switch the promotion on and mark it “Only by promo code”.": "Every promotion of this code is switched off — the code will not work. Switch the promotion on and mark it “Only by promo code”."
 }

@@ -419,8 +419,14 @@ function CodeEditor({ t, language, draft, setDraft, baseline, promotions, saving
                 <Badge variant={p.createdByUser ? 'secondary' : 'outline'}>{p.createdByUser ? t('Configured') : t('Programmed')}</Badge>
                 <strong>{p.name}</strong>
                 <span style={{ color: 'var(--muted-foreground)' }}>{discountText(p.discount, t, language)}</span>
+                {p.enable === false && <Badge variant="destructive">{t('Switched off')}</Badge>}
               </div>
             ))}
+            {selectedPromotions.every((p) => p.enable === false) && (
+              <span style={{ ...styles.help, color: 'var(--destructive)' }}>
+                {t('Every promotion of this code is switched off — the code will not work. Switch the promotion on and mark it “Only by promo code”.')}
+              </span>
+            )}
           </div>
         )}
         <a href={`${getBaseAdminPath()}/promotions-manager#new`} style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 13 }}>{t('Create a promotion')} →</a>
@@ -672,8 +678,11 @@ function CodesSection({ t, language, codeId, creating }) {
                 <span style={{ ...styles.help, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.description || '—'}</span>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {c.promotion.length === 0 ? <Badge variant="outline">{t('No promotions')}</Badge>
-                    : c.promotion.slice(0, 3).map((p) => <Badge key={p.id} variant="secondary">{p.name}</Badge>)}
+                    : c.promotion.slice(0, 3).map((p) => <Badge key={p.id} variant={p.enable === false ? 'outline' : 'secondary'}>{p.name}{p.enable === false ? ' ⨯' : ''}</Badge>)}
                   {c.promotion.length > 3 && <Badge variant="outline">+{c.promotion.length - 3}</Badge>}
+                  {c.promotion.length > 0 && c.givesSomething === false && (
+                    <Badge variant="destructive">{t('Gives nothing: every promotion is switched off')}</Badge>
+                  )}
                 </div>
               </button>
             );

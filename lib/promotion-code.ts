@@ -55,17 +55,40 @@ export function promotionCodeWorks(code: PromotionCodeTerms, now: Date = new Dat
 /**
  * `PromotionState.type` of the entries about the order's code, each `byCode: true`. A promotion of the code that gives
  * nothing now, and why: below its minimum basket - `{ promotionId, minBasketTotal, basketTotal }`; not for the way the
- * order is received - `{ promotionId, serviceTypes }`; out of the promotion's hours - `{ promotionId }`. And the
- * promotions that would apply without the code and do not with it - `{ promotions: [{ id, name, description }] }`.
+ * order is received - `{ promotionId, serviceTypes }`; out of the promotion's hours - `{ promotionId }`; switched off
+ * entirely - `{ promotionId }`. And the promotions that would apply without the code and do not with it -
+ * `{ promotions: [{ id, name, description }] }`.
  */
 export const PROMOCODE_MIN_BASKET_TOTAL = "promocode-min-basket-total";
 export const PROMOCODE_SERVICE_TYPE = "promocode-service-type";
 export const PROMOCODE_PROMOTION_HOURS = "promocode-promotion-hours";
+/** The promotion of the code is switched off: since C22 that means it applies nowhere, the code included. */
+export const PROMOCODE_PROMOTION_DISABLED = "promocode-promotion-disabled";
 export const PROMOCODE_SETS_ASIDE = "promocode-sets-aside";
 
-const PROMOCODE_NOTICES = new Set([PROMOCODE_MIN_BASKET_TOTAL, PROMOCODE_SERVICE_TYPE, PROMOCODE_PROMOTION_HOURS, PROMOCODE_SETS_ASIDE]);
+const PROMOCODE_NOTICES = new Set([
+  PROMOCODE_MIN_BASKET_TOTAL,
+  PROMOCODE_SERVICE_TYPE,
+  PROMOCODE_PROMOTION_HOURS,
+  PROMOCODE_PROMOTION_DISABLED,
+  PROMOCODE_SETS_ASIDE,
+]);
 
 /** Whether an order's `promotionState` entry tells about its code rather than stands for a promotion that applied. */
 export function isPromotionCodeNotice(state: { type?: string } | null | undefined): boolean {
   return !!state?.type && PROMOCODE_NOTICES.has(state.type);
+}
+
+/**
+ * Whether anything of the code is switched on: at least one promotion it is linked to has its own switch on.
+ *
+ * A code does nothing by itself - it switches on the promotions it is linked to - and since C22 a promotion that is
+ * off applies nowhere, through a code as well. A code of nothing but off promotions is refused at the apply
+ * (`Order.applyPromotionCode`) instead of sitting on the order and discounting nothing.
+ *
+ * The code has to be populated: without `promotion` there is nothing to judge, and that is "gives nothing".
+ */
+export function promotionCodeGives(code: { promotion?: unknown } | null | undefined): boolean {
+  const promotions = Array.isArray(code?.promotion) ? code!.promotion as unknown[] : [];
+  return promotions.some((promotion) => promotion && typeof promotion === "object" && (promotion as { enable?: boolean }).enable !== false);
 }

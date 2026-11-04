@@ -1166,5 +1166,13 @@
   "Invalid point": "Неверная точка",
   "This order is collected at the point the customer chose": "Этот заказ получают на точке, которую выбрал клиент",
   "The order already has a kitchen": "У заказа уже есть кухня",
-  "Orders no kitchen has been resolved for": "Заказы, для которых кухня не определена"
+  "Orders no kitchen has been resolved for": "Заказы, для которых кухня не определена",
+  "Works": "Работает",
+  "Only by promo code": "Только по промокоду",
+  "Off — the promotion applies nowhere, its promo codes included.": "Выключена — акция не применяется нигде, в том числе по промокодам.",
+  "It does not apply by itself and is not shown on the storefront; its promo codes still apply it.": "Сама не применяется и на витрине не показывается; по своим промокодам — применяется.",
+  "Switched off: the promotion applies nowhere. A promo code linked to it will not work either — that is what “Only by promo code” is for.": "Выключена: акция не применяется нигде. Промокод, к которому она привязана, тоже работать не будет — для этого есть «Только по промокоду».",
+  "This promotion is defined in code/a module. Its discount parameters cannot be changed here — only its switches and priority.": "Эта акция задана в коде или модуле. Параметры скидки здесь не меняются — только выключатели и приоритет.",
+  "Gives nothing: every promotion is switched off": "Ничего не даёт: все акции выключены",
+  "Every promotion of this code is switched off — the code will not work. Switch the promotion on and mark it “Only by promo code”.": "Все акции этого кода выключены — код работать не будет. Включите акцию и отметьте «Только по промокоду»."
 }

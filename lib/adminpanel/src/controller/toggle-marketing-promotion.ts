@@ -2,9 +2,12 @@ import { hasAccess, toNumber } from "./marketing-helpers";
 import { mapPromotionFull } from "./get-marketing-promotions";
 
 /**
- * POST …/core/marketing/promotion-toggle   { id, enable?, sortOrder? }
- * Toggles enable and/or updates sortOrder for ANY promotion (programmed or configured).
+ * POST …/core/marketing/promotion-toggle   { id, enable?, onlyByCode?, sortOrder? }
+ * Toggles the two switches and/or updates sortOrder for ANY promotion (programmed or configured).
  * These are the only fields editable on a programmed promotion (§8.0).
+ *
+ * `enable` is "works at all" and `onlyByCode` is "does not apply by itself" (C22 of `marketing.plan.md`):
+ * switched off, a promotion applies nowhere — a promo code does not bring it back any more.
  */
 export default async function ToggleMarketingPromotionController(req: any, res: any) {
   const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
@@ -19,6 +22,7 @@ export default async function ToggleMarketingPromotionController(req: any, res: 
 
     const patch: Record<string, any> = {};
     if (typeof req.body?.enable === "boolean") patch.enable = req.body.enable;
+    if (typeof req.body?.onlyByCode === "boolean") patch.onlyByCode = req.body.onlyByCode;
     if (req.body?.sortOrder !== undefined && req.body?.sortOrder !== null && req.body?.sortOrder !== "") {
       patch.sortOrder = toNumber(req.body.sortOrder);
     }

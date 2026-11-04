@@ -11,6 +11,7 @@ const OrderHelper_1 = require("../lib/order/OrderHelper");
 const AuthService_1 = __importDefault(require("../lib/AuthService"));
 const cancelPaymentDialog_1 = require("../lib/order/cancelPaymentDialog");
 const isValue_1 = require("../utils/isValue");
+const promotion_code_1 = require("../lib/promotion-code");
 const cooking_place_1 = require("../lib/menu/cooking-place");
 const kitchen_assignment_1 = require("../lib/order/kitchen-assignment");
 const soft_delivery_1 = require("../lib/delivery/soft-delivery");
@@ -2256,13 +2257,17 @@ let Model = {
         else {
             const validPromotionCode = await PromotionCode.getValidPromotionCode(normalizedPromotionCodeString);
             const isValidTill = "2099-01-01T00:00:00.000Z"; // TODO: recursive check Codes and Promotions
-            if (validPromotionCode) {
+            // A code switches on the promotions it is linked to and does nothing by itself: one of nothing but
+            // switched-off promotions (or of none at all) is refused here, at the apply, instead of sitting on the
+            // order and discounting nothing (C22, `marketing.plan.md`). The cash desk and the storefront then say
+            // "the code did not fit", which they can already do.
+            const givesSomething = validPromotionCode ? (0, promotion_code_1.promotionCodeGives)(validPromotionCode) : false;
+            if (validPromotionCode && !givesSomething) {
+                await Order.log({ id: order.id }, "warn", "core", `Promotion code [${normalizedPromotionCodeString}] has no promotion that works`, { promotionCodeId: validPromotionCode.id });
+                sails.log.debug(`Every promotion of ${normalizedPromotionCodeString} is switched off, order: [${order.id}]`);
+            }
+            if (validPromotionCode && givesSomething) {
                 let description = validPromotionCode.description;
-                if (!validPromotionCode.promotion) {
-                    sails.log.error(`No valid promotions for ${normalizedPromotionCodeString}`);
-                    description += " [Error: No valid promotions]";
-                    await Order.log({ id: order.id }, "warn", "core", `Promotion code [${normalizedPromotionCodeString}] has no valid promotions`, { promotionCodeId: validPromotionCode.id });
-                }
                 updateData = {
                     promotionCode: validPromotionCode.id,
                     promotionCodeCheckValidTill: isValidTill,

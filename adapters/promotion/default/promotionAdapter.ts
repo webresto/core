@@ -8,7 +8,13 @@ import { PromotionRecord } from "../../../models/Promotion";
 import { DishRecord } from "../../../models/Dish";
 import { GroupRecord } from "../../../models/Group";
 import { PromotionCodeRecord } from "../../../models/PromotionCode";
-import { PROMOCODE_MIN_BASKET_TOTAL, PROMOCODE_PROMOTION_HOURS, PROMOCODE_SERVICE_TYPE, PROMOCODE_SETS_ASIDE } from "../../../lib/promotion-code";
+import {
+  PROMOCODE_MIN_BASKET_TOTAL,
+  PROMOCODE_PROMOTION_DISABLED,
+  PROMOCODE_PROMOTION_HOURS,
+  PROMOCODE_SERVICE_TYPE,
+  PROMOCODE_SETS_ASIDE,
+} from "../../../lib/promotion-code";
 
 export class PromotionAdapter extends AbstractPromotionAdapter {
 
@@ -124,6 +130,10 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
       if (applied.some((item) => item?.id === promotion.id)) return [];
       const handler = this.promotions[promotion.id];
       if (!(handler instanceof ConfiguredPromotion)) return [];
+      // Switched off: the storefront and the cash desk say so rather than showing a code that quietly gives nothing.
+      if (promotion.enable === false) {
+        return [{ type: PROMOCODE_PROMOTION_DISABLED, message: "The promotion of this promo code is switched off", state: { promotionId: promotion.id }, byCode: true }];
+      }
       if (!openByHours(promotion.worktime)) {
         return [{ type: PROMOCODE_PROMOTION_HOURS, message: "The promo code does not work at this time", state: { promotionId: promotion.id }, byCode: true }];
       }
@@ -185,12 +195,19 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   }
 
   /**
-   * The promotions of the order's code that work now, by their `sortOrder`. Switched off or not, a promotion applies
-   * through its code, within its hours; the code relaxes its targeting of dishes and groups (`condition` in promocode
-   * mode), the way the order is received and the minimum basket still hold.
+   * The promotions of the order's code that work now, by their `sortOrder`.
+   *
+   * A switched-off promotion is not one of them: since C22 `enable` means "works at all", and a promotion that is off
+   * applies nowhere - a code does not bring it back (`marketing.plan.md`, «Выключатель»). "Only by code" is the other
+   * switch, `onlyByCode`, and it is exactly the promotions that live here and nowhere else. A value of `undefined` is
+   * on, as everywhere: records written before the switch existed keep working.
+   *
+   * Within its hours, then: the code relaxes the targeting of dishes and groups (`condition` in promocode mode), the
+   * way the order is received and the minimum basket still hold.
    */
   private codePromotions(order: OrderRecord): PromotionRecord[] {
     return this.codeLinked(order)
+      .filter((promotion) => promotion.enable !== false)
       .filter((promotion) => openByHours(promotion.worktime) && this.promotions[promotion.id]?.condition(order, true))
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   }
@@ -249,9 +266,10 @@ export class PromotionAdapter extends AbstractPromotionAdapter {
   }
 
   /**
-   * Called by the Promotion model after a configured promotion is created or updated. Switched off, it stays
-   * registered: it no longer applies by itself (the baskets take only enabled ones, `Promotion.getAllByConcept`),
-   * but still through its codes. A deleted one is dropped.
+   * Called by the Promotion model after a configured promotion is created or updated. A promotion stays registered
+   * whatever its switches say: whether it applies is asked of the handler at every recount - by itself from
+   * `promotionRAM` (`Promotion.getAllByConcept`, which "only by code" is out of), through a code from
+   * `codePromotions` (which a switched-off one is out of). A deleted one is dropped.
    */
   public recreateConfiguredPromotionHandler(promotionToAdd: PromotionRecord): void {
     if (this.promotions[promotionToAdd.id]) {
