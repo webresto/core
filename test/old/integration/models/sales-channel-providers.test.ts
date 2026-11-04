@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import SalesChannelAdapter from "../../../adapters/sales-channel/SalesChannelAdapter";
-import type { SalesChannelStatusResult } from "../../../adapters/sales-channel/SalesChannelAdapter";
-import { SalesChannelRegistry } from "../../../lib/SalesChannelRegistry";
-import { checkCanCreate, checkCanDelete, checkCanEnable, checkPlatforms, describeChannelProvider } from "../../../lib/SalesChannelProviders";
+import SalesChannelAdapter from "../../../../adapters/sales-channel/SalesChannelAdapter";
+import type { SalesChannelStatusResult } from "../../../../adapters/sales-channel/SalesChannelAdapter";
+import { SalesChannelRegistry } from "../../../../lib/SalesChannelRegistry";
+import { checkCanCreate, checkCanDelete, checkCanEnable, checkPlatforms, describeChannelProvider } from "../../../../lib/SalesChannelProviders";
 
 /**
  * Sales channels come from provider modules (SalesChannel.alive): creation/adoption of the
@@ -81,7 +81,9 @@ describe("SalesChannel providers", function () {
     expect(row.status).to.equal("ready");
 
     adapter.fail = new Error("token revoked");
-    expect(await SalesChannel.channelStatus(row)).to.deep.equal({ status: "error", message: "token revoked" });
+    // A plain read reuses an answer for a few seconds (C32); the news is asked for explicitly.
+    expect(await SalesChannel.channelStatus(row)).to.deep.equal({ status: "ready" });
+    expect(await SalesChannel.channelStatus(row, { fresh: true })).to.deep.equal({ status: "error", message: "token revoked" });
     expect((await SalesChannel.findOne({ id: row.id })).status).to.equal("error");
   });
 
