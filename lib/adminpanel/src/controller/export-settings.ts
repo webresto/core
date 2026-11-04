@@ -1,26 +1,13 @@
 import { hasAccess } from "./marketing-helpers";
+import { dumpSettings } from "../../../settings/view";
+
 export default async function ExportSettingsController(req: any, res: any) {
   const t = (key: string) => req?.i18n?.__ ? req.i18n.__(key) : key;
   if (!hasAccess(req, res, "settings-manager")) return;
 
   try {
-    // Secret settings are write-only: their value must never leave the DB, so they
-    // are omitted from the export file entirely (import can still set them).
-    const settings = (await Settings.find().sort('key ASC')).filter((s: any) => !s.secret);
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      count: settings.length,
-      settings: settings.map((s: any) => ({
-        key: s.key,
-        name: s.name || null,
-        description: s.description || null,
-        type: s.type,
-        value: s.value,
-        defaultValue: s.defaultValue,
-        module: s.module || null,
-      })),
-    };
-
+    // Secrets are left out of the file by `dumpSettings`, which the mobile export also uses (C24).
+    const exportData = await dumpSettings();
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="settings-${new Date().toISOString().slice(0, 10)}.json"`);
     return res.send(JSON.stringify(exportData, null, 2));

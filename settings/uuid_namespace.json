@@ -3,6 +3,7 @@
   "type": "string",
   "name": "UUID Namespace",
   "description": "A UUID: 8-4-4-4-12 lowercase hex digits",
+  "patternHint": "a UUID: 8-4-4-4-12 lowercase hex digits, for example: 3f2504e0-4f89-11d3-9a0c-0305e82c3301",
   "jsonSchema": {
     "type": "string",
     "pattern": "^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$",

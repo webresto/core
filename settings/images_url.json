@@ -3,6 +3,7 @@
   "type": "string",
   "name": "Images URL",
   "description": "It's your address for images storage (e.g. https://your-website/)",
+  "patternHint": "the address of the image storage, ending with a slash, for example: https://images.example.com/",
   "jsonSchema": {
     "type": "string",
     "pattern": "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)\\/$"
