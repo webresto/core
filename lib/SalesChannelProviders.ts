@@ -152,15 +152,21 @@ export function describeChannelProvider(
   };
 }
 
-/** Fresh readiness for a list of channels: one refreshStatus per type present. */
+/**
+ * Readiness of a list of channels, for a screen about to show them.
+ *
+ * This is a READ path — the admin list, the setup checklist, the MCP tools, the mobile app — so it
+ * goes through the short cache of `SalesChannel.channelStatus` (C32): a provider is asked at most
+ * once every few seconds however many people are looking. `SalesChannel.refreshStatus(type)` stays
+ * the call that asks now, and it is the one a provider makes after its own event.
+ */
 export async function refreshStatuses(channels: SalesChannelRecord[]): Promise<Record<string, SalesChannelStatusResult>> {
   const out: Record<string, SalesChannelStatusResult> = {};
-  const types = Array.from(new Set(channels.map((channel) => channel.type)));
-  for (const type of types) {
+  for (const channel of channels) {
     try {
-      Object.assign(out, await SalesChannel.refreshStatus(type));
+      out[channel.id] = await SalesChannel.channelStatus(channel);
     } catch (e) {
-      sails.log.warn(`Sales channels: status refresh failed for type ${type}`, e);
+      sails.log.warn(`Sales channels: status refresh failed for channel ${channel.key}`, e);
     }
   }
   return out;
@@ -210,7 +216,8 @@ export async function checkCanEnable(
   installed: Set<string> | null
 ): Promise<{ refusal: SalesChannelRefusal | null; computed: SalesChannelStatusResult }> {
   const typeDef = SalesChannelRegistry.getType(channel.type);
-  const computed = await SalesChannel.channelStatus(channel);
+  // "Right now", not "a moment ago": the switch is the one read that does not take a cached answer.
+  const computed = await SalesChannel.channelStatus(channel, { fresh: true });
   if (!SalesChannel.getAdapter(channel.type)) {
     const providerModule = channel.providerModule || typeDef?.providerModule || null;
     const notInstalled = isProviderInstalled(providerModule, installed) !== true || !isTypeAvailable(typeDef);

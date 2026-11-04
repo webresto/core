@@ -1,10 +1,14 @@
 // Shared helpers for the Sales Channels admin module controllers.
 // Mirrors the marketing/notifications controllers: access guard + JSON parsing + record
 // mapping. The `${routePrefix}/core` middleware already sets no-store on every /core route.
+//
+// The view of a record and the rules of writing one are NOT here: they are `lib/sales-channels/`
+// (`describeChannel`, `applyChannel`), shared with the MCP tools and the mobile API so that the
+// page, the tools and the phone cannot drift apart on a word or on a rule.
 
-import slugifyLib from "slugify";
-import { SalesChannelRegistry } from "../../../SalesChannelRegistry";
-import { describeChannelProvider, refusalText, SalesChannelRefusal } from "../../../SalesChannelProviders";
+import { refusalText, SalesChannelRefusal } from "../../../SalesChannelProviders";
+import { describeChannel, jsonObject, stringArray as stringList, type ChannelView } from "../../../sales-channels/view";
+import { slugifyChannelKey } from "../../../sales-channels/apply";
 import type { SalesChannelStatusResult } from "../../../../adapters";
 import {
   getModulePermissions,
@@ -32,9 +36,14 @@ export function getSalesChannelPermissions(req: any) {
   };
 }
 
+/** The dictionary of the admin panel for this request: the words of a refusal and of a view. */
+export function translator(req: any): (key: string) => string {
+  return (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
+}
+
 /** Answer a refused rule (409 & co.) with a translated `error` plus its extra fields. */
 export function sendRefusal(req: any, res: any, refusal: SalesChannelRefusal) {
-  const t = (key: string) => (req?.i18n?.__ ? req.i18n.__(key) : key);
+  const t = translator(req);
   const extra: Record<string, unknown> = { ...(refusal.extra || {}) };
   if (typeof extra.message === "string") extra.message = t(extra.message);
   return res.status(refusal.status).json({ error: refusalText(refusal, t), ...extra });
@@ -45,87 +54,32 @@ export function toNumber(value: any): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/** Strings of a list that may arrive as JSON text from a form. */
 export function stringArray(value: any): string[] {
-  if (!Array.isArray(value)) {
-    if (typeof value === "string" && value.trim()) {
-      try { const parsed = JSON.parse(value); if (Array.isArray(parsed)) value = parsed; } catch { return []; }
-    } else {
-      return [];
-    }
-  }
-  return (value as any[])
-    .filter((x: any) => typeof x === "string" && x.trim())
-    .map((x: string) => x.trim());
+  return stringList(value);
 }
 
 export function parseJsonObject(value: any): Record<string, unknown> {
-  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
-  if (typeof value === "string" && value.trim()) {
-    try { const parsed = JSON.parse(value); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed; } catch { /* ignore */ }
-  }
-  return {};
+  return jsonObject(value);
 }
 
-/**
- * Slugify a free-text title into a stable channel key.
- *
- * `slugify` transliterates Cyrillic and other charmapped alphabets, so a title like "Сайт"
- * becomes "sajt" instead of an empty key. The same helper backs the Dish/Group slugs, and the
- * admin page runs it on the client, so the key the operator sees is the key that gets stored.
- * Scripts outside the charmap (CJK and the like) still slugify to "", and the caller decides
- * what to do about that.
- */
-export function slugify(value: string): string {
-  return slugifyLib(String(value || ""), { lower: true, strict: true, locale: "en" })
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64);
-}
+/** The one slug of a channel key, transliterating Cyrillic — see lib/sales-channels/apply.ts. */
+export const slugify = slugifyChannelKey;
 
 /**
  * Map a SalesChannel record into the shape used by the admin frontend. `installed` is the
  * set from getInstalledProviderAppIds() (fetched once per request), `computed` a fresh
- * readiness from the provider; see lib/SalesChannelProviders.ts for the provider fields.
+ * readiness from the provider; the fields and the words both come from
+ * lib/sales-channels/view.ts, which the MCP tools and the mobile API read as well.
  */
 export function mapChannel(
   channel: any,
   options: { canManage?: boolean; installed?: Set<string> | null; computed?: SalesChannelStatusResult | null; req?: any } = {}
-): any {
-  const typeDef = SalesChannelRegistry.getType(channel?.type);
-  const canManage = options.canManage === true;
-  const provider = describeChannelProvider(channel, options.installed ?? null, options.computed);
-  const t = (key: string) => (options.req?.i18n?.__ ? options.req.i18n.__(key) : key);
-  return {
-    id: channel?.id,
-    key: channel?.key || "",
-    title: channel?.title || channel?.key || "",
-    type: channel?.type || "custom",
-    typeTitle: typeDef?.title || channel?.type || "custom",
-    category: typeDef?.category || "custom",
-    capabilities: typeDef?.capabilities || [],
-    icon: typeDef?.icon || "tune",
-    settingsUrl: canManage ? provider.settingsUrl : null,
-    providerModule: canManage ? (channel?.providerModule || null) : null,
-    managedBy: provider.managedBy,
-    providerInstalled: provider.providerInstalled,
-    providerAlive: provider.providerAlive,
-    typeComingSoon: provider.typeComingSoon,
-    marketplaceAppId: provider.marketplaceAppId,
-    canDelete: provider.canDelete,
-    active: provider.active,
-    enabled: channel?.enabled === true,
-    status: provider.status,
-    statusMessage: provider.statusMessage ? t(provider.statusMessage) : null,
-    countries: stringArray(channel?.countries),
-    concepts: stringArray(channel?.concepts),
-    platforms: stringArray(channel?.platforms),
-    defaultConcept: channel?.defaultConcept || null,
-    allowConceptSwitch: channel?.allowConceptSwitch !== false,
-    url: channel?.url || null,
-    settings: canManage ? parseJsonObject(channel?.settings) : {},
-    publicConfig: parseJsonObject(channel?.publicConfig),
-    sortOrder: toNumber(channel?.sortOrder),
-    createdAt: channel?.createdAt ?? null,
-    updatedAt: channel?.updatedAt ?? null,
-  };
+): ChannelView {
+  return describeChannel(channel, {
+    canManage: options.canManage === true,
+    installed: options.installed ?? null,
+    computed: options.computed,
+    t: translator(options.req),
+  });
 }

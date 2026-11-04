@@ -1,16 +1,14 @@
-import slugifyLib from 'slugify';
 import { SalesChannelRegistry } from '../../lib/SalesChannelRegistry';
 import {
-    checkCanCreate,
     checkCanDelete,
     checkCanEnable,
-    checkPlatforms,
-    describeChannelProvider,
     getInstalledProviderAppIds,
     refreshStatuses,
     refusalText,
     SalesChannelRefusal,
 } from '../../lib/SalesChannelProviders';
+import { describeChannel } from '../../lib/sales-channels/view';
+import { applyChannel } from '../../lib/sales-channels/apply';
 
 declare const mcp: any;
 
@@ -22,53 +20,41 @@ function refuse(refusal: SalesChannelRefusal): never {
     throw new Error([refusalText(refusal), ...extra].join('; '));
 }
 
-function stringArray(value: any): string[] {
-    if (!Array.isArray(value)) return [];
-    return value.filter((x: any) => typeof x === 'string' && x.trim()).map((x: string) => x.trim());
-}
-
-/** Same transliterating slug as the admin page uses, so both produce the same channel key. */
-function slugify(value: string): string {
-    return slugifyLib(String(value || ''), { lower: true, strict: true, locale: 'en' })
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 64);
-}
-
 /**
- * Map a SalesChannel record into a diagnostics-friendly shape (adds the registry's
- * typeTitle/category and the same provider fields as the admin API — see
- * lib/SalesChannelProviders.ts describeChannelProvider).
+ * A SalesChannel as a diagnostics-friendly record: the registry's typeTitle/category, the provider
+ * fields and the words of the admin page, all from lib/sales-channels/view.ts — the one view the page,
+ * these tools and the mobile API read, so a status cannot mean two things. `secretsRef` is never in it.
  */
 function mapChannel(channel: any, installed: Set<string> | null, computed?: any) {
-    const typeDef = SalesChannelRegistry.getType(channel?.type);
-    const provider = describeChannelProvider(channel, installed, computed);
+    const view = describeChannel(channel, { canManage: true, installed, computed });
     return {
-        id: channel?.id,
-        key: channel?.key || '',
-        title: channel?.title || channel?.key || '',
-        type: channel?.type || 'custom',
-        typeTitle: typeDef?.title || channel?.type || 'custom',
-        category: typeDef?.category || 'custom',
-        providerModule: channel?.providerModule || null,
-        managedBy: provider.managedBy,
-        providerInstalled: provider.providerInstalled,
-        providerAlive: provider.providerAlive,
-        marketplaceAppId: provider.marketplaceAppId,
-        settingsUrl: provider.settingsUrl,
-        enabled: channel?.enabled === true,
-        status: provider.status,
-        statusMessage: provider.statusMessage,
-        active: provider.active,
-        countries: stringArray(channel?.countries),
-        concepts: stringArray(channel?.concepts),
-        platforms: stringArray(channel?.platforms),
-        defaultConcept: channel?.defaultConcept || null,
-        allowConceptSwitch: channel?.allowConceptSwitch !== false,
-        url: channel?.url || null,
-        sortOrder: Number(channel?.sortOrder) || 0,
-        createdAt: channel?.createdAt ?? null,
-        updatedAt: channel?.updatedAt ?? null,
+        id: view.id,
+        key: view.key,
+        title: view.title,
+        type: view.type,
+        typeTitle: view.typeTitle,
+        category: view.category,
+        providerModule: view.providerModule,
+        managedBy: view.managedBy,
+        providerInstalled: view.providerInstalled,
+        providerAlive: view.providerAlive,
+        marketplaceAppId: view.marketplaceAppId,
+        settingsUrl: view.settingsUrl,
+        enabled: view.enabled,
+        status: view.status,
+        statusMessage: view.statusMessage,
+        statusText: view.statusText,
+        providerText: view.providerText,
+        active: view.active,
+        countries: view.countries,
+        concepts: view.concepts,
+        platforms: view.platforms,
+        defaultConcept: view.defaultConcept,
+        allowConceptSwitch: view.allowConceptSwitch,
+        url: view.url,
+        sortOrder: view.sortOrder,
+        createdAt: view.createdAt,
+        updatedAt: view.updatedAt,
     };
 }
 
@@ -198,73 +184,11 @@ export function registerSalesChannelsTools() {
             required: ['title'],
         },
         handler: async (params: Record<string, any>) => {
-            const id = params.id ? String(params.id).trim() : '';
-            const title = String(params.title || '').trim();
-            if (!title) throw new Error('title is required');
-
-            const existing = id ? await SalesChannel.findOne({ id }) : null;
-            if (id && !existing) throw new Error('Sales channel not found');
-
-            let key = slugify(String(params.key || '').trim());
-            if (!key) key = existing ? existing.key : slugify(title);
-            if (!key) throw new Error('key could not be derived — pass title or key');
-
-            const clash = await SalesChannel.findOne({ key });
-            if (clash && clash.id !== existing?.id) throw new Error('A sales channel with this key already exists');
-
-            const requestedType = String(params.type || '').trim();
-            if (existing && requestedType && requestedType !== existing.type) throw new Error('Channel type cannot be changed');
-            const type = existing ? existing.type : requestedType;
-            if (!existing) {
-                const refusal = await checkCanCreate(type);
-                if (refusal) refuse(refusal);
-            }
-            const typeDef = SalesChannelRegistry.getType(type);
-
-            const platforms = params.platforms !== undefined ? stringArray(params.platforms) : stringArray(existing?.platforms);
-            const platformRefusal = await checkPlatforms(platforms, existing);
-            if (platformRefusal) refuse(platformRefusal);
-
-            const installed = await getInstalledProviderAppIds();
-            const enabled = existing ? (params.enabled !== undefined ? Boolean(params.enabled) : existing.enabled === true) : false;
-            let computed = null;
-            if (existing && enabled && existing.enabled !== true) {
-                const check = await checkCanEnable(existing, installed);
-                if (check.refusal) refuse(check.refusal);
-                computed = check.computed;
-            }
-
-            const concepts = params.concepts !== undefined ? stringArray(params.concepts) : stringArray(existing?.concepts);
-            const defaultConceptRaw = params.defaultConcept !== undefined ? String(params.defaultConcept || '').trim() : (existing?.defaultConcept || '');
-            const defaultConcept = defaultConceptRaw && (concepts.length === 0 || concepts.includes(defaultConceptRaw)) ? defaultConceptRaw : null;
-
-            const values: any = {
-                key,
-                title,
-                enabled,
-                countries: params.countries !== undefined ? stringArray(params.countries) : stringArray(existing?.countries),
-                platforms,
-                concepts,
-                defaultConcept,
-                allowConceptSwitch: params.allowConceptSwitch !== undefined ? Boolean(params.allowConceptSwitch) : (existing?.allowConceptSwitch ?? true),
-                url: params.url !== undefined ? (String(params.url).trim() || null) : (existing?.url ?? null),
-                sortOrder: params.sortOrder !== undefined ? Number(params.sortOrder) || 0 : (existing?.sortOrder ?? 0),
-            };
-
-            let saved: any;
-            if (existing) {
-                saved = (await SalesChannel.update({ id: existing.id }, values).fetch())[0];
-            } else {
-                saved = await SalesChannel.create({
-                    ...values,
-                    type,
-                    providerModule: typeDef?.providerModule ?? null,
-                    managedBy: 'operator',
-                    status: 'needs_setup',
-                }).fetch();
-                computed = await SalesChannel.channelStatus(saved);
-            }
-            return mapChannel(saved, installed, computed);
+            // The same write the admin page performs: lib/sales-channels/apply.ts owns the key, the
+            // slug, the fixed type, which fields are taken and the provider rules.
+            const outcome = await applyChannel(params);
+            if (!outcome.ok) refuse(outcome.refusal);
+            return mapChannel(outcome.saved, outcome.installed, outcome.computed);
         },
     });
 

@@ -125,11 +125,17 @@ declare let Model: {
      */
     isActive(channel: SalesChannelRecord | null | undefined): boolean;
     /**
-     * Fresh readiness of one channel from its provider. The result is stored only when the
-     * provider answered (incl. throwing or timing out) and the value changed. "Provider did
-     * not load" is computed on read and never stored.
+     * Readiness of one channel from its provider. The result is stored only when the provider
+     * answered (incl. throwing or timing out) and the value changed. "Provider did not load" is
+     * computed on read and never stored.
+     *
+     * An answer given less than STATUS_CACHE_MS ago is reused, so a screen that is read often does
+     * not call the provider every time. `{fresh: true}` skips that: the rule that switches a channel
+     * on must see what the provider says *now*, and `refreshStatus` is how a provider pushes news.
      */
-    channelStatus(channel: SalesChannelRecord): Promise<SalesChannelStatusResult>;
+    channelStatus(channel: SalesChannelRecord, options?: {
+        fresh?: boolean;
+    }): Promise<SalesChannelStatusResult>;
     /**
      * Ask the provider about every channel of a type and store changed statuses. Called by
      * alive() on boot, by the admin read paths, and by providers after their own events

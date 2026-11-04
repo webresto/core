@@ -198,8 +198,23 @@ export interface SalesChannelRecord extends RequiredField<OptionalAll<attributes
 /** Live provider adapters registered on boot through alive() (channel type → adapter). */
 let aliveSalesChannelAdapters = {} as { [type: string]: SalesChannelAdapter };
 
+/** Readiness answered by a provider, by channel id, for STATUS_CACHE_MS (see channelStatus). */
+const statusCache = new Map<string, { at: number; result: SalesChannelStatusResult }>();
+
 /** How long core waits for adapter.getStatus() before reporting the provider as silent. */
 const STATUS_TIMEOUT_MS = 3000;
+/**
+ * How long a readiness answered by a provider is reused (per worker, in memory).
+ *
+ * Every read path asks the provider: the admin page on each open, the setup checklist, the MCP tools
+ * and now the phone, which reads a card far more often than a page is opened — with a 3 s timeout per
+ * channel and a stranger's API (a bot, a storefront build) on the other end. The documentation asks
+ * provider authors to cache on their side; this is core's own small window so that two phones and an
+ * open page are not three calls to the same bot. A provider that has news does not wait for it:
+ * `refreshStatus(type)` asks now and replaces what is kept here (admin-frontend calls it after a
+ * storefront build), and so does the rule that switches a channel on (`fresh`).
+ */
+const STATUS_CACHE_MS = 7000;
 /** How long core waits for adapter.onChannelDeleted() before deleting the record anyway. */
 const CLEANUP_TIMEOUT_MS = 10000;
 
@@ -411,14 +426,23 @@ let Model = {
   },
 
   /**
-   * Fresh readiness of one channel from its provider. The result is stored only when the
-   * provider answered (incl. throwing or timing out) and the value changed. "Provider did
-   * not load" is computed on read and never stored.
+   * Readiness of one channel from its provider. The result is stored only when the provider
+   * answered (incl. throwing or timing out) and the value changed. "Provider did not load" is
+   * computed on read and never stored.
+   *
+   * An answer given less than STATUS_CACHE_MS ago is reused, so a screen that is read often does
+   * not call the provider every time. `{fresh: true}` skips that: the rule that switches a channel
+   * on must see what the provider says *now*, and `refreshStatus` is how a provider pushes news.
    */
-  async channelStatus(channel: SalesChannelRecord): Promise<SalesChannelStatusResult> {
+  async channelStatus(channel: SalesChannelRecord, options: { fresh?: boolean } = {}): Promise<SalesChannelStatusResult> {
     const adapter = aliveSalesChannelAdapters[channel?.type];
     if (!adapter) return { status: "error", message: "Provider did not load" };
+    if (options.fresh !== true) {
+      const kept = statusCache.get(channel.id);
+      if (kept && Date.now() - kept.at < STATUS_CACHE_MS) return kept.result;
+    }
     const result = await askProvider(adapter, channel);
+    statusCache.set(channel.id, { at: Date.now(), result });
     if (channel.status !== result.status) {
       try {
         await SalesChannel.updateOne({ id: channel.id }, { status: result.status });
@@ -437,7 +461,9 @@ let Model = {
    */
   async refreshStatus(type: string): Promise<Record<string, SalesChannelStatusResult>> {
     const channels = await SalesChannel.find({ type: String(type || "").trim() });
-    const results = await Promise.all(channels.map((channel) => SalesChannel.channelStatus(channel)));
+    // "Refresh" means refresh: this is the call a provider makes after its own event, so it asks
+    // now and replaces the cached answer for everybody.
+    const results = await Promise.all(channels.map((channel) => SalesChannel.channelStatus(channel, { fresh: true })));
     const out: Record<string, SalesChannelStatusResult> = {};
     channels.forEach((channel, i) => { out[channel.id] = results[i]; });
     return out;
@@ -453,6 +479,7 @@ let Model = {
         sails.log.warn(`SalesChannel > onChannelDeleted failed for channel ${channel.key}`, e === TIMEOUT ? "timeout" : e);
       }
     }
+    statusCache.delete(channel.id);
     await SalesChannel.destroy({ id: channel.id }).fetch();
   },
 
