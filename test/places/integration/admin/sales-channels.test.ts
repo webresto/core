@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { SalesChannelAdapter, type SalesChannelStatusResult } from "../../../../adapters";
 import { SalesChannelRegistry } from "../../../../lib/SalesChannelRegistry";
 import { getInstalledProviderAppIds, refreshStatuses } from "../../../../lib/SalesChannelProviders";
-import { channelStatusText, describeChannel } from "../../../../lib/sales-channels/view";
+import { channelStatusText, describeChannel, describeChannelType } from "../../../../lib/sales-channels/view";
 import { applyChannel, slugifyChannelKey } from "../../../../lib/sales-channels/apply";
 
 /**
@@ -127,6 +127,57 @@ describe("Sales channels: the view, the write and the cached readiness", functio
     it("carries «key · type» as the second line, as the page does", async () => {
       SalesChannelRegistry.registerType({ type: "v-sub", title: "Website", category: "storefront", providerModule: "mod-sub" });
       expect(describeChannel({ id: "1", key: "web-main", type: "v-sub" }).subtitle).to.equal("web-main · Website");
+    });
+  });
+
+  describe("the catalog of types says the same on every screen", () => {
+    const def = (type: string, extra: Record<string, unknown> = {}) => {
+      SalesChannelRegistry.registerType({ type, title: `Type ${type}`, category: "custom", providerModule: `mod-${type}`, marketplaceAppId: `mod-${type}`, settingsUrl: `/admin/${type}/setup`, ...extra });
+      return SalesChannelRegistry.getType(type)!;
+    };
+
+    it("has the fourteen types core ships with", () => {
+      const shipped = SalesChannelRegistry.listTypes().filter((type) => type.sourceModule === "core");
+      expect(shipped.map((type) => type.type)).to.include.members(["web-storefront", "mobile-pos", "telegram-bot", "custom"]);
+      expect(shipped.length).to.equal(14);
+    });
+
+    it("a type that is coming soon has no line of its own: the badge says it", () => {
+      const view = describeChannelType(def("t-soon", { comingSoon: true }), { installed: new Set<string>() });
+      expect(view.available).to.equal(false);
+      expect(view.stateText).to.equal(null);
+      expect(view.marketplaceTag).to.equal("sales-channel:t-soon");
+    });
+
+    it("says not installed, not loaded and installed, in the language asked", async () => {
+      const type = def("t-state");
+      expect(describeChannelType(type, { installed: new Set<string>() }).stateText).to.equal("Provider not installed");
+      expect(describeChannelType(type, { installed: new Set(["mod-t-state"]) }).stateText).to.contain("Provider did not load");
+
+      await SalesChannel.alive(new TestProvider("t-alive", "mod-t-alive"));
+      const alive = describeChannelType(SalesChannelRegistry.getType("t-alive")!, { installed: new Set(["mod-t-alive"]), t: (word) => `«${word}»` });
+      expect(alive.alive).to.equal(true);
+      expect(alive.stateText).to.equal("«Provider installed»");
+    });
+
+    it("hides the module and its settings page from somebody who may only read", () => {
+      const type = def("t-rights");
+      const viewer = describeChannelType(type, { installed: new Set<string>() });
+      expect(viewer.providerModule).to.equal(null);
+      expect(viewer.settingsUrl).to.equal(null);
+      const manager = describeChannelType(type, { installed: new Set<string>(), canManage: true });
+      expect(manager.providerModule).to.equal("mod-t-rights");
+      expect(manager.settingsUrl).to.equal("/admin/t-rights/setup");
+    });
+
+    it("a channel without its provider says what to do, and only then", () => {
+      def("t-hint");
+      const missing = describeChannel({ id: "1", key: "k", type: "t-hint", providerModule: "mod-t-hint" }, { installed: new Set<string>() });
+      expect(missing.providerHint).to.equal("Install the provider module to make this channel work.");
+      const stale = describeChannel({ id: "2", key: "k", type: "t-hint", providerModule: "mod-t-hint" }, { installed: new Set(["mod-t-hint"]) });
+      expect(stale.providerHint).to.equal(null);
+      def("t-hint-soon", { comingSoon: true });
+      expect(describeChannel({ id: "3", key: "k", type: "t-hint-soon" }, { installed: new Set<string>() }).providerHint).to.equal(null);
     });
   });
 
