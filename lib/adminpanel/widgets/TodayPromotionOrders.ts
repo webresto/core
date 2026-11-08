@@ -19,8 +19,9 @@ export default class TodayPromotionOrdersWidget extends InfoBase {
 	public icon: string = "local_offer";
 	readonly id: string = 'promotion-orders-today'
 	readonly department: string = 'Marketing'
-	readonly description: string = 'Today\'s orders with a promotion'
-	readonly name: string = 'Promotion orders'
+	// short words: the marketer's widgets are one cell each, the name and the description in a line
+	readonly description: string = 'Orders today'
+	readonly name: string = 'With a promotion'
 	readonly size = {
 		h: 1,
 		w: 1

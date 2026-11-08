@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { I18nProvider, useTranslation } from './i18n/I18nContext';
 import { requireAdminApi, extractApiErrorMessage } from './lib/admin-api';
 import { useAsk } from './components/AskDialog';
+import { RichText } from './components/RichText';
 
 // The page "Scheduled maintenance" (controller/maintenance-manager.ts): the periods the site is closed for orders.
 // A maintenance closes it while switched on and its period - none, or from-to - holds; the storefront shows its
-// title and text. The text is plain here: a line is a paragraph, it is stored as the HTML the storefront shows.
+// title and text. The text is edited in a rich text editor and stored as the HTML the storefront shows.
 
-const { Button, Input, Label, Switch, Textarea, Toaster } = window.UIComponents;
+const { Button, Input, Label, Switch, Toaster } = window.UIComponents;
 const Icons = window.LucideReact;
 
 const styles = {
@@ -25,14 +26,6 @@ const styles = {
   fields: { display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' },
   invalid: { borderColor: 'var(--destructive)' },
 };
-
-const decode = (text) => text.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
-const encode = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-/** the stored HTML as lines: a paragraph or a break - a line, the other tags dropped */
-const toText = (html) => decode(String(html || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h\d)>/gi, '\n').replace(/<[^>]+>/g, ''))
-  .split('\n').map((line) => line.trim()).filter(Boolean).join('\n');
-/** the lines as the storefront's HTML: a paragraph each */
-const toHtml = (text) => text.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => `<p>${encode(line)}</p>`).join('');
 
 /** an ISO moment as the value of a datetime-local field, in the browser's time */
 const toLocal = (iso) => {
@@ -63,8 +56,10 @@ function MaintenanceManagerContent({ routePrefix }) {
   const [draft, setDraft] = useState(null);
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
+  /** a number of the editor's mount: a maintenance opened anew or its changes undone - the stored text */
+  const [mount, setMount] = useState(0);
 
-  const FIELDS = ['title', 'text', 'enable', 'startDate', 'stopDate'];
+  const FIELDS = ['title', 'description', 'enable', 'startDate', 'stopDate'];
   const dirty = !!open && !!draft && (open.id === null || FIELDS.some((field) => draft[field] !== open[field]));
   const take = (data) => { setList(data.maintenances); setActiveId(data.activeId); return data; };
 
@@ -79,12 +74,18 @@ function MaintenanceManagerContent({ routePrefix }) {
   useEffect(() => { load(); }, []);
 
   function edit(item) {
-    const values = item && { id: item.id ?? null, title: item.title || '', text: toText(item.description), enable: item.enable === true, startDate: toLocal(item.startDate), stopDate: toLocal(item.stopDate) };
+    const values = item && { id: item.id ?? null, title: item.title || '', description: item.description || '', enable: item.enable === true, startDate: toLocal(item.startDate), stopDate: toLocal(item.stopDate) };
     setOpen(values);
     setDraft(values);
     setChecked(false);
+    setMount((n) => n + 1);
   }
   const set = (patch) => setDraft((current) => ({ ...current, ...patch }));
+  /** the stored text as the editor writes it: the same text, not a change */
+  const ready = (description) => {
+    setOpen((current) => current && { ...current, description });
+    setDraft((current) => current && { ...current, description });
+  };
   const leave = async () => !dirty || ask({ title: t('Unsaved changes'), text: t('Unsaved changes will be lost. Continue?'), yes: t('Continue'), no: t('Cancel') });
   /** switching on a maintenance whose period holds now closes the site: asked first */
   const closesSite = (item) => ask({ title: t('Close the site?'), text: t('The site takes no orders while the maintenance lasts.'), yes: t('Switch on'), no: t('Cancel'), danger: true });
@@ -111,7 +112,7 @@ function MaintenanceManagerContent({ routePrefix }) {
     setSaving(true);
     try {
       const url = open.id === null ? base : `${base}/${open.id}`;
-      const data = take((await requireAdminApi().post(url, { title: draft.title, description: toHtml(draft.text), enable: draft.enable, ...period })).data);
+      const data = take((await requireAdminApi().post(url, { title: draft.title, description: draft.description, enable: draft.enable, ...period })).data);
       edit(data.maintenances.find((item) => item.id === data.id));
       toast('success', t('Saved'));
     } catch (error) {
@@ -191,8 +192,7 @@ function MaintenanceManagerContent({ routePrefix }) {
           </div>
           <div style={styles.field}>
             <Label>{t('Text for the customers')}</Label>
-            <Textarea value={draft.text} rows={5} onChange={(event) => set({ text: event.target.value })} />
-            <p style={styles.hint}>{t('A line is a paragraph.')}</p>
+            <RichText key={mount} initial={draft.description} onReady={ready} onChange={(description) => set({ description })} t={t} ask={ask} />
           </div>
           <div style={styles.fields}>
             <div style={styles.field}>

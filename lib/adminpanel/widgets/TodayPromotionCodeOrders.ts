@@ -15,11 +15,11 @@ export default class TodayPromotionCodeOrdersWidget extends InfoBase {
 	public icon: string = "confirmation_number";
 	readonly id: string = 'promotion-code-orders-today'
 	readonly department: string = 'Marketing'
-	readonly description: string = 'Today\'s orders with a promo code'
-	readonly name: string = 'Promo code orders'
-	// two cells: the name in one line, the number in the card
+	// short words: the marketer's widgets are one cell each, the name and the description in a line
+	readonly description: string = 'Orders today'
+	readonly name: string = 'With a promo code'
 	readonly size = {
 		h: 1,
-		w: 2
+		w: 1
 	}
 }
