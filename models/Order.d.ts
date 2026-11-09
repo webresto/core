@@ -390,9 +390,7 @@ declare let Model: {
      */
     doPaidSuperseded(criteria: CriteriaQuery<OrderRecord>, paymentDocument: PaymentDocumentRecord): Promise<void>;
     doFinalize(criteriaOne: CriteriaQuery<OrderRecord>, state: "DONE" | "REJECT"): Promise<void>;
-    doCart(criteriaOne: CriteriaQuery<OrderRecord>, opts?: {
-        addedBy?: "user" | "promotion" | "core" | "custom";
-    }): Promise<OrderRecord>;
+    doCart(criteriaOne: CriteriaQuery<OrderRecord>): Promise<OrderRecord>;
     applyPromotionCode(criteria: CriteriaQuery<OrderRecord>, promotionCodeString: string | null): Promise<OrderRecord>;
     /**
      * Write a log entry for an order.

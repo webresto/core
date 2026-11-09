@@ -50,6 +50,8 @@ export function placeAt(nodes: AddressRecord[], point: AddressPoint): AddressRec
   return nearest;
 }
 
+const namesOf = (street: AddressRecord) => [street.name, ...(street.names ?? [])];
+
 /**
  * Our street a street line names, or `null` when none does or more than one could.
  *
@@ -57,27 +59,49 @@ export function placeAt(nodes: AddressRecord[], point: AddressPoint): AddressRec
  * the one street whose every word is in the line — our "Lenina" in "Lenina street" — but only when
  * it is the only one: with two, the house would hang under a street picked at random, and the
  * order would carry the wrong line to the courier. Under a cached street it is at least not wrong.
+ *
+ * Two streets of one name — the city's own and one of a village inside it — are not two guesses:
+ * the house at `point` is on the one whose houses are nearer.
  */
-export function ourStreet(nodes: AddressRecord[], line: string): AddressRecord | null {
+export function ourStreet(nodes: AddressRecord[], line: string, point?: AddressPoint | null): AddressRecord | null {
   const streets = nodes.filter((node) => !node.cache && STREET_TYPES.includes(node.type));
   const said = new Set(words(line));
-  const names = (street: AddressRecord) => [street.name, ...(street.names ?? [])];
 
-  const equal = streets.filter((street) => names(street).some((name) => sameWords(name, line)));
-  if (equal.length) return equal.length === 1 ? equal[0] : null;
+  const equal = streets.filter((street) => namesOf(street).some((name) => sameWords(name, line)));
+  if (equal.length) return equal.length === 1 ? equal[0] : nearestStreet(nodes, equal, point);
 
   const within = streets.filter((street) =>
-    names(street).some((name) => {
+    namesOf(street).some((name) => {
       const own = words(name);
       return own.length > 0 && own.every((word) => said.has(word));
     }),
   );
-  return within.length === 1 ? within[0] : null;
+  if (within.length === 1) return within[0];
+  const namesakes = within.every((street) => namesOf(street).some((name) => namesOf(within[0]).some((first) => sameWords(name, first))));
+  return within.length && namesakes ? nearestStreet(nodes, within, point) : null;
+}
+
+/** Of streets of one name, the one with a house nearest to the point; `null` without a point or houses to measure by. */
+function nearestStreet(nodes: AddressRecord[], streets: AddressRecord[], point?: AddressPoint | null): AddressRecord | null {
+  if (!isValidCoordinate(point)) return null;
+  let nearest: AddressRecord | null = null;
+  let nearestKm = Infinity;
+  for (const node of nodes) {
+    if (!isValidCoordinate(node.point)) continue;
+    const street = streets.find((one) => one.id === parentOf(node));
+    if (!street) continue;
+    const km = distanceKm(point, node.point);
+    if (km < nearestKm) {
+      nearest = street;
+      nearestKm = km;
+    }
+  }
+  return nearest;
 }
 
 /** The street a cached house hangs under: ours of that name, else a cached one, made when there is none. */
-async function streetFor(city: string, nodes: AddressRecord[], line: string, source: string): Promise<AddressRecord> {
-  const ours = ourStreet(nodes, line);
+async function streetFor(city: string, nodes: AddressRecord[], line: string, source: string, point: AddressPoint | null | undefined): Promise<AddressRecord> {
+  const ours = ourStreet(nodes, line, point);
   if (ours) return ours;
   const cached = nodes.find((node) => node.cache && STREET_TYPES.includes(node.type) && sameWords(node.name, line));
   if (cached) return cached;
@@ -111,7 +135,7 @@ export async function cacheHouse(city: string, house: GeocodedHouse, source: str
   const known = placeAt(nodes, house.point);
   if (known) return known;
 
-  const street = await streetFor(city, nodes, house.street, source);
+  const street = await streetFor(city, nodes, house.street, source, house.point);
   const twin = nodes.find((node) => parentOf(node) === street.id && node.type === "house" && sameHouse(node.name, house.home));
   if (twin) return twin;
 
@@ -159,7 +183,7 @@ export async function relinkCache(city: string): Promise<void> {
     const parent = byId.get(parentOf(house) ?? "");
     if (parent && !parent.cache) continue;
 
-    const street = ourStreet(ours, house.cache!.street) ?? (parent || (await streetFor(city, nodes, house.cache!.street, house.cache!.source)));
+    const street = ourStreet(ours, house.cache!.street, house.point) ?? (parent || (await streetFor(city, nodes, house.cache!.street, house.cache!.source, house.point)));
     if (street.id === parent?.id) continue;
     byId.set(street.id, street);
 

@@ -161,6 +161,22 @@ describe("Free-text geocoding", function () {
       expect(asked()).to.deep.equal([]);
     });
 
+    it("offers the house under the chosen one of two streets of one name, and nothing when it is on the other", async function () {
+      const village = await Address.create!({ city: city1, type: "commune", name: "Village 1" }).fetch();
+      const own = (await Address.create!({ city: city1, type: "street", name: "Street 2" }).fetch()).id;
+      const villages = (await Address.create!({ city: city1, parent: village.id, type: "street", name: "Street 2" }).fetch()).id;
+      await Address.create!({ city: city1, parent: own, type: "house", name: "1", point: { lat: 57.16, lon: 65.53 } }).fetch();
+      await Address.create!({ city: city1, parent: villages, type: "house", name: "1", point: { lat: 57.0, lon: 65.4 } }).fetch();
+
+      knows("2 Street", "5", { lat: 57.1605, lon: 65.53 });
+      expect((await search("5", own)).map((node) => [node.name, node.parent])).to.deep.equal([["5", own]]);
+
+      // the geocoder answers with the village's house: it is cached there, not offered under the city's street
+      knows("2 Street", "7", { lat: 57.0005, lon: 65.4 });
+      expect(await search("7", own)).to.deep.equal([]);
+      expect(await Address.findOne!({ city: city1, parent: villages, name: "7" })).to.deep.include({ cache: { source: "test", street: "2 Street" } });
+    });
+
     it("offers nothing when the geocoder puts the house on another street", async function () {
       knows("Street 9", "15", { lat: 57.155, lon: 65.53 });
 

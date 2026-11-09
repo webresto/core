@@ -412,12 +412,12 @@ export class AuthService {
   }
 
   /**
-   * REQUIRE_AUTH_FOR_CART as it actually applies. The switch demands a login before the first
-   * dish; while no sign-in method is enabled that demand cannot be met, and a cart nobody can
-   * start is not "protected", it is a closed shop. So the flag is read together with the
-   * registry: set but unreachable → ignored (warned, at most once a minute per process). Every
-   * reader — Order.addDish/doCart, getNewCart, restrictions.requireAuthForCart — comes through
-   * here, so the core and the client never disagree about it (require-auth-for-cart.md §3.5).
+   * REQUIRE_AUTH_FOR_CART as it actually applies. The switch demands a login before the order
+   * (a guest fills the cart); while no sign-in method is enabled that demand cannot be met, and a
+   * cart nobody can order is not "protected", it is a closed shop. So the flag is read together
+   * with the registry: set but unreachable → ignored (warned, at most once a minute per process).
+   * Both readers — Order.check and restrictions.requireAuthForCart — come through here, so the
+   * core and the client never disagree about it.
    */
   static async cartRequiresAuth(): Promise<boolean> {
     if (!(await Settings.get("REQUIRE_AUTH_FOR_CART"))) return false;

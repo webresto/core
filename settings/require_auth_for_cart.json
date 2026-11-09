@@ -1,8 +1,8 @@
 {
   "key": "REQUIRE_AUTH_FOR_CART",
   "type": "boolean",
-  "name": "Require login to start a cart",
-  "description": "Only an authenticated user can create a cart and add dishes to it. Ignored while no sign-in method is enabled and healthy (see the setup checklist): a cart that demands a login nobody can pass is a closed shop, not a protected one.",
+  "name": "Require login to order",
+  "description": "A guest fills the cart, but only an authenticated user can order it: the storefront asks for the login before the cart page, the checkout refuses a guest. Off - a guest orders too. Ignored while no sign-in method is enabled and healthy (see the setup checklist): an order that demands a login nobody can pass is a closed shop, not a protected one.",
   "readOnly": false,
   "defaultValue": false,
   "isRequired": false

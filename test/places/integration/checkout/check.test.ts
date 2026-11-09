@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { resetDatabase } from "../../support/reset";
+import { resetDatabase, withSettings } from "../../support/reset";
 import { add, CUSTOMER, deliverTo, newBasket, pickUpAt, thrown, updateOrder } from "../../support/storefront";
 
 /**
@@ -152,6 +152,24 @@ describe("Checkout: check and order", function () {
       const id = await pickupBasket();
       expect(await check(id, CUSTOMER, "pickup", undefined, undefined, user2)).to.equal(null);
       expect(await check(id, CUSTOMER, "pickup", undefined, undefined, user1)).to.deep.include({ code: 27 });
+    });
+
+    it("with a login required to order, a guest fills the basket but only an account checks it out", async function () {
+      // a sign-in method to log in with: without one the flag is ignored
+      const sms = await AuthMethod.findOne!({ adapter: "core", offer: "sms" });
+      await AuthMethod.update!({ id: sms.id }, { enable: true });
+      try {
+        await withSettings({ REQUIRE_AUTH_FOR_CART: true }, async () => {
+          const id = await pickupBasket();
+          expect((await Order.findOne!({ id })).dishesCount).to.equal(1);
+
+          expect(await check(id, CUSTOMER, "pickup")).to.deep.include({ code: 20 });
+          expect(await check(id, CUSTOMER, "pickup", undefined, undefined, user1)).to.equal(null);
+          expect(await Order.findOne!({ id })).to.deep.include({ state: "CHECKOUT", user: user1 });
+        });
+      } finally {
+        await AuthMethod.update!({ id: sms.id }, { enable: sms.enable });
+      }
     });
   });
 

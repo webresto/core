@@ -121,6 +121,19 @@ describe("Address by coordinate", function () {
       expect(street).to.deep.include({ name: "Street 5 Avenue", cache: { source: "test", street: "Street 5 Avenue" } });
     });
 
+    it("hangs a house under the nearer of two streets of one name: the city's own or a village's", async function () {
+      const village = await Address.create!({ city: city1, type: "commune", name: "Village 1" }).fetch();
+      const own = await Address.create!({ city: city1, type: "street", name: "Street 6" }).fetch();
+      const villages = await Address.create!({ city: city1, parent: village.id, type: "street", name: "Street 6" }).fetch();
+      await Address.create!({ city: city1, parent: own.id, type: "house", name: "1", point: { lat: 56.83, lon: 60.62 } }).fetch();
+      await Address.create!({ city: city1, parent: villages.id, type: "house", name: "1", point: { lat: 56.68, lon: 60.5 } }).fetch();
+
+      finds("6 Street", "2", { lat: 56.8305, lon: 60.62 });
+      expect((await cached((await lookUp({ lat: 56.8306, lon: 60.62 }, city1))?.node))?.parent).to.equal(own.id);
+      finds("6 Street", "2", { lat: 56.6805, lon: 60.5 });
+      expect((await cached((await lookUp({ lat: 56.6806, lon: 60.5 }, city1))?.node))?.parent).to.equal(villages.id);
+    });
+
     it("takes our house of that number rather than caching a twin", async function () {
       const before = await Address.count({ city: city1 });
       finds("Street 1", "145", { lat: 56.87, lon: 60.67 });
