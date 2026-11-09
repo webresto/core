@@ -200,7 +200,7 @@ describe("Address catalog", function () {
     it("geocodes an entrance by the house it is in, not by its own name", async function () {
       geocoder.requests = [];
       await (await geo()).locate({ node: n["street3-10-entrance2"].id } as any);
-      expect(geocoder.requests).to.deep.equal([{ method: "house", city: "", street: "Street 3", home: "10" }]);
+      expect(geocoder.requests).to.deep.equal([{ method: "houses", city: "", street: "Street 3", home: "10" }]);
     });
   });
 

@@ -25,15 +25,15 @@ describe("Free-text geocoding", function () {
   });
 
   afterEach(function () {
-    geocoder.house = undefined;
+    geocoder.houses = undefined;
     geocoder.requests = [];
   });
 
   const locate = async (address: Record<string, unknown>) => (await Adapter.get("geo")).locate(address as any);
-  const asked = () => geocoder.requests.filter((request) => request.method === "house");
+  const asked = () => geocoder.requests.filter((request) => request.method === "houses");
   /** The geocoder knows one house at `point`, whatever it is asked. */
   const knows = (street: string, home: string, point: { lat: number; lon: number }) => {
-    geocoder.house = () => ({ street, home, point });
+    geocoder.houses = () => [{ street, home, point }];
   };
 
   it("takes a coordinate the client supplied and asks nobody", async function () {
@@ -68,10 +68,10 @@ describe("Free-text geocoding", function () {
 
     expect(where.coordinate).to.deep.equal(HOUSE_11);
     expect(where.diagnostics).to.include("address point source: geocoder");
-    expect(asked()).to.deep.equal([{ method: "house", city: "City 1", street: "Street 1", home: "11" }]);
+    expect(asked()).to.deep.equal([{ method: "houses", city: "City 1", street: "Street 1", home: "11" }]);
     expect(await Address.findOne({ city: city1, parent: street1, name: "11" })).to.deep.include({ point: HOUSE_11, cache: { source: "test", street: "Street 1" } });
 
-    geocoder.house = undefined;
+    geocoder.houses = undefined;
     const again = await locate({ city: city1, formatted: "Street 1", home: "11" });
     expect(again.coordinate).to.deep.equal(HOUSE_11);
     expect(again.diagnostics.join(" ")).to.contain("cached from test");
@@ -84,7 +84,7 @@ describe("Free-text geocoding", function () {
     knows("Street 7", "1", { lat: 57.2, lon: 65.5 });
 
     expect((await locate({ formatted: "Street 7", home: "1" })).coordinate).to.deep.equal({ lat: 57.2, lon: 65.5 });
-    expect(asked()).to.deep.equal([{ method: "house", city: "", street: "Street 7", home: "1" }]);
+    expect(asked()).to.deep.equal([{ method: "houses", city: "", street: "Street 7", home: "1" }]);
     expect(await Address.count({ name: ["Street 7", "1"] })).to.equal(0);
   });
 
@@ -108,7 +108,7 @@ describe("Free-text geocoding", function () {
   });
 
   it("leaves an address without a coordinate when the geocoder is down, says why, and asks again the next time", async function () {
-    geocoder.house = () => {
+    geocoder.houses = () => {
       throw new Error("down");
     };
 
@@ -137,10 +137,10 @@ describe("Free-text geocoding", function () {
       const [first] = await search("12");
 
       expect(first).to.deep.include({ name: "12", parent: street1, point: HOUSE_12, ancestors: ["Street 1"] });
-      expect(asked()).to.deep.equal([{ method: "house", city: "City 1", street: "Street 1", home: "12" }]);
+      expect(asked()).to.deep.equal([{ method: "houses", city: "City 1", street: "Street 1", home: "12" }]);
       expect(await Address.findOne({ id: first.id })).to.deep.include({ cache: { source: "test", street: "Street 1" } });
 
-      geocoder.house = undefined;
+      geocoder.houses = undefined;
       expect((await search("12")).map((node) => node.id)).to.deep.equal([first.id]);
       expect(asked()).to.have.length(1);
     });
@@ -171,10 +171,31 @@ describe("Free-text geocoding", function () {
       knows("2 Street", "5", { lat: 57.1605, lon: 65.53 });
       expect((await search("5", own)).map((node) => [node.name, node.parent])).to.deep.equal([["5", own]]);
 
-      // the geocoder answers with the village's house: it is cached there, not offered under the city's street
+      // the geocoder knows the number in the village only: not what was typed under the city's street, and not cached
       knows("2 Street", "7", { lat: 57.0005, lon: 65.4 });
       expect(await search("7", own)).to.deep.equal([]);
-      expect(await Address.findOne!({ city: city1, parent: villages, name: "7" })).to.deep.include({ cache: { source: "test", street: "2 Street" } });
+      expect(await Address.count!({ city: city1, name: "7" })).to.equal(0);
+
+      // both have the number, the village's first: the city's is taken, wherever the geocoder puts it
+      geocoder.houses = () => [
+        { street: "2 Street", home: "9", point: { lat: 57.0009, lon: 65.4 } },
+        { street: "2 Street", home: "9", point: { lat: 57.1609, lon: 65.53 } },
+      ];
+      expect((await search("9", own)).map((node) => [node.name, node.parent, node.point])).to.deep.equal([["9", own, { lat: 57.1609, lon: 65.53 }]]);
+      expect(await Address.count!({ city: city1, name: "9" })).to.equal(1);
+    });
+
+    it("offers the typed number of a corner house, though a house of the catalog with another address stands closer than 10 m", async function () {
+      const street4 = (await Address.create!({ city: city1, type: "street", name: "Street 4" }).fetch()).id;
+      const corner = { lat: 57.17, lon: 65.54 };
+      const other = await Address.create!({ city: city1, parent: street4, type: "house", name: "2", point: corner }).fetch();
+      // about 3 m from the house of Street 4: the same house, its address on Street 1
+      knows("Street 1", "16", { lat: 57.17003, lon: 65.54 });
+
+      const [first] = await search("16");
+
+      expect(first).to.deep.include({ name: "16", parent: street1, point: { lat: 57.17003, lon: 65.54 } });
+      expect(await Address.findOne!({ id: other.id })).to.deep.include({ parent: street4, name: "2" });
     });
 
     it("offers nothing when the geocoder puts the house on another street", async function () {

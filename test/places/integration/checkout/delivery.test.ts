@@ -143,7 +143,7 @@ describe("checkout: delivery", function () {
     const order = await deliverTo(id, at(null));
 
     expect(order.cookingPoints).to.deep.equal([]);
-    expect(geocoder.requests.map((request) => request.method)).to.include("house");
+    expect(geocoder.requests.map((request) => request.method)).to.include("houses");
     expect(await thrown(checkout(id))).to.equal(null);
     expect(await Order.findOne({ id })).to.deep.include({ state: "CHECKOUT" });
     expect((await Order.findOne({ id })).delivery).to.include({ allowed: true, cost: null });

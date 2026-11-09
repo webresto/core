@@ -34,11 +34,11 @@ describe("Soft delivery calculation", function () {
 
   afterEach(function () {
     sinon.restore();
-    geocoder.house = undefined;
+    geocoder.houses = undefined;
   });
 
   const geocoderDown = () => {
-    geocoder.house = () => {
+    geocoder.houses = () => {
       throw new Error("down");
     };
   };

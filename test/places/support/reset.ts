@@ -45,7 +45,7 @@ export async function resetDatabase(): Promise<void> {
   Adapter.getPromotionAdapter().deleteAllPromotions();
 
   geocoder.around = undefined;
-  geocoder.house = undefined;
+  geocoder.houses = undefined;
   geocoder.requests = [];
 }
 

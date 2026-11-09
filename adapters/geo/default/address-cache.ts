@@ -99,12 +99,15 @@ function nearestStreet(nodes: AddressRecord[], streets: AddressRecord[], point?:
   return nearest;
 }
 
-/** The street a cached house hangs under: ours of that name, else a cached one, made when there is none. */
+/** The street of a geocoder's line and the point of its house: ours of that name (the nearer of two), else a cached one; `null` - none yet. */
+export function streetOf(nodes: AddressRecord[], line: string, point: AddressPoint | null | undefined): AddressRecord | null {
+  return ourStreet(nodes, line, point) ?? nodes.find((node) => node.cache && STREET_TYPES.includes(node.type) && sameWords(node.name, line)) ?? null;
+}
+
+/** The street a cached house hangs under: `streetOf`, or a cached one made when there is none. */
 async function streetFor(city: string, nodes: AddressRecord[], line: string, source: string, point: AddressPoint | null | undefined): Promise<AddressRecord> {
-  const ours = ourStreet(nodes, line, point);
-  if (ours) return ours;
-  const cached = nodes.find((node) => node.cache && STREET_TYPES.includes(node.type) && sameWords(node.name, line));
-  if (cached) return cached;
+  const known = streetOf(nodes, line, point);
+  if (known) return known;
   const street = await createOrTwin({ city, parent: null, type: "street", name: line, cache: { source, street: line } });
   nodes.push(street);
   return street;
@@ -128,14 +131,20 @@ async function createOrTwin(values: Partial<AddressRecord>): Promise<AddressReco
 /**
  * The catalog node of a house a geocoder found: one known already — closer than `SNAP_METERS`, or
  * of that number under its street — or a new cached one.
+ *
+ * `under` - the street a customer chose and typed the number under: the house goes there, and only
+ * that number there is known already. The place closer than 10 m is not asked: a corner house has an
+ * address on each street, the catalog knows one of them, and the typed one is the one wanted.
  */
-export async function cacheHouse(city: string, house: GeocodedHouse, source: string): Promise<AddressRecord> {
+export async function cacheHouse(city: string, house: GeocodedHouse, source: string, under?: AddressRecord): Promise<AddressRecord> {
   const nodes: AddressRecord[] = await Address.find!({ city });
 
-  const known = placeAt(nodes, house.point);
-  if (known) return known;
+  if (!under) {
+    const known = placeAt(nodes, house.point);
+    if (known) return known;
+  }
 
-  const street = await streetFor(city, nodes, house.street, source, house.point);
+  const street = under ?? (await streetFor(city, nodes, house.street, source, house.point));
   const twin = nodes.find((node) => parentOf(node) === street.id && node.type === "house" && sameHouse(node.name, house.home));
   if (twin) return twin;
 

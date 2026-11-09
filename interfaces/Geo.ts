@@ -61,8 +61,11 @@ export interface Geocoder {
   priority: number;
   /** The houses around a point, the nearest first. */
   housesAround(point: AddressPoint, radiusMeters: number): Promise<GeocodedHouse[]>;
-  /** The house at a street and a number of a city; `null` when it is not known exactly. */
-  house(parts: { city: string; street: string; home: string }): Promise<GeocodedHouse | null>;
+  /**
+   * The houses of that number on the streets of that name in a city: a city may have the street twice (its own and a
+   * village's inside it), and which is meant is the catalog's to tell, by the point. Empty when none is known exactly.
+   */
+  houses(parts: { city: string; street: string; home: string }): Promise<GeocodedHouse[]>;
 }
 
 /** The mark of a catalog node a geocoder found: which geocoder, and the street line it gave. */

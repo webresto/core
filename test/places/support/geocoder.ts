@@ -11,9 +11,9 @@ import type { AddressPoint, GeocodedHouse } from "../../../interfaces/Geo";
  */
 export const geocoder = {
   around: undefined as undefined | ((point: AddressPoint, radiusMeters: number) => GeocodedHouse[]),
-  house: undefined as undefined | ((parts: { city: string; street: string; home: string }) => GeocodedHouse | null),
+  houses: undefined as undefined | ((parts: { city: string; street: string; home: string }) => GeocodedHouse[]),
   /** Every request, for a test that checks what the adapter asked and how often. */
-  requests: [] as ({ method: "housesAround"; point: AddressPoint; radiusMeters: number } | { method: "house"; city: string; street: string; home: string })[],
+  requests: [] as ({ method: "housesAround"; point: AddressPoint; radiusMeters: number } | { method: "houses"; city: string; street: string; home: string })[],
 };
 
 /** Once, after the lift: through `adapters/index`, as a module does from its hook. */
@@ -26,9 +26,9 @@ export function attachGeocoder(): void {
       geocoder.requests.push({ method: "housesAround", point, radiusMeters });
       return geocoder.around?.(point, radiusMeters) ?? [];
     },
-    async house(parts: { city: string; street: string; home: string }) {
-      geocoder.requests.push({ method: "house", ...parts });
-      return geocoder.house?.(parts) ?? null;
+    async houses(parts: { city: string; street: string; home: string }) {
+      geocoder.requests.push({ method: "houses", ...parts });
+      return geocoder.houses?.(parts) ?? [];
     },
   });
 }
