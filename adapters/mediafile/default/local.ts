@@ -295,7 +295,14 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
                     sails.log.debug(`MF local > process skip existing processed file: ${loadMediaFilesProcess.name[size]}`);
                   }
                 }
-                
+
+                // A picture downloaded by its address keeps only its webp: the whole picture becomes `origin`, the
+                // download goes. The origin in place is also what tells the next sync the picture is done - without
+                // it the picture looked unfinished to every sync and was queued again.
+                if (!loadMediaFilesProcess.url.startsWith('file://')) {
+                  await keepWebpOnly(fullPathDl, path.join(prefix, loadMediaFilesProcess.name.origin));
+                }
+
                 // Delete the original uploaded file if it was a file:// URL
                 if (loadMediaFilesProcess.url.startsWith('file://')) {
                   const originalFilePath = loadMediaFilesProcess.url.slice(7);
@@ -332,6 +339,25 @@ export default class LocalMediaFileAdapter extends MediaFileAdapter {
     }
     this.processingTimeout = setTimeout(this.loadMediaFiles.bind(this), 30000);
   }
+}
+
+/**
+ * The whole downloaded picture as webp at `originPath`, and the download removed. A download whose address has no
+ * extension is saved under the origin's own name: it is rewritten in place unless it is webp already.
+ */
+async function keepWebpOnly(downloadedPath: string, originPath: string): Promise<void> {
+  const downloaded = path.resolve(downloadedPath);
+  const origin = path.resolve(originPath);
+  if (downloaded === origin) {
+    if ((await sharp(downloaded).metadata()).format === 'webp') return;
+  } else if (fs.existsSync(origin)) {
+    await fs.promises.unlink(downloaded);
+    return;
+  }
+  const converting = `${origin}.tmp`;
+  await sharp(downloaded).webp().toFile(converting);
+  await fs.promises.rename(converting, origin);
+  if (downloaded !== origin) await fs.promises.unlink(downloaded);
 }
 
 interface ResizeMediaFileOptions {
