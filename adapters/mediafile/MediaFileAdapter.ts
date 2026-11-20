@@ -40,13 +40,19 @@ export default abstract class MediaFileAdapter {
 
   public abstract checkFileExist(mediaFile: MediaFileRecord): Promise<boolean>
 
-  public async toProcess(url: string, target: string, type: MediaFileTypes, force: boolean = false): Promise<MediaFileRecord> {
+  /**
+   * @param options.wait return only when the files are on disk; throw if they could not be
+   *   downloaded or processed, and then write no paths to the record.
+   *   Without it the files are processed in the background (menu sync).
+   */
+  public async toProcess(url: string, target: string, type: MediaFileTypes, force: boolean = false, options: { wait?: boolean } = {}): Promise<MediaFileRecord> {
     await this.wait()
     sails.log.silly(`Adapter > Mediafile > toProcess: ${url}`)
     let imageId = uuidv5(url, this.UUID_NAMESPACE);
     let mediaFile = await MediaFile.findOne({ id: imageId });
 
     let toDownload = force;
+    let created = false;
 
     // Todo: delete it in v3
     if (mediaFile !== undefined && !mediaFile.type) {
@@ -62,7 +68,15 @@ export default abstract class MediaFileAdapter {
       mediaFile = {
         id: imageId
       };
-      mediaFile = await MediaFile.create(mediaFile).fetch()
+      try {
+        mediaFile = await MediaFile.create(mediaFile).fetch()
+        created = true;
+      } catch (error) {
+        // the same url asked for at the same time: the other call has created the record
+        const existing = await MediaFile.findOne({ id: imageId });
+        if (!existing) throw error;
+        mediaFile = existing;
+      }
       toDownload = true;
     }
 
@@ -74,7 +88,14 @@ export default abstract class MediaFileAdapter {
       let originalFilePath = ""
       switch (type) {
         case "image":
-          const process =  await this.process(url, "image", loadConfig);
+          let process: Awaited<ReturnType<MediaFileAdapter["process"]>>;
+          try {
+            process = await this.process(url, "image", loadConfig, options.wait === true);
+          } catch (error) {
+            // a record that has never had a file is not left behind
+            if (created) await MediaFile.destroy({ id: imageId });
+            throw error;
+          }
           mediaFile.variant = process.variant
           originalFilePath = process.originalFilePath;
           break;
@@ -92,7 +113,8 @@ export default abstract class MediaFileAdapter {
           break;
       }
       /**
-       * The problem remains that we cannot know whether the picture has loaded or not, and therefore. if it doesn't exist you need to somehow remove MF
+       * Without options.wait the paths are written before the files exist; checkFileExist
+       * sends such a record to download again on the next toProcess.
        */
       mediaFile = (await MediaFile.update({ id: imageId }, { variant: mediaFile.variant, original: url, originalFilePath, type }).fetch())[0]
     }
@@ -100,5 +122,5 @@ export default abstract class MediaFileAdapter {
   };
 
 
-  public abstract process(url: string, type: MediaFileTypes, config: BaseConfigProperty): Promise<{variant: { origin: string, small: string, large: string }, originalFilePath: string}>;
+  public abstract process(url: string, type: MediaFileTypes, config: BaseConfigProperty, wait?: boolean): Promise<{variant: { origin: string, small: string, large: string }, originalFilePath: string}>;
 }

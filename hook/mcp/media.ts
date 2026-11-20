@@ -44,7 +44,7 @@ export function registerMediaTools() {
         const mfAdapter = await Adapter.getMediaFileAdapter();
         const sourceUrl = hasUrl ? input.url : uploadedFileUrl;
 
-        const mediaFile = await mfAdapter.toProcess(sourceUrl as string, target, 'image');
+        const mediaFile = await mfAdapter.toProcess(sourceUrl as string, target, 'image', false, { wait: true });
         return mediaFile.id;
     };
 
@@ -86,7 +86,7 @@ export function registerMediaTools() {
                 });
             }
 
-            const mediaFile = await mfAdapter.toProcess(sourceUrl, target, 'image');
+            const mediaFile = await mfAdapter.toProcess(sourceUrl, target, 'image', false, { wait: true });
             return {
                 mediaFileId: mediaFile.id,
                 url: mediaFile.original,

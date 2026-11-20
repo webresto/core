@@ -968,6 +968,7 @@
   "Zones from a file": "Зоны из файла",
   "No delivery product": "Без товара доставки",
   "Every zone in the file is created with these terms. The rest are set per zone afterwards.": "Каждая зона из файла создаётся с этими условиями. Остальные задаются у каждой зоны потом.",
+  "Fill in the delivery time and cost to choose a file.": "Укажите время и стоимость доставки, чтобы выбрать файл.",
   "Required with a map link. New layers and zones from the map are created with these terms; zones already here keep theirs.": "Обязательны при ссылке на карту. Новые слои и зоны из карты создаются с этими условиями; у зон, которые уже есть, условия не меняются.",
   "Fill in the delivery time and cost: no layer prices this row for it.": "Заполните время и стоимость доставки: никакой слой не задаёт их за эту строку.",
   "Cities": "Города",

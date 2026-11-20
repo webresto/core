@@ -92,3 +92,162 @@ describe("Media files: a picture by its address", function () {
     expect((await sharp(fs.readFileSync(files[0])).metadata()).format).to.equal("webp");
   });
 });
+
+/**
+ * The local media file adapter downloads an image by its url and writes the
+ * original in the configured format (webp) and its resized variants; the
+ * download itself goes once they are written. Asked to
+ * wait, it answers only once every file it names is on disk, whole, and throws
+ * when the image could not be had — leaving no record behind.
+ * The images come from a local server that sends them slowly, in chunks.
+ */
+describe("Local media file adapter", function () {
+  this.timeout(30000);
+
+  let jpeg: Buffer;
+  let server: http.Server;
+  let base: string;
+  const hits: Record<string, number> = {};
+  // resolved once Sails runs: the app works from its own directory
+  let publicDir: string;
+
+  before(async function () {
+    publicDir = path.resolve(".tmp/public");
+    jpeg = await sharp({ create: { width: 800, height: 600, channels: 3, background: { r: 128, g: 128, b: 128 }, noise: { type: "gaussian", mean: 128, sigma: 40 } } })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+    server = http.createServer((req, res) => {
+      const route = new URL(req.url!, "http://x").pathname;
+      hits[req.url!] = (hits[req.url!] ?? 0) + 1;
+      if (route === "/missing.jpg") {
+        res.writeHead(404).end();
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "image/jpeg", "Content-Length": jpeg.length });
+      const chunk = 8192;
+      let sent = 0;
+      const next = () => {
+        if (route === "/cut.jpg" && sent >= jpeg.length / 2) {
+          res.socket?.destroy();
+          return;
+        }
+        if (sent >= jpeg.length) {
+          res.end();
+          return;
+        }
+        res.write(jpeg.subarray(sent, sent + chunk));
+        sent += chunk;
+        setTimeout(next, 15);
+      };
+      next();
+    });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  });
+
+  after(async function () {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  });
+
+  const unique = (route: string) => `${base}${route}?t=${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  async function expectWholeVariants(mediaFile: any) {
+    expect(mediaFile.variant).to.have.keys("origin", "small", "large");
+    expect(mediaFile.variant.origin).to.match(/\.webp$/);
+    for (const key of ["origin", "small", "large"]) {
+      const file = path.join(publicDir, mediaFile.variant[key]);
+      expect(fs.existsSync(file), `${key} ${file}`).to.equal(true);
+      const meta = await sharp(file).metadata();
+      expect(meta.format, key).to.equal("webp");
+    }
+    // the whole picture, not a part of it
+    const origin = await sharp(path.join(publicDir, mediaFile.variant.origin)).metadata();
+    expect({ width: origin.width, height: origin.height }).to.deep.equal({ width: 800, height: 600 });
+  }
+
+  function partFiles(): string[] {
+    const dir = path.join(publicDir, "image");
+    return fs.existsSync(dir) ? fs.readdirSync(dir).filter((name) => name.endsWith(".part")) : [];
+  }
+
+  it("downloads the image whole once when asked for it twice at the same time, and the webp it names exists", async function () {
+    const adapter = await Adapter.getMediaFileAdapter();
+    const url = unique("/dish.jpg");
+
+    const [first, second] = await Promise.all([
+      adapter.toProcess(url, "dish", "image", false, { wait: true }),
+      adapter.toProcess(url, "dish", "image", false, { wait: true }),
+    ]);
+
+    expect(hits[url.slice(base.length)]).to.equal(1);
+    expect(first.id).to.equal(second.id);
+    await expectWholeVariants(first);
+    const raw = (adapter as any).getOriginalFilePath(url, "image", true, "jpg");
+    expect(fs.existsSync(raw), "the download").to.equal(false);
+    expect(partFiles()).to.deep.equal([]);
+  });
+
+  it("does not take a truncated file left on disk for a downloaded one", async function () {
+    const adapter = await Adapter.getMediaFileAdapter();
+    const url = unique("/dish.jpg");
+    const raw = (adapter as any).getOriginalFilePath(url, "image", true, "jpg");
+    fs.mkdirSync(path.dirname(raw), { recursive: true });
+    fs.writeFileSync(raw, jpeg.subarray(0, 11909));
+
+    const mediaFile = await adapter.toProcess(url, "dish", "image", false, { wait: true });
+
+    expect(hits[url.slice(base.length)]).to.equal(1);
+    await expectWholeVariants(mediaFile);
+    expect(fs.existsSync(raw), "the download").to.equal(false);
+  });
+
+  it("throws when the connection breaks off, and leaves neither a record nor a file", async function () {
+    const adapter = await Adapter.getMediaFileAdapter();
+    const url = unique("/cut.jpg");
+
+    let error: unknown;
+    try {
+      await adapter.toProcess(url, "dish", "image", false, { wait: true });
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error, "toProcess must throw").to.be.instanceOf(Error);
+    const raw = (adapter as any).getOriginalFilePath(url, "image", true, "jpg");
+    expect(fs.existsSync(raw)).to.equal(false);
+    expect(partFiles()).to.deep.equal([]);
+    expect(await MediaFile.find({ original: url })).to.have.length(0);
+    const id = require("uuid").v5(url, adapter.UUID_NAMESPACE);
+    expect(await MediaFile.findOne({ id })).to.equal(undefined);
+  });
+
+  it("throws on a url that answers 404, and leaves no record", async function () {
+    const adapter = await Adapter.getMediaFileAdapter();
+    const url = unique("/missing.jpg");
+
+    let error: unknown;
+    try {
+      await adapter.toProcess(url, "dish", "image", false, { wait: true });
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error, "toProcess must throw").to.be.instanceOf(Error);
+    const id = require("uuid").v5(url, adapter.UUID_NAMESPACE);
+    expect(await MediaFile.findOne({ id })).to.equal(undefined);
+  });
+
+  it("without waiting answers at once and has the files on disk afterwards (menu sync)", async function () {
+    const adapter = await Adapter.getMediaFileAdapter();
+    const url = unique("/dish.jpg");
+
+    const mediaFile = await adapter.toProcess(url, "dish", "image");
+    expect(mediaFile.variant.origin).to.match(/\.webp$/);
+
+    const deadline = Date.now() + 15000;
+    while (!(await adapter.checkFileExist(mediaFile)) && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    await expectWholeVariants(mediaFile);
+  });
+});

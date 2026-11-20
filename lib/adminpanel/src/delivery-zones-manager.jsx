@@ -429,6 +429,9 @@ function UploadZonesDialog({ onUpload, onClose, t }) {
               <Label style={styles.fieldLabel}>{t('Delivery cost')}</Label>
               <Input type="number" value={deliveryCost} onChange={(event) => setDeliveryCost(event.target.value)} />
             </div>
+            {!ready && (
+              <span style={styles.help}>{t('Fill in the delivery time and cost to choose a file.')}</span>
+            )}
           </div>
 
           <DialogStackFooter>

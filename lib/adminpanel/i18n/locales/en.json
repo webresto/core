@@ -762,6 +762,7 @@
   "Zones from a file": "Zones from a file",
   "No delivery product": "No delivery product",
   "Every zone in the file is created with these terms. The rest are set per zone afterwards.": "Every zone in the file is created with these terms. The rest are set per zone afterwards.",
+  "Fill in the delivery time and cost to choose a file.": "Fill in the delivery time and cost to choose a file.",
   "Required with a map link. New layers and zones from the map are created with these terms; zones already here keep theirs.": "Required with a map link. New layers and zones from the map are created with these terms; zones already here keep theirs.",
   "Fill in the delivery time and cost: no layer prices this row for it.": "Fill in the delivery time and cost: no layer prices this row for it.",
   "Cities": "Cities",
