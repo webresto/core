@@ -326,15 +326,17 @@ export class SalesChannelRegistry {
         comingSoon: true,
       },
       {
+        // Built and published by admin-frontend (the module gives two channels: the website and the app)
         type: "mobile-app",
         title: "Mobile app",
         category: "mobile",
-        providerModule: "sales-channel-mobile",
-        marketplaceAppId: "sales-channel-mobile",
+        providerModule: "admin-frontend",
+        marketplaceAppId: "admin-frontend",
         icon: "smartphone",
+        settingsUrl: "/admin/frontend/mobile",
         capabilities: ["orders:create", "orders:pay", "orders:status", "menu:browse", "customers:identify"],
+        supportsMultipleInstances: false,
         sourceModule: "core",
-        comingSoon: true,
       },
       {
         type: "kiosk",
