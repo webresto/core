@@ -1,4 +1,5 @@
 import { getDishPlaceBalanceMode, getEffectiveBalance, UNLIMITED_BALANCE } from '../../lib/menu/dish-place-balance';
+import { withoutBoxes } from '../../lib/menu/stock-items';
 
 declare const mcp: any;
 
@@ -43,7 +44,8 @@ export function registerStockTools() {
             const byDish = new Map(rows.map((row: any) => [idOf(row.dish), row]));
 
             const dishIds = all ? undefined : [...byDish.keys()];
-            const dishes = dishIds && !dishIds.length ? [] : await Dish.find(dishIds ? { id: dishIds } : { isDeleted: false });
+            // As the stock page: the variants of a dish with variants and not the dish, which has no stock of its own.
+            const dishes = dishIds && !dishIds.length ? [] : withoutBoxes(await Dish.find(dishIds ? { id: dishIds } : { isDeleted: false }));
 
             const items = dishes.map((dish: any) => {
                 const row: any = byDish.get(dish.id);

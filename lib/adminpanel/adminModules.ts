@@ -21,6 +21,7 @@ export const ADMIN_MODULE_ENTRIES = {
   WorktimeViewer: "src/controls/worktime-viewer.jsx",
   ModifiersEditor: "src/controls/modifiers-editor.jsx",
   TagsEditor: "src/controls/tags-editor.jsx",
+  VariantsEditor: "src/controls/variants-editor.jsx",
 
   OrderKanban: "src/order-kanban.jsx",
   NotificationsManager: "src/notifications-manager.jsx",

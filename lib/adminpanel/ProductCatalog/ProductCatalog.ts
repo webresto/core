@@ -39,6 +39,11 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 
 	public readonly actionHandlers: any[] = []
 
+	/** What narrows the rows of the model to those the tree shows. */
+	protected get listed(): Record<string, unknown> {
+		return {};
+	}
+
 	protected resolveModelId(modelId: string | number, data?: any): string | number {
 		return modelId ?? data?.record?.id ?? data?.id;
 	}
@@ -120,7 +125,8 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 		const records = await sails.models[this.model].find({
 			parentGroup: parentId == "0" ? null : parentId,
 			concept: catalogId,
-			isDeleted: false
+			isDeleted: false,
+			...this.listed
 		});
 		console.log(this.model, records.length)
 		return records.map((record: ItemModel) => this.toItem(record));
@@ -129,7 +135,8 @@ class BaseModelItem<T extends Item> extends AbstractItem<T> {
 	public async search(s: string, catalogId: string): Promise<T[]> {
 		const records = await sails.models[this.model].find({
 			name: { contains: s },
-			concept: catalogId
+			concept: catalogId,
+			...this.listed
 		});
 
 		return records.map((record: ItemModel) => this.toItem(record) as T);
@@ -195,6 +202,14 @@ export class Product<T extends Item> extends BaseModelItem<T> {
 	public model: string = "dish";
 	public readonly actionHandlers: any[] = []
 	public concept:  string = "origin";
+
+	/**
+	 * Without variants (`interfaces/Variants.ts`): a variant lies in the group of its box and is
+	 * edited from the box - the "Variants" control of its form. The tree and its search show the box.
+	 */
+	protected get listed(): Record<string, unknown> {
+		return { parentId: null };
+	}
 	
 	public async getAddTemplate(req: ReqType): Promise<{ type: "component" | "navigation.group" | "navigation.link" | "model"; data: any; }> {
 		let type: 'model' = 'model'

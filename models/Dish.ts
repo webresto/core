@@ -14,6 +14,8 @@ import { UserRecord } from "./User";
 import { GroupRecord } from "./Group";
 import { buildAuditDiff, logAuditEvent } from "../lib/auditLog";
 import { MenuContext } from "../interfaces/Menu";
+import { DishVariants } from "../interfaces/Variants";
+import { hasAttributes, syncVariants } from "../lib/menu/variants";
 
 /** Canonical business types for a catalog product. `Dish` remains the Sails model during migration. */
 export type ProductType = "dish" | "product" | "service";
@@ -213,6 +215,23 @@ let attributes = {
     model: "group",
   } as unknown as GroupRecord | any,
 
+  /**
+   * Of a variant: the id of its box, the dish it is a variant of (`interfaces/Variants.ts`).
+   *
+   * Written by the code that writes `variants.mappings` of the box — the hook of this model, a
+   * sync — and never by hand. A column and not a key of the box's json: variants lie in the
+   * group of their box, and a query leaves them out of a list by this.
+   */
+  parentId: {
+    type: "string",
+    allowNull: true,
+  } as unknown as string,
+
+  /** Of a box: its attributes and the table of its variants. A dish that has it is not sold itself and its price is not read. */
+  variants: {
+    type: "json",
+  } as unknown as DishVariants | null,
+
   /** Tags for filtering (vegetarian, sharp ...) */
   tags: {
     type: "json",
@@ -310,6 +329,7 @@ let Model = {
     }
 
     if (!init.modifiers) init.modifiers = []
+    if (!hasAttributes(init.variants)) init.variants = null;
     // `visible` defaults to true and `enable` to false via `defaultsTo`: Waterline fills in missing
     // attributes before `beforeCreate` runs, so a guard on `undefined` here never fires.
 
@@ -340,6 +360,7 @@ let Model = {
   beforeUpdate: async function (value: DishRecord, cb: (err?: string) => void) {
     emitter.emit('core:product-before-update', value);
     if (typeof value.type === "string" && value.type.trim() === "") delete value.type;
+    if (value.variants !== undefined && !hasAttributes(value.variants)) value.variants = null;
     if (value.customData) {
       if (value.id !== undefined) {
         let current = await Dish.findOne({ id: value.id });
@@ -351,12 +372,23 @@ let Model = {
     return cb();
   },
 
-  afterUpdate: function (record: DishRecord, cb: (err?: string) => void) {
+  // The variants first, the event after: a listener reads the box with its variants in place.
+  afterUpdate: async function (record: DishRecord, cb: (err?: unknown) => void) {
+    try {
+      await syncVariants(record);
+    } catch (error) {
+      return cb(error);
+    }
     emitter.emit('core:product-after-update', record);
     return cb();
   },
 
-  afterCreate: function (record: DishRecord, cb: (err?: string) => void) {
+  afterCreate: async function (record: DishRecord, cb: (err?: unknown) => void) {
+    try {
+      await syncVariants(record);
+    } catch (error) {
+      return cb(error);
+    }
     emitter.emit('core:product-after-create', record);
     logAuditEvent("model.dish", "created", {
       dishId: record.id,
@@ -373,7 +405,13 @@ let Model = {
     return cb();
   },
 
-  afterDestroy: function (record: DishRecord, cb: (err?: string) => void) {
+  // A destroyed box leaves its variants marked deleted, as a deleted one does.
+  afterDestroy: async function (record: DishRecord, cb: (err?: unknown) => void) {
+    try {
+      await syncVariants({ ...record, isDeleted: true });
+    } catch (error) {
+      return cb(error);
+    }
     emitter.emit('core:product-after-destroy', record);
     return cb();
   },
@@ -394,6 +432,8 @@ let Model = {
   async getDishes(criteria: any, context: MenuContext): Promise<DishRecord[]> {
     criteria.isDeleted = false;
     criteria.enable = true;
+    // A variant is read inside its box, not as a dish of the menu.
+    criteria.parentId = null;
 
     let dishes = await Dish.find(criteria).populate("images");
 
@@ -518,6 +558,7 @@ let Model = {
 
     const groupLimit = Math.max(Math.round(limit / ids.length), 1);
 
+    // A variant is no recommendation: the menu shows its box (`interfaces/Variants.ts`).
     let dishes = await sails.models.dish.find({
       where: {
         id: ids,
@@ -528,7 +569,8 @@ let Model = {
         'and': [
           { 'modifier': false },
           { 'isDeleted': false },
-          { 'enable': true }
+          { 'enable': true },
+          { 'parentId': null }
         ]
       },
       limit: groupLimit
@@ -537,7 +579,8 @@ let Model = {
         'and': [
           { 'modifier': false },
           { 'isDeleted': false },
-          { 'enable': true }
+          { 'enable': true },
+          { 'parentId': null }
         ]
       },
       limit: includeReverse ? groupLimit : 0

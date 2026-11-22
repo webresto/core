@@ -133,16 +133,30 @@ export default abstract class MenuAdapter {
    * takes longer to cook is hidden, whatever the adapter. Then the adapter's
    * `filterSellable`. A hidden product (`visible: false`) stays: whether to
    * show it is the storefront's decision.
+   *
+   * A dish with variants (`interfaces/Variants.ts`) is offered while one of its
+   * variants is: it has no stock of its own and is never sold itself, so its
+   * variants are what `filterSellable` is asked about. Core's rule, so an
+   * adapter's `filterSellable` sees only what can be sold and needs to know
+   * nothing of boxes.
    */
   public async filterProducts<T extends AvailabilityProduct>(
     products: T[],
     context: MenuContext,
   ): Promise<T[]> {
     const maxWaitMinutes = context.order?.maxWaitMinutes;
-    return this.filterSellable(
-      products.filter((product) => productFitsMaxWait(product, maxWaitMinutes)),
-      context,
-    );
+    const fitting = products.filter((product) => productFitsMaxWait(product, maxWaitMinutes));
+
+    const boxIds = fitting.filter((product) => product.variants).map((product) => String(product.id));
+    // A variant switched off or deleted is not sold, whatever its stock.
+    const variants: DishRecord[] = boxIds.length ? await Dish.find!({ parentId: boxIds, isDeleted: false, enable: true }) : [];
+
+    const sold = await this.filterSellable<AvailabilityProduct>([...fitting.filter((product) => !product.variants), ...variants], context);
+    const sellable = new Set(sold.map((product) => String(product.id)));
+    for (const variant of variants) {
+      if (sellable.has(String(variant.id))) sellable.add(String(variant.parentId));
+    }
+    return fitting.filter((product) => sellable.has(String(product.id)));
   }
 
   /**

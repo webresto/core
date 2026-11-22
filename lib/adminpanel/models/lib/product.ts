@@ -86,6 +86,8 @@ export class ProductConfig {
             title: "Is Modifiable",
             tooltip: "Indicates whether the product or dish can be modified through the modifier system. If true, the item can be adjusted or customized based on available modifiers."
         },
+        // Of a variant, the id of its box: written by the save of the box, never by hand.
+        parentId: hiddenField,
         parentGroup: {
             title: "Parent Group",
             tooltip: "The group or category to which the dish belongs. This indicates the hierarchical relationship of the dish within its parent group or category."

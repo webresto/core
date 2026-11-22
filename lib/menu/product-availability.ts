@@ -50,6 +50,8 @@ export interface AvailabilityProduct {
   type?: string | null;
   enable?: boolean | null;
   cookingTimeMax?: number | null;
+  /** Of a dish with variants (`interfaces/Variants.ts`): such a dish is sold through its variants. */
+  variants?: unknown;
 }
 
 export interface ProductAvailability {

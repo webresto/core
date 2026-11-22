@@ -126,6 +126,7 @@ function DishPicker({ t, value, onChange, names, setNames }) {
             {results.map((d) => (
               <button key={d.id} type="button" onMouseDown={() => add(d)} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', borderTop: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', cursor: 'pointer', fontSize: 13 }}>
                 {d.name}{d.code ? <span style={{ color: 'var(--muted-foreground)' }}> · {d.code}</span> : null}
+                {d.hasVariants ? <span style={{ color: 'var(--muted-foreground)' }}> · {t('all its variants')}</span> : null}
               </button>
             ))}
           </div>
@@ -136,6 +137,7 @@ function DishPicker({ t, value, onChange, names, setNames }) {
           {value.map((id) => (
             <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 8px', borderRadius: 999, background: 'var(--muted)', fontSize: 12 }}>
               {names[id]?.name || id}
+              {names[id]?.hasVariants && <span style={{ color: 'var(--muted-foreground)' }}>· {t('all its variants')}</span>}
               <DishStatusBadge t={t} dish={names[id]} />
               <button type="button" onClick={() => remove(id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}>✕</button>
             </span>
@@ -147,6 +149,7 @@ function DishPicker({ t, value, onChange, names, setNames }) {
 }
 
 // Gift dishes: each row is a free dish + amount. Search adds rows; amount is editable.
+// Without dishes with variants and their variants: neither is a gift for now (`Promotion.validateGift`).
 function GiftDishPicker({ t, value, onChange, names, setNames }) {
   const [q, setQ] = useState('');
   const [results, setResults] = useState([]);
@@ -157,7 +160,7 @@ function GiftDishPicker({ t, value, onChange, names, setNames }) {
   const load = useCallback(async (query) => {
     setLoading(true);
     const res = await api(`/core/marketing/dishes?q=${encodeURIComponent(query)}`);
-    const r = res.ok ? (res.payload?.results || []) : [];
+    const r = (res.ok ? (res.payload?.results || []) : []).filter((d) => !d.hasVariants && !d.isVariant);
     setResults(r);
     setSearched(true);
     setLoading(false);

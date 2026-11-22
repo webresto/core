@@ -8,6 +8,7 @@ import { CustomData } from "../interfaces/CustomData";
 import { UserRecord } from "./User";
 import { GroupRecord } from "./Group";
 import { MenuContext } from "../interfaces/Menu";
+import { DishVariants } from "../interfaces/Variants";
 /** Canonical business types for a catalog product. `Dish` remains the Sails model during migration. */
 export type ProductType = "dish" | "product" | "service";
 export declare const PRODUCT_TYPES: readonly ProductType[];
@@ -87,6 +88,16 @@ declare let attributes: {
     isModificable: boolean;
     /** Parental group */
     parentGroup: GroupRecord | any;
+    /**
+     * Of a variant: the id of its box, the dish it is a variant of (`interfaces/Variants.ts`).
+     *
+     * Written by the code that writes `variants.mappings` of the box — the hook of this model, a
+     * sync — and never by hand. A column and not a key of the box's json: variants lie in the
+     * group of their box, and a query leaves them out of a list by this.
+     */
+    parentId: string;
+    /** Of a box: its attributes and the table of its variants. A dish that has it is not sold itself and its price is not read. */
+    variants: DishVariants | null;
     /** Tags for filtering (vegetarian, sharp ...) */
     tags: any;
     /** The human easy readable */
@@ -127,9 +138,9 @@ export interface DishRecord extends RequiredField<OptionalAll<attributes>, "name
 declare let Model: {
     beforeCreate: (init: DishRecord, cb: (err?: string) => void) => Promise<void>;
     beforeUpdate: (value: DishRecord, cb: (err?: string) => void) => Promise<void>;
-    afterUpdate: (record: DishRecord, cb: (err?: string) => void) => void;
-    afterCreate: (record: DishRecord, cb: (err?: string) => void) => void;
-    afterDestroy: (record: DishRecord, cb: (err?: string) => void) => void;
+    afterUpdate: (record: DishRecord, cb: (err?: unknown) => void) => Promise<void>;
+    afterCreate: (record: DishRecord, cb: (err?: unknown) => void) => Promise<void>;
+    afterDestroy: (record: DishRecord, cb: (err?: unknown) => void) => Promise<void>;
     /**
      * Accepts Waterline Criteria and prepares it there isDeleted = false. Thus, this function allows
      *  finding in the base of the dishes according to the criterion and at the same time such that you can work with them to the user.

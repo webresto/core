@@ -99,6 +99,15 @@ function toStockProduct(
   };
 }
 
+/**
+ * Without dishes with variants (`interfaces/Variants.ts`): such a dish has no stock of its own -
+ * it is sold through its variants, and those are listed, as any product is. json is not a
+ * criterion of a portable query, so they go here.
+ */
+export function withoutBoxes<T extends { variants?: unknown }>(products: T[]): T[] {
+  return products.filter((product) => !product.variants);
+}
+
 async function findDishPlaces(placeId: string, productIds: string[]): Promise<Map<string, any>> {
   if (!productIds.length) return new Map();
   const rows = await DishPlace.find({ where: { place: placeId, dish: { in: productIds } } });
@@ -118,7 +127,7 @@ export async function getStockProducts(
   limit = 50,
 ): Promise<StockProductsResponse> {
   const mode = await getDishPlaceBalanceMode();
-  const products = await Dish.find({ where, limit }).populate("images");
+  const products = withoutBoxes(await Dish.find({ where, limit }).populate("images"));
   const balancesByProduct = await findDishPlaces(placeId, products.map((product: any) => String(product.id)));
 
   return {
@@ -149,10 +158,11 @@ export async function getLimitedStockProducts(placeId: string, limit = 50): Prom
   if (!limited.length) return { results: [], mode };
 
   const byProduct = new Map(limited.map((row: any) => [String(row.dish), row]));
-  const products = await Dish.find({
+  // A box keeps the rows it had as an ordinary dish, and they say nothing any more.
+  const products = withoutBoxes(await Dish.find({
     where: { isDeleted: false, id: { in: [...byProduct.keys()] } },
     limit,
-  }).populate("images");
+  }).populate("images"));
 
   return {
     results: products.map((product: any) => toStockProduct(product, byProduct.get(String(product.id)), mode)),

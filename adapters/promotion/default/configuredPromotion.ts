@@ -168,17 +168,22 @@ export default class ConfiguredPromotion extends AbstractPromotionHandler {
    * Products and groups are two axes, and a line has to pass both; an axis
    * nothing is chosen on, or `*`, passes every product. Concept and exclusions
    * are asked first.
+   *
+   * A variant (`interfaces/Variants.ts`) is chosen by itself or by its box, and
+   * excluded alike: the menu shows the box and a marketer picks it, while a line
+   * holds the variant.
    */
   private discounts(dish: DishRecord): boolean {
     if (!dish || typeof dish !== "object") return false;
     if (this.concept[0] !== undefined && this.concept[0] !== "" && !someInArray(dish.concept ?? "", this.concept)) return false;
 
-    const has = (list: string[] | null | undefined, value: unknown) => !!list?.includes(value as string);
-    if (has(this.config.exclude?.dishes, dish.id) || has(this.config.exclude?.groups, dish.parentGroup)) return false;
+    const has = (list: string[] | null | undefined, ...values: unknown[]) => values.some((value) => !!value && !!list?.includes(value as string));
+    const products = [dish.id, dish.parentId];
+    if (has(this.config.exclude?.dishes, ...products) || has(this.config.exclude?.groups, dish.parentGroup)) return false;
 
-    const passes = (chosen: string[] | null | undefined, value: unknown) =>
-      !chosen?.length || has(chosen, "*") || has(chosen, value);
-    return passes(this.config.dishes, dish.id) && passes(this.config.groups, dish.parentGroup);
+    const passes = (chosen: string[] | null | undefined, ...values: unknown[]) =>
+      !chosen?.length || has(chosen, "*") || has(chosen, ...values);
+    return passes(this.config.dishes, ...products) && passes(this.config.groups, dish.parentGroup);
   }
 
   public async action(order: OrderRecord): Promise<PromotionState> {

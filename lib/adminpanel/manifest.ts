@@ -394,6 +394,12 @@ export const adminPanelModules: AdminPanelModule[] = [
     routes: [{ method: "get", route: "/core/tags", controller: "src/controller/get-dish-tags" }],
   },
   {
+    // The attributes other dishes with variants use, behind the suggestions of the variants-editor
+    // control. The variants themselves it reads by id from `/core/modifiers/dishes`.
+    id: "variants-editor",
+    routes: [{ method: "get", route: "/core/variants/attributes", controller: "src/controller/get-variant-attributes" }],
+  },
+  {
     // The only CRUD surface for `DeliveryZone`. The model is deliberately not
     // registered with Adminizer — see the comment on `models/DeliveryZone.ts`.
     id: "delivery-zones-manager",
@@ -600,6 +606,7 @@ export const adminPanelControls: AdminPanelControl[] = [
   { name: "worktime-viewer", type: "jsonEditor", module: "controls/WorktimeViewerControl", export: "WorktimeViewerControl", asset: "WorktimeViewer.js" },
   { name: "modifiers-editor", type: "jsonEditor", module: "controls/ModifiersEditorControl", export: "ModifiersEditorControl", asset: "ModifiersEditor.js" },
   { name: "tags-editor", type: "jsonEditor", module: "controls/TagsEditorControl", export: "TagsEditorControl", asset: "TagsEditor.js" },
+  { name: "variants-editor", type: "jsonEditor", module: "controls/VariantsEditorControl", export: "VariantsEditorControl", asset: "VariantsEditor.js" },
 ];
 
 export const adminPanelCatalog = {

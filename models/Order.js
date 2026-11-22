@@ -18,6 +18,7 @@ const soft_delivery_1 = require("../lib/delivery/soft-delivery");
 const coordinate_1 = require("../lib/address/coordinate");
 const given_1 = require("../lib/address/given");
 const dish_place_balance_1 = require("../lib/menu/dish-place-balance");
+const variants_1 = require("../lib/menu/variants");
 const order_timing_1 = require("../lib/order/order-timing");
 const bindLocales_1 = require("../hook/bindLocales");
 const ProductModifier_1 = require("../lib/ProductModifier");
@@ -415,6 +416,22 @@ let Model = {
         }
         if (amount < 0)
             throw `Amount is subzero [${amount}]`;
+        // A deleted dish is out of the catalog: nobody puts it into a basket, a promotion included.
+        // `enable` is another switch and says nothing of it — a sync marks a dish deleted and
+        // leaves it switched on, as the hook of a box does to a variant it drops.
+        if (dishObj.isDeleted) {
+            throw new Error(`Dish [${dishObj.id}] is deleted`);
+        }
+        // A dish with variants is a wrapper: a basket takes one of its variants, and the price of
+        // the box is never read.
+        if (dishObj.variants) {
+            throw new Error(`Dish [${dishObj.id}] has variants and is not sold itself`);
+        }
+        // A variant is sold while its box is: the box is what the menu shows and what gets switched
+        // off or deleted.
+        if (dishObj.parentId && !(0, variants_1.boxSells)(await Dish.findOne({ id: dishObj.parentId }))) {
+            throw new Error(`Dish [${dishObj.id}] is a variant of a dish that is not on sale`);
+        }
         // The basket reads stock at the point the menu was read at, and asks the same
         // adapter for it. Two answers to "which kitchen" is how a customer ends up
         // adding a product they were shown and cannot have.
@@ -589,6 +606,7 @@ let Model = {
         if (replace) {
             orderDish = (await OrderDish.update({ id: orderDishId }, {
                 dish: dishObj.id,
+                parentDish: dishObj.parentId ?? null,
                 order: order.id,
                 amount: amount,
                 modifiers: modifiers,
@@ -599,6 +617,7 @@ let Model = {
         else {
             orderDish = await OrderDish.create({
                 dish: dishObj.id,
+                parentDish: dishObj.parentId ?? null,
                 order: order.id,
                 amount: amount,
                 modifiers: modifiers,
@@ -775,6 +794,7 @@ let Model = {
                 continue;
             await OrderDish.create({
                 dish: line.dish,
+                parentDish: line.parentDish,
                 order: snapshot.id,
                 amount: line.amount,
                 modifiers: line.modifiers,
@@ -1581,6 +1601,9 @@ let Model = {
                     diagnostics: placement.plan.diagnostics ?? [],
                 });
             }
+            // The boxes of the variants in the basket, read once for the loop below.
+            const boxIds = [...new Set(orderDishes.map((line) => line.dish?.parentId).filter(Boolean))];
+            const boxes = new Map((boxIds.length ? await Dish.find({ id: boxIds }) : []).map((box) => [box.id, box]));
             /** Products this recalculation dropped because nothing is left of them. */
             const droppedProducts = [];
             /** Those of them whose line moved to another kitchen. */
@@ -1613,10 +1636,21 @@ let Model = {
                             await OrderDish.destroy({ id: orderDish.id }).fetch();
                             continue;
                         }
-                        if (dish.enable === false) {
-                            sails.log.warn(`Dish with id ${dish.id} is disabled and removed from cart.`);
-                            await Order.log({ id: order.id }, "info", "core", "countCart: removed disabled dish", { orderDishId: orderDish.id, dishId: dish.id, dishName: dish.name });
+                        // Switched off or deleted, the dish is not on sale. A variant goes with its box: a
+                        // box switched off or deleted sells none of them.
+                        if (dish.enable === false || dish.isDeleted || (dish.parentId && !(0, variants_1.boxSells)(boxes.get(dish.parentId)))) {
+                            sails.log.warn(`Dish with id ${dish.id} is not on sale and removed from cart.`);
+                            await Order.log({ id: order.id }, "info", "core", "countCart: removed a dish that is not on sale", { orderDishId: orderDish.id, dishId: dish.id, dishName: dish.name });
                             await OrderDish.destroy({ id: orderDish.id }).fetch();
+                            continue;
+                        }
+                        // The dish got variants while it lay in the basket. Its own price is not a price any
+                        // more — the recount would read 0 — and the customer is told, as of a product the
+                        // kitchen ran out of: which variant to take instead is theirs to choose.
+                        if (dish.variants) {
+                            droppedProducts.push(dish.name);
+                            await OrderDish.destroy({ id: orderDish.id }).fetch();
+                            Order.emitAndLogDetached({ id: order.id }, "core:orderproduct-change-amount", { ...orderDish, amount: 0 });
                             continue;
                         }
                         const placed = placement.byOrderDish.get(orderDish.id);

@@ -196,7 +196,8 @@ let Model = {
                 enable: true
             } })
             .populate("childGroups")
-            .populate("dishes")
+            // Without variants: a variant is read inside its box.
+            .populate("dishes", { where: { parentId: null } })
             .populate("images");
         const errors = {};
         for await (let group of groups) {
@@ -218,7 +219,7 @@ let Model = {
                         enable: true
                     })
                         .populate("childGroups")
-                        .populate("dishes")
+                        .populate("dishes", { where: { parentId: null } })
                         .populate("images");
                     for await (let cg of cgs) {
                         try {
@@ -458,7 +459,9 @@ let Model = {
                 'and': [
                     { 'modifier': false },
                     { 'isDeleted': false },
-                    { 'enable': true }
+                    { 'enable': true },
+                    // A variant is no recommendation: the menu shows its box (`interfaces/Variants.ts`).
+                    { 'parentId': null }
                 ]
             },
             limit: includeReverse ? groupLimit : 0
@@ -474,10 +477,12 @@ let Model = {
         }
         // Stock is per cooking point, so it is filtered out of the result below
         // rather than asked for in the query.
+        // Variants lie in the group of their box and are not offered by themselves.
         const baseCriteriaDish = {
             modifier: false,
             isDeleted: false,
-            enable: true
+            enable: true,
+            parentId: null
         };
         let recommendedDishes = await sails.models.dish.find({
             where: {

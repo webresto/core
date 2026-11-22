@@ -6,8 +6,10 @@
  * catalogs — e.g. gfcafe/iiko — have zero dishes flagged `modifier: true`, and the old
  * modifiers-only default made the picker return nothing there); dishes flagged
  * `modifier: true` are sorted first. Pass onlyModifiers=1 to narrow to flagged dishes
- * only. Exact-id lookups always resolve regardless of flags so already-referenced
- * options stay visible. Access is gated by the `catalog-products` token.
+ * only. A dish with variants and its variants are not options. Exact-id lookups always
+ * resolve regardless of flags so already-referenced options stay visible - and so the
+ * variants-editor control reads its variants here. Access is gated by the
+ * `catalog-products` token.
  *
  * Besides picker fields, returns price/weight/measureUnit/images/notForSale/description
  * so the modifiers preview popup can render option cards and compute the total price.
@@ -65,7 +67,9 @@ export default async function GetModifierDishesController(req: any, res: any) {
       // Exact lookup resolves referenced options even if they are not flagged as modifiers.
       where = { id: ids };
     } else {
-      where = { isDeleted: false };
+      // Without the variants of dishes (`interfaces/Variants.ts`): a variant is chosen inside its
+      // dish, and offered as an option it is one of several rows of one name.
+      where = { isDeleted: false, parentId: null };
       if (onlyModifiers) where.modifier = true;
       if (group) where.parentGroup = group;
       if (q) {
@@ -77,7 +81,10 @@ export default async function GetModifierDishesController(req: any, res: any) {
     }
 
     // No stock here: it lives per kitchen, and a picker has no kitchen of its own.
-    const dishes = await Dish.find({ where, limit: 200 }).populate("images").sort("name ASC");
+    const found = await Dish.find({ where, limit: 200 }).populate("images").sort("name ASC");
+    // Nor a dish that has variants: it is not sold itself and its price is not a price. json is
+    // not a criterion of a portable query, so those go here.
+    const dishes = ids.length ? found : found.filter((d: any) => !d.variants);
     // Flagged modifier dishes first (stable within: name ASC from the query above).
     if (!ids.length) dishes.sort((a: any, b: any) => Number(Boolean(b.modifier)) - Number(Boolean(a.modifier)));
     const results = dishes.map((d: any) => ({
