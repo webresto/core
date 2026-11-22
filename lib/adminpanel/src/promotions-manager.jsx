@@ -275,7 +275,7 @@ function ConfiguredForm({ t, language, draft, setDraft, baseline, saving, creati
       parts.push(`🎁 ${t('gift')}: ${n} ${t('dishes')}${draft.giftMinBasketTotal ? ` ${t('from')} ${formatMoney(draft.giftMinBasketTotal, language)} ₽` : ''}`);
     }
     const delivery = draft.serviceType.length && draft.serviceType.length < SERVICE_TYPES.length
-      ? `, ${draft.serviceType.map((s) => t(SERVICE_TYPE_LABEL[s])).join(' / ')} ${t('only')}` : '';
+      ? `, ${t('{types} only', { types: draft.serviceType.map((s) => t(SERVICE_TYPE_LABEL[s])).join(' / ') })}` : '';
     const joint = draft.isJoint ? t('stacks with others') : t('exclusive');
     if (!parts.length) parts.push(t('No discount configured'));
     return `${parts.join(' · ')}${delivery} · ${joint}`;

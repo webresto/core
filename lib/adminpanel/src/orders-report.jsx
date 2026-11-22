@@ -216,11 +216,11 @@ function OrdersReportContent({ locale }) {
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Button variant="outline" size="icon" onClick={() => navigateMonth(-1)} title="Previous month" style={{ width: 32, height: 32, fontSize: 18, fontWeight: 700 }}>‹</Button>
+            <Button variant="outline" size="icon" onClick={() => navigateMonth(-1)} title={t('Previous month')} style={{ width: 32, height: 32, fontSize: 18, fontWeight: 700 }}>‹</Button>
             <span style={{ fontWeight: 600, fontSize: 15, minWidth: 160, textAlign: 'center' }}>
               {isMonthRange ? formatMonthLabel(anchorMonth, language) : t('Custom range')}
             </span>
-            <Button variant="outline" size="icon" onClick={() => navigateMonth(1)} title="Next month" style={{ width: 32, height: 32, fontSize: 18, fontWeight: 700 }}>›</Button>
+            <Button variant="outline" size="icon" onClick={() => navigateMonth(1)} title={t('Next month')} style={{ width: 32, height: 32, fontSize: 18, fontWeight: 700 }}>›</Button>
           </div>
 
           <div style={{ width: 1, height: 28, background: 'var(--border)', margin: '0 4px' }} />

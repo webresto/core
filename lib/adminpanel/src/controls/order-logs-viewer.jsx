@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { usePage } from '@inertiajs/react';
+import { useAdminTranslation } from '../i18n/admin-messages';
 
 const LEVELS = ['debug', 'info', 'warn', 'error'];
 const LEVEL_COLOR = {
@@ -9,27 +9,6 @@ const LEVEL_COLOR = {
   error: '#f87171',
 };
 const ALL_MODULES_VALUE = '__all_modules__';
-
-function normalizeLocale(rawLocale) {
-  const normalized = String(rawLocale || '').trim().toLowerCase().replace(/_/g, '-');
-  if (!normalized) return 'en';
-  const base = normalized.split('-')[0];
-  return base === 'uk' ? 'ua' : (base || normalized);
-}
-
-function createT(messages) {
-  const dictionary = messages || {};
-  return (key) => dictionary[key] || key;
-}
-
-function useOptionalPageProps() {
-  try {
-    const page = usePage();
-    return page?.props || {};
-  } catch {
-    return {};
-  }
-}
 
 function safeStringify(value) {
   if (value === undefined || value === null) return '';
@@ -89,10 +68,11 @@ function normalizeLogs(initialValue, t) {
 }
 
 function OrderLogsViewer({ initialValue }) {
-  const pageProps = useOptionalPageProps();
-  const locale = useMemo(() => normalizeLocale(pageProps?.locale), [pageProps?.locale]);
-  const messages = useMemo(() => pageProps?.messages || pageProps?.uiMessages || {}, [pageProps?.messages, pageProps?.uiMessages]);
-  const t = useMemo(() => createT(messages), [messages, locale]);
+  const t = useAdminTranslation();
+  return t ? <OrderLogs initialValue={initialValue} t={t} /> : null;
+}
+
+function OrderLogs({ initialValue, t }) {
   const logs = useMemo(() => normalizeLogs(initialValue, t), [initialValue, t]);
   const [query, setQuery] = useState('');
   const [activeLevels, setActiveLevels] = useState(() => new Set(LEVELS));

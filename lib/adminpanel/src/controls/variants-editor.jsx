@@ -1,20 +1,9 @@
-import React, { useCallback, useMemo } from 'react';
-import { usePage } from '@inertiajs/react';
+import React, { useCallback } from 'react';
 import VariantsEditor from '../components/VariantsEditor';
-
-function useOptionalPageProps() {
-  try {
-    const page = usePage();
-    return page?.props || {};
-  } catch {
-    return {};
-  }
-}
+import { useAdminTranslation } from '../i18n/admin-messages';
 
 function VariantsEditorControl({ initialValue, onChange }) {
-  const pageProps = useOptionalPageProps();
-  const messages = useMemo(() => pageProps?.messages || pageProps?.uiMessages || {}, [pageProps?.messages, pageProps?.uiMessages]);
-  const t = useCallback((key) => messages[key] || key, [messages]);
+  const t = useAdminTranslation();
 
   // adminizer's jsonEditor field reads the new value from `event.json`.
   const handleChange = useCallback(
@@ -24,6 +13,7 @@ function VariantsEditorControl({ initialValue, onChange }) {
     [onChange],
   );
 
+  if (!t) return null;
   return <VariantsEditor value={initialValue} onChange={handleChange} t={t} />;
 }
 

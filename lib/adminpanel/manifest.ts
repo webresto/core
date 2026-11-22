@@ -137,8 +137,6 @@ export interface AdminPanelControl {
 export const adminPanelMiddlewares: AdminPanelMiddleware[] = [
   // Admin API responses must not be cached by the browser or a proxy in front of it.
   { id: "core-no-store", route: "/core", handler: "src/middleware/no-store" },
-  // Inertia pages read the admin locale from shared props.
-  { id: "inertia-locale", route: "", handler: "src/middleware/inertia-locale" },
 ];
 
 export const adminPanelModules: AdminPanelModule[] = [
@@ -387,6 +385,12 @@ export const adminPanelModules: AdminPanelModule[] = [
       { method: "get", route: "/core/modifiers/dishes", controller: "src/controller/get-modifier-dishes" },
       { method: "post", route: "/core/modifiers/dish-image", controller: "src/controller/upload-modifier-dish-image" },
     ],
+  },
+  {
+    // The dictionary of the core's controls. They live on the panel's own model forms, whose props
+    // do not carry it, so each control asks for it (`src/i18n/admin-messages.js`).
+    id: "admin-messages",
+    routes: [{ method: "get", route: "/core/i18n/messages", controller: "src/controller/get-admin-messages" }],
   },
   {
     // Autocomplete of tag names already used in the catalog, behind the tags-editor control.
