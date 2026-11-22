@@ -127,5 +127,5 @@
     "format": "npx prettier --write \"**/*.ts\""
   },
   "appId": "restocore",
-  "version": "3.0.0"
+  "version": "2.8.0"
 }
