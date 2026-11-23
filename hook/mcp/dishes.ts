@@ -1,4 +1,5 @@
 import { boundedPage, DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT } from './pagination';
+import { liveBySlug } from './slug';
 
 declare const mcp: any;
 
@@ -39,7 +40,7 @@ export function registerDishesTools() {
     mcp.registerTool({
         name: 'dish-get',
         group: 'dishes',
-        description: 'Returns a single dish by id or slug. Includes all fields: price, description, SEO, worktime, modifiers.',
+        description: 'Returns a single dish by id or slug. Includes all fields: price, description, SEO, worktime, modifiers. By slug - the live (not deleted) dish; two live dishes of one slug - an error naming both, ask by id.',
         mode: 'protected',
         schema: {
             type: 'object',
@@ -50,7 +51,7 @@ export function registerDishesTools() {
         },
         handler: async ({ id, slug }: { id?: string; slug?: string }) => {
             if (id)   return await Dish.findOne({ id }) ?? null;
-            if (slug) return await Dish.findOne({ slug }) ?? null;
+            if (slug) return liveBySlug(await Dish.find!({ slug, isDeleted: false }), slug, 'dishes');
             throw new Error('Provide id or slug');
         },
     });

@@ -88,6 +88,8 @@ declare global {
     ROOT_GROUPS_RMS_TO_SYNC: string[]
     SKIP_LOAD_PRODUCT_IMAGES: boolean
     DELETE_EXISTING_IMAGES_BEFORE_SYNC: boolean
+    /** The RMS sync writes sortOrder of dishes and groups; off - the order is kept here */
+    SYNC_SORT_ORDER: boolean
     SHOW_UNAVAILABLE_DISHES: boolean
     /** Source of the effective stock at a cooking point: local-only | rms-only | minimum */
     DISH_PLACE_BALANCE_MODE: string
