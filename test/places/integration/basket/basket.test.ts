@@ -10,6 +10,7 @@ import { lines, newBasket, thrown } from "../../support/storefront";
  *
  *   Dish 1: 100, 100 g. Dish 2: 50, 200 g.
  *   Dish 3: 200, 300 g, with a modifier group whose Modifier 1 (10, 5 g) is on by default.
+ *   Dish 4, 5, 6: 100, made by the tests that delete them or switch them off.
  */
 describe("Basket", function () {
   const d: Record<string, any> = {};
@@ -139,6 +140,38 @@ describe("Basket", function () {
       expect(order.dishesCount).to.equal(9);
       expect(order.basketTotal).to.equal(5 * 100 + 3 * 50 + (200 + 10));
       expect(order.totalWeight).to.equal(5 * 100 + 3 * 200 + (300 + 5));
+    });
+  });
+
+  describe("a dish that is not on sale any more", function () {
+    const own = async (name: string): Promise<any> => Dish.create!({ name, price: 100, enable: true }).fetch();
+
+    it("refuses a deleted dish, whoever adds it", async function () {
+      const id = await newBasket();
+      const dish4 = await own("Dish 4");
+      await Dish.update!({ id: dish4.id }, { isDeleted: true }).fetch();
+
+      for (const addedBy of ["user", "promotion"] as const) {
+        const error = await thrown(Order.addDish({ id }, dish4.id, 1, [], "", addedBy));
+        expect(String(error?.message), addedBy).to.contain("is deleted");
+      }
+      expect(await lines(id)).to.deep.equal({});
+    });
+
+    it("the recount drops a dish deleted or switched off while it lay in the basket", async function () {
+      const id = await newBasket();
+      const dish5 = await own("Dish 5");
+      const dish6 = await own("Dish 6");
+      await add(id, d.dish1);
+      await add(id, dish5);
+      await add(id, dish6);
+
+      await Dish.update!({ id: dish5.id }, { isDeleted: true }).fetch();
+      await Dish.update!({ id: dish6.id }, { enable: false }).fetch();
+      const order = await Order.countCart({ id });
+
+      expect(await lines(id)).to.deep.equal({ "Dish 1": 1 });
+      expect(order.basketTotal).to.equal(100);
     });
   });
 

@@ -37,6 +37,10 @@ export default async function GetMarketingDishesController(req: any, res: any) {
       enable: d.enable !== false,
       visible: d.visible !== false,
       notForSale: Boolean(d.notForSale),
+      // A dish with variants and a variant (`interfaces/Variants.ts`): in a condition the first
+      // stands for all its variants; neither is a gift.
+      hasVariants: Boolean(d.variants),
+      isVariant: Boolean(d.parentId),
     }));
 
     return res.json({ results });

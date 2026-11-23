@@ -62,6 +62,48 @@ const tagsListField = {
 // CRUD screens.
 const hiddenField = { visible: false };
 
+// A dish with variants (`interfaces/Variants.ts`): the "variants-editor" custom control holds the
+// attributes and the list of variants in add/edit; the list shows how many variants a dish has.
+const variantsEditField = {
+  title: "Variants",
+  type: "json",
+  tooltip: "A size, a crust, a number of pieces: each combination is a variant with its own price, stock and pictures.",
+  options: {
+    name: "variants-editor",
+  },
+};
+const variantsListField = {
+  title: "Variants",
+  displayModifier(value: any) {
+    return value?.mappings?.length ? String(value.mappings.length) : "";
+  },
+};
+
+/**
+ * The form of one variant: what a variant has of its own. The name is built of the box and of the
+ * values; the group, the hours, the tags, the modifiers and the rest of what a variant shares come
+ * from the box at each save of it; the page and its SEO are the box's - none of those is here.
+ * Adminizer shows every attribute of a model it is not told to hide, hence the full list.
+ */
+function variantFormFields() {
+  const product: Record<string, any> = ProductConfig.fields;
+  const hidden = Object.fromEntries(
+    [...Object.keys(require("../../../models/Dish").attributes), "createdAt", "updatedAt"].map((key) => [key, hiddenField]),
+  );
+  const own = [
+    "weight", "description", "images",
+    "energyAmount", "energyFullAmount", "proteinAmount", "proteinFullAmount", "fatAmount", "fatFullAmount",
+    "carbohydrateAmount", "carbohydrateFullAmount", "fiberAmount", "fiberFullAmount",
+  ];
+  return {
+    ...hidden,
+    name: { title: "Name", disabled: true, tooltip: "Built of the name of the dish and of the values of the variant." },
+    price: { title: "Price" },
+    enable: { title: "Enable", tooltip: "Switched off, the variant cannot be chosen; the dish stays in the menu with its other variants." },
+    ...Object.fromEntries(own.map((key) => [key, product[key]])),
+  };
+}
+
 export const models = {
   Customer: {
     title: "Customers",
@@ -151,6 +193,8 @@ export const models = {
   },
   dish: {
     model: 'dish',
+    // `DishVariant` below is a second page over the same model.
+    primary: true,
     title: 'Products',
     icon: 'restaurant_menu',
     list: {
@@ -158,6 +202,8 @@ export const models = {
       fields: {
         ...ProductConfig.list().fields,
         tags: tagsListField,
+        variants: variantsListField,
+        parentId: hiddenField,
       },
     },
     edit: {
@@ -167,6 +213,7 @@ export const models = {
         worktime: worktimeEditField,
         modifiers: modifiersEditField,
         tags: tagsEditField,
+        variants: variantsEditField,
       },
     },
     add: {
@@ -176,8 +223,22 @@ export const models = {
         worktime: worktimeEditField,
         modifiers: modifiersEditField,
         tags: tagsEditField,
+        variants: variantsEditField,
       },
     },
+  },
+  // The short form of a variant of a dish (`interfaces/Variants.ts`), opened from the "Variants"
+  // control of its box in a side panel. The same model: a variant is a dish. Not in the
+  // navigation, no list, no adding and no deleting - the save of the box makes and deletes its
+  // variants.
+  DishVariant: {
+    model: 'dish',
+    title: 'Variant of a product',
+    navbar: { visible: false },
+    list: false,
+    add: false,
+    remove: false,
+    edit: { fields: variantFormFields() },
   },
   DishGroup: {
     model: 'group',

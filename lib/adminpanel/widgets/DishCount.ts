@@ -4,7 +4,8 @@ export default class DishCountWidget extends InfoBase {
     backgroundCSS: string;
 	readonly widgetType = "info"
 	async getInfo(): Promise<string> {
-		return await Dish.count({isDeleted: false, concept: "origin"})+""
+		// As the catalog it leads to: a dish with variants once, its variants not (`interfaces/Variants.ts`).
+		return await Dish.count!({isDeleted: false, concept: "origin", parentId: null} as any)+""
 	}
 
 	public icon: string = "modestandby";

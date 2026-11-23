@@ -13,6 +13,15 @@ declare let attributes: {
     /**The dish that is contained in the cart */
     /** any problem */
     dish: DishRecord | string;
+    /**
+     * The box of the line's dish, when that dish is a variant (`interfaces/Variants.ts`); `null`
+     * for an ordinary dish.
+     *
+     * `dish` is the variant and not the box: the price, the weight, the stock, the cash register
+     * and the merging of equal lines all read `dish`, and with a box there each of them would be
+     * wrong silently — a price of 0, two sizes in one line. The box is kept for history and display.
+     */
+    parentDish: DishRecord | string | null;
     /** Selected modifiers */
     modifiers: OrderModifier[];
     /** */

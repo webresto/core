@@ -138,9 +138,12 @@ export class BackupHandler {
         console.log(`Created group: ${groupData.name}`);
       }
   
-      // Creating dishes from imported data
+      // Creating dishes from imported data. The dishes with variants before the variants
+      // (`interfaces/Variants.ts`): a box that is destroyed or created brings its variants in line
+      // with it (`syncVariants`), and done after them it would mark deleted the ones just restored.
       console.log(`Creating dishes...`);
-      for (let dishData of importedData.dishes) {
+      const dishesInOrder = [...importedData.dishes].sort((a: DishRecord, b: DishRecord) => Number(Boolean(a.parentId)) - Number(Boolean(b.parentId)));
+      for (let dishData of dishesInOrder) {
         if(await Dish.findOne(dishData.id)) {
           await Dish.destroy(dishData.id).fetch()
         }

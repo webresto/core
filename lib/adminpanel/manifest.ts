@@ -137,8 +137,6 @@ export interface AdminPanelControl {
 export const adminPanelMiddlewares: AdminPanelMiddleware[] = [
   // Admin API responses must not be cached by the browser or a proxy in front of it.
   { id: "core-no-store", route: "/core", handler: "src/middleware/no-store" },
-  // Inertia pages read the admin locale from shared props.
-  { id: "inertia-locale", route: "", handler: "src/middleware/inertia-locale" },
 ];
 
 export const adminPanelModules: AdminPanelModule[] = [
@@ -389,9 +387,21 @@ export const adminPanelModules: AdminPanelModule[] = [
     ],
   },
   {
+    // The dictionary of the core's controls. They live on the panel's own model forms, whose props
+    // do not carry it, so each control asks for it (`src/i18n/admin-messages.js`).
+    id: "admin-messages",
+    routes: [{ method: "get", route: "/core/i18n/messages", controller: "src/controller/get-admin-messages" }],
+  },
+  {
     // Autocomplete of tag names already used in the catalog, behind the tags-editor control.
     id: "tags-editor",
     routes: [{ method: "get", route: "/core/tags", controller: "src/controller/get-dish-tags" }],
+  },
+  {
+    // The attributes other dishes with variants use, behind the suggestions of the variants-editor
+    // control. The variants themselves it reads by id from `/core/modifiers/dishes`.
+    id: "variants-editor",
+    routes: [{ method: "get", route: "/core/variants/attributes", controller: "src/controller/get-variant-attributes" }],
   },
   {
     // The only CRUD surface for `DeliveryZone`. The model is deliberately not
@@ -600,6 +610,7 @@ export const adminPanelControls: AdminPanelControl[] = [
   { name: "worktime-viewer", type: "jsonEditor", module: "controls/WorktimeViewerControl", export: "WorktimeViewerControl", asset: "WorktimeViewer.js" },
   { name: "modifiers-editor", type: "jsonEditor", module: "controls/ModifiersEditorControl", export: "ModifiersEditorControl", asset: "ModifiersEditor.js" },
   { name: "tags-editor", type: "jsonEditor", module: "controls/TagsEditorControl", export: "TagsEditorControl", asset: "TagsEditor.js" },
+  { name: "variants-editor", type: "jsonEditor", module: "controls/VariantsEditorControl", export: "VariantsEditorControl", asset: "VariantsEditor.js" },
 ];
 
 export const adminPanelCatalog = {

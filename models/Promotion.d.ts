@@ -53,6 +53,8 @@ declare let Model: {
     /**
      * A gift dish must be `notForSale` (free gift) or `promo` (special price): the guest
      * can't add such a dish himself, so his row never merges with the gift row in addDish.
+     * Nor a dish with variants or a variant (`interfaces/Variants.ts`): not done for now - a box is not
+     * sold itself, and which of its variants a gift would be is not decided.
      * Returns the error message, or null when the gift config is fine.
      */
     validateGift(configDiscount: IconfigDiscount): Promise<string | null>;

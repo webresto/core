@@ -265,9 +265,8 @@ export default abstract class RMSAdapter {
                 }
 
                 let createdProduct = await Dish.createOrUpdate(product);
-
-                // Set isDeleted for absent products in RMS
-                await Dish.update({ id: { "!=": allProductIds } }, { isDeleted: true }).fetch();
+                // What the RMS no longer lists is marked deleted once, after the loop: marked here, after every
+                // product, every dish of the groups still to come left the menu for the time of the sync.
                 sails.log.silly(`ADAPTER RMS > syncProducts sync Group [${group.id}] '${group.name}' dishes:`, JSON.stringify(productIds));
 
                 if (product.images && product.images.length && !SKIP_LOAD_PRODUCT_IMAGES) {
