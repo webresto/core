@@ -171,8 +171,11 @@ export function knownHouse(nodes: AddressRecord[], line: string, home: string): 
  * A replace deleted our streets, so a cached house may hang from nothing; an upload without replace
  * may have brought our street for a cached one. Either way the house goes under our street of its
  * `cache.street`, and with none, under a cached street of that name. A cached house that is ours
- * now — closer than `SNAP_METERS` to one of our places, or of that number under our street — is
- * deleted: the catalog is the answer. So is a cached street left without houses.
+ * now is deleted: the catalog is the answer. Ours is a house of its number — under our street of
+ * its line, or closer than `SNAP_METERS` whatever its line says (the geocoder named the street its
+ * own way), unless the line names another of our streets. Another number at the same place is
+ * another address and stays: a corner house has one on each street, "24a" stands beside "24", the
+ * catalog knows one and the other was typed. So is a cached street left without houses.
  */
 export async function relinkCache(city: string): Promise<void> {
   const nodes: AddressRecord[] = await Address.find!({ city });
@@ -184,7 +187,12 @@ export async function relinkCache(city: string): Promise<void> {
   };
 
   for (const house of nodes.filter((node) => node.cache && node.type === "house")) {
-    if (isValidCoordinate(house.point) && placeAt(ours, house.point)) {
+    const point = house.point;
+    const twin = isValidCoordinate(point)
+      ? ours.find((node) => node.type === "house" && sameHouse(node.name, house.name) && isValidCoordinate(node.point) && distanceKm(point, node.point) * 1000 <= SNAP_METERS)
+      : undefined;
+    const own = twin ? ourStreet(ours, house.cache!.street, point) : null;
+    if (twin && !(own && own.id !== parentOf(twin))) {
       await drop(house);
       continue;
     }

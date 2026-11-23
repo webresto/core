@@ -1,0 +1,9 @@
+{
+  "key": "SYNC_SORT_ORDER",
+  "type": "boolean",
+  "name": "Sort order from RMS sync",
+  "description": "If true, the RMS sync writes the order of dishes and categories (sortOrder) as the RMS gives it. If false, the sync leaves sortOrder alone: the order is kept here, in the admin panel",
+  "readOnly": false,
+  "defaultValue": true,
+  "isRequired": true
+}

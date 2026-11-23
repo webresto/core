@@ -190,6 +190,8 @@ export default abstract class RMSAdapter {
 
           const VISIBLE_BY_DEFAULT_ON_SYNC = (await Settings.get("VISIBLE_BY_DEFAULT_ON_SYNC")) ?? true;
           const ENABLE_BY_DEFAULT_ON_SYNC = (await Settings.get("ENABLE_BY_DEFAULT_ON_SYNC")) ?? true;
+          // off: the order of the menu is kept here - the sortOrder the RMS gives is not written
+          const SYNC_SORT_ORDER = await Settings.get("SYNC_SORT_ORDER");
 
           const rmsAdapter = await Adapter.getRMSAdapter();
 
@@ -223,6 +225,8 @@ export default abstract class RMSAdapter {
               if (group.enable === undefined && ENABLE_BY_DEFAULT_ON_SYNC === true) {
                 group.enable = ENABLE_BY_DEFAULT_ON_SYNC;
               }
+
+              if (!SYNC_SORT_ORDER) delete group.sortOrder;
 
               // Update or create a group
               const groupData = { ...group, isDeleted: false };
@@ -263,6 +267,8 @@ export default abstract class RMSAdapter {
                 if (product.enable === undefined && ENABLE_BY_DEFAULT_ON_SYNC === true) {
                   product.enable = ENABLE_BY_DEFAULT_ON_SYNC;
                 }
+
+                if (!SYNC_SORT_ORDER) delete product.sortOrder;
 
                 let createdProduct = await Dish.createOrUpdate(product);
                 // What the RMS no longer lists is marked deleted once, after the loop: marked here, after every

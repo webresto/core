@@ -1,4 +1,5 @@
 import { boundedPage, DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT } from './pagination';
+import { liveBySlug } from './slug';
 
 declare const mcp: any;
 
@@ -34,7 +35,7 @@ export function registerGroupsTools() {
     mcp.registerTool({
         name: 'group-get',
         group: 'groups',
-        description: 'Returns a single menu category by id or slug. Includes all fields: SEO, worktime, parentGroup.',
+        description: 'Returns a single menu category by id or slug. Includes all fields: SEO, worktime, parentGroup. By slug - the live (not deleted) category; two live ones of one slug - an error naming both, ask by id.',
         mode: 'protected',
         schema: {
             type: 'object',
@@ -45,7 +46,7 @@ export function registerGroupsTools() {
         },
         handler: async ({ id, slug }: { id?: string; slug?: string }) => {
             if (id)   return await Group.findOne({ id }) ?? null;
-            if (slug) return await Group.findOne({ slug }) ?? null;
+            if (slug) return liveBySlug(await Group.find!({ slug, isDeleted: false }), slug, 'groups');
             throw new Error('Provide id or slug');
         },
     });

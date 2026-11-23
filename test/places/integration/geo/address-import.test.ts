@@ -105,11 +105,12 @@ describe("Address import", function () {
       expect(await Address.findOne({ id: house14.id })).to.deep.include({ parent: (await ourStreet("Street 1")).id, cache: mark("Street 1") });
     });
 
-    it("a replace drops a cached house the file has now: its number under the street, or a place closer than 10 m", async function () {
+    it("a replace drops a cached house the file has now: its number under the street, or its number closer than 10 m whatever its line", async function () {
       await importAddresses({ city, nodes: [street1] });
       const street = (await ourStreet("Street 1")).id;
       const house14 = await cachedHouse(street, "14", { lat: 56.84, lon: 60.6 });
-      const house15 = await cachedHouse(street, "15", { lat: 56.85, lon: 60.6 });
+      // the geocoder named the street its own way: the house is ours by its number at the same place
+      const house15 = await cachedHouse(street, "15", { lat: 56.85, lon: 60.6 }, "Another line");
 
       await importAddresses({
         city,
@@ -117,13 +118,35 @@ describe("Address import", function () {
         nodes: [
           street1,
           { parent: "street-1", type: "house", name: "14", point: { lat: 56.841, lon: 60.6 } },
-          { parent: "street-1", type: "house", name: "15a", point: { lat: 56.85004, lon: 60.6 } },
+          { parent: "street-1", type: "house", name: "15", point: { lat: 56.85004, lon: 60.6 } },
         ],
       });
 
-      expect(await Address.findOne({ id: house14.id })).to.equal(undefined);
-      expect(await Address.findOne({ id: house15.id })).to.equal(undefined);
-      expect((await rows()).map((row: any) => row.name).sort()).to.deep.equal(["14", "15a", "Street 1"]);
+      expect(await Address.findOne!({ id: house14.id })).to.equal(undefined);
+      expect(await Address.findOne!({ id: house15.id })).to.equal(undefined);
+      expect((await rows()).map((row: any) => row.name).sort()).to.deep.equal(["14", "15", "Street 1"]);
+    });
+
+    it("a replace keeps a cached house of another number closer than 10 m on the same street: a typed 24a beside our 24", async function () {
+      const house24: AddressImportNode = { parent: "street-1", type: "house", name: "24", point: { lat: 56.89, lon: 60.6 } };
+      await importAddresses({ city, nodes: [street1, house24] });
+      const house24a = await cachedHouse((await ourStreet("Street 1")).id, "24a", { lat: 56.89003, lon: 60.6 });
+
+      await importAddresses({ city, nodes: [street1, house24], replace: true });
+
+      expect(await Address.findOne!({ id: house24a.id })).to.deep.include({ name: "24a", parent: (await ourStreet("Street 1")).id, cache: mark("Street 1") });
+    });
+
+    it("a replace keeps a cached house of another of our streets closer than 10 m: a corner house has an address on each", async function () {
+      const street2: AddressImportNode = { key: "street-2", type: "street", name: "Street 2" };
+      const house24: AddressImportNode = { parent: "street-2", type: "house", name: "24", point: { lat: 56.88, lon: 60.6 } };
+      await importAddresses({ city, nodes: [street1, street2, house24] });
+      // typed under Street 1 and found by a geocoder 3 m from our Street 2, 24
+      const house32 = await cachedHouse((await ourStreet("Street 1")).id, "32", { lat: 56.88003, lon: 60.6 });
+
+      await importAddresses({ city, nodes: [street1, street2, house24], replace: true });
+
+      expect(await Address.findOne!({ id: house32.id })).to.deep.include({ name: "32", parent: (await ourStreet("Street 1")).id, cache: mark("Street 1") });
     });
 
     it("a cached house whose street the file has not hangs under a cached street of that name", async function () {
