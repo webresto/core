@@ -174,6 +174,51 @@ describe("Kitchen resolver", function () {
     });
   });
 
+  describe("rms", function () {
+    // the RMS names its terminal (Place.rmsId) for the address; a stub of the adapter, the installation has none
+    const terminal = { value: null as string | null };
+    before(function () {
+      (Adapter as any).instanceRMS = { resolveCookingPlaceRmsId: async () => terminal.value };
+    });
+    after(function () {
+      (Adapter as any).instanceRMS = undefined;
+    });
+    beforeEach(async function () {
+      await Place.update!({ id: k.kitchen2 }, { rmsId: "T2" } as any).fetch();
+      terminal.value = "T2";
+    });
+
+    it("takes the kitchen of the terminal the RMS names, before the zone of the address", async function () {
+      await chain(["rms", "delivery-zone"], async () => {
+        // the address is in Zone 1 of Kitchen 1: the RMS sends it to Kitchen 2
+        expect(await resolve({ coordinate: { lat: 56.84, lon: 60.61 } })).to.include({ placeId: k.kitchen2, strategy: "rms" });
+      });
+    });
+
+    it("hands on when the RMS names no terminal, or one of no kitchen", async function () {
+      await chain(["rms", "delivery-zone"], async () => {
+        terminal.value = null;
+        expect(await resolve({ coordinate: { lat: 56.84, lon: 60.61 } })).to.include({ placeId: k.kitchen1, strategy: "delivery-zone" });
+        terminal.value = "T9";
+        expect(await resolve({ coordinate: { lat: 56.84, lon: 60.61 } })).to.include({ placeId: k.kitchen1, strategy: "delivery-zone" });
+      });
+    });
+
+    it("passes over the kitchen of the terminal while it is closed, takes it for an order by a time it is open at", async function () {
+      // two hours away from now either way: closed now, open at `at`
+      const [start, stop, hour] = new Date().getHours() < 12 ? ["14:00", "16:00", 15] : ["03:00", "05:00", 4];
+      await hours(k.kitchen2, start, stop);
+      const at = new Date();
+      at.setHours(hour, 0, 0, 0);
+      await chain(["rms", "delivery-zone"], async () => {
+        const now = await resolve({ coordinate: { lat: 56.84, lon: 60.61 } });
+        expect(now).to.include({ placeId: k.kitchen1, strategy: "delivery-zone" });
+        expect(now.diagnostics.join(" ")).to.match(/rms: \S+ via terminal T2 is closed/);
+        expect(await resolve({ coordinate: { lat: 56.84, lon: 60.61 }, at })).to.include({ placeId: k.kitchen2, strategy: "rms" });
+      });
+    });
+  });
+
   describe("single-point", function () {
     it("names the only enabled kitchen, and nothing when there are more", async function () {
       await chain(["single-point"], async () => {
