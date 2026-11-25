@@ -372,10 +372,14 @@ type KitchenStrategy = (
  * The kitchen the RMS says serves this address.
  *
  * Core owns the question, the adapter owns the answer, and an adapter with no
- * answer is the normal case rather than an error — no RMS in this codebase
- * implements the hook yet, so today this strategy passes everywhere. An RMS that
- * is merely down must not decide where an order is cooked in either direction,
- * so a failure is a pass and never a refusal.
+ * answer is the normal case rather than an error. An RMS that is merely down
+ * must not decide where an order is cooked in either direction, so a failure is
+ * a pass and never a refusal.
+ *
+ * The RMS knows which terminal serves an address, not when it works: the
+ * kitchen it names is taken when it is open at the moment of the order, as with
+ * every other strategy; closed, it passes. Otherwise a chain with `rms` first
+ * would cook at night and offer every hour of the day for an order.
  */
 const rms: KitchenStrategy = async (request, diagnostics, inCity) => {
   let rmsId: string | null = null;
@@ -396,6 +400,10 @@ const rms: KitchenStrategy = async (request, diagnostics, inCity) => {
   const place = (await Place.find({})).find((candidate: any) => candidate?.rmsId === rmsId);
   if (!place || !isEnabledKitchen(place) || !inCity(place)) {
     diagnostics.push(`rms: terminal "${rmsId}" maps to no enabled kitchen of the city`);
+    return PASS;
+  }
+  if (!placeAcceptsOrdersNow(place, request.at ?? undefined)) {
+    diagnostics.push(`rms: ${place.id} via terminal ${rmsId} is closed`);
     return PASS;
   }
 
