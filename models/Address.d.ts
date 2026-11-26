@@ -33,6 +33,13 @@ declare let attributes: {
     /** Only leaves carry one: `house`, `entrance`, `unit`, `place`, and a `range` for its middle. */
     point: AddressPoint | null;
     /**
+     * The coordinate of `point` as numbers, written from it on every create and update (`withLatLon`) and by nobody
+     * else: what "the nodes near a point" is asked by, with an index (`nodesNear` of the default geo adapter). `point`
+     * is the one the catalog keeps. Null without a point.
+     */
+    lat: number | null;
+    lon: number | null;
+    /**
      * The house numbers a `range` node stands for, and nobody else's business.
      *
      * A street of five hundred houses is not worth five hundred rows when the

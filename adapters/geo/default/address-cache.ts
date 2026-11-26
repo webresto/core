@@ -52,6 +52,48 @@ export function placeAt(nodes: AddressRecord[], point: AddressPoint): AddressRec
 
 const namesOf = (street: AddressRecord) => [street.name, ...(street.names ?? [])];
 
+/** A street whose every word of a name is in the line: the only ones `ourStreet`, `streetOf` and `knownHouse` can pick. */
+const mayName = (street: AddressRecord, said: Set<string>) =>
+  namesOf(street).some((name) => {
+    const own = words(name);
+    return own.length > 0 && own.every((word) => said.has(word));
+  });
+
+/** A degree of latitude, anywhere: ~111.3 km. */
+const METERS_A_DEGREE = 111_320;
+
+/**
+ * The nodes of a city within `meters` of a point: a square of that half side, by the index on (city, lat) and the
+ * longitude within its band (`Address.lat`, `Address.lon` - the model writes them from `point`). What a click and a
+ * found house are measured against: a few rows instead of the whole catalog of the city.
+ */
+export async function nodesNear(city: string, point: AddressPoint, meters: number): Promise<AddressRecord[]> {
+  const dLat = meters / METERS_A_DEGREE;
+  const dLon = meters / (METERS_A_DEGREE * Math.max(Math.cos((point.lat * Math.PI) / 180), 0.01));
+  return await Address.find!({
+    city,
+    lat: { ">=": point.lat - dLat, "<=": point.lat + dLat },
+    lon: { ">=": point.lon - dLon, "<=": point.lon + dLon },
+  } as any);
+}
+
+/**
+ * The part of the catalog a street line, a point and a chosen street are looked up in, instead of the whole city: its
+ * streets, the houses of every street the line may name (`mayName` - of two namesakes the nearer is told by their
+ * houses), the houses of `also` and the nodes near the point. The functions of this file pick over it what they picked
+ * over the whole catalog: whatever they could pick is in it.
+ */
+export async function catalogFor(city: string, { line, point, also }: { line?: string | null; point?: AddressPoint | null; also?: string | null }): Promise<AddressRecord[]> {
+  const streets: AddressRecord[] = line ? await Address.find!({ city, type: STREET_TYPES }) : [];
+  const said = new Set(words(line));
+  const parents = [...streets.filter((street) => mayName(street, said)).map((street) => street.id), ...(also ? [also] : [])];
+  const houses: AddressRecord[] = parents.length ? await Address.find!({ city, parent: parents }) : [];
+  const near = isValidCoordinate(point) ? await nodesNear(city, point, SNAP_METERS) : [];
+  const byId = new Map<string, AddressRecord>();
+  for (const node of [...streets, ...houses, ...near]) byId.set(node.id, node);
+  return [...byId.values()];
+}
+
 /**
  * Our street a street line names, or `null` when none does or more than one could.
  *
@@ -70,12 +112,7 @@ export function ourStreet(nodes: AddressRecord[], line: string, point?: AddressP
   const equal = streets.filter((street) => namesOf(street).some((name) => sameWords(name, line)));
   if (equal.length) return equal.length === 1 ? equal[0] : nearestStreet(nodes, equal, point);
 
-  const within = streets.filter((street) =>
-    namesOf(street).some((name) => {
-      const own = words(name);
-      return own.length > 0 && own.every((word) => said.has(word));
-    }),
-  );
+  const within = streets.filter((street) => mayName(street, said));
   if (within.length === 1) return within[0];
   const namesakes = within.every((street) => namesOf(street).some((name) => namesOf(within[0]).some((first) => sameWords(name, first))));
   return within.length && namesakes ? nearestStreet(nodes, within, point) : null;
@@ -137,7 +174,7 @@ async function createOrTwin(values: Partial<AddressRecord>): Promise<AddressReco
  * address on each street, the catalog knows one of them, and the typed one is the one wanted.
  */
 export async function cacheHouse(city: string, house: GeocodedHouse, source: string, under?: AddressRecord): Promise<AddressRecord> {
-  const nodes: AddressRecord[] = await Address.find!({ city });
+  const nodes = await catalogFor(city, { line: under ? null : house.street, point: house.point, also: under?.id });
 
   if (!under) {
     const known = placeAt(nodes, house.point);

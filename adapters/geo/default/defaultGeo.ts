@@ -6,7 +6,7 @@ import { formatAddressLine, formatAddressPath } from "../../../lib/address/forma
 import { coordinateFromAddress, isValidCoordinate } from "../../../lib/address/coordinate";
 import { findCityId } from "../../../lib/menu/cooking-place";
 import { attachedGeocoders, isRecentMiss, rememberMiss } from "./geocoders";
-import { cacheHouse, knownHouse, placeAt, sameHouse, streetOf } from "./address-cache";
+import { cacheHouse, catalogFor, knownHouse, nodesNear, placeAt, sameHouse, SNAP_METERS, streetOf } from "./address-cache";
 
 /**
  * The node types of an address graph.
@@ -141,9 +141,9 @@ export class DefaultGeoAdapter extends GeoAdapter {
     const cityId = await findCityId(address?.city);
 
     if (cityId) {
-      const nodes: AddressRecord[] = await Address.find!({ city: cityId });
-      // A chosen street knows its houses by id; a typed one by its words.
+      // A chosen street knows its houses by id; a typed one by its words. The part of the catalog they are in, not all of it.
       const chosen = path.length && house < 0 ? path[path.length - 1] : null;
+      const nodes = await catalogFor(cityId, chosen ? { also: chosen.id } : { line: street });
       const known = chosen
         ? nodes.find((one) => toParent(one) === chosen.id && one.type === "house" && sameHouse(one.name, home!))
         : knownHouse(nodes, street, home);
@@ -171,8 +171,9 @@ export class DefaultGeoAdapter extends GeoAdapter {
    * geocoder again.
    */
   public async addressByCoordinate(coordinate: AddressPoint, city: string): Promise<OrderAddress | null> {
-    const nodes: AddressRecord[] = await Address.find!({ city });
-    const near = placeAt(nodes, coordinate);
+    // the nodes within SNAP_METERS by the index, not the whole catalog: a catalog of 34 thousand rows read per click held
+    // the server for ~1 s, and every other request waited
+    const near = placeAt(await nodesNear(city, coordinate, SNAP_METERS), coordinate);
     if (near) return await catalogAnswer(near, coordinate);
 
     // A point is remembered to about ten meters: the same field clicked again.
@@ -324,7 +325,8 @@ async function typedHouse(params: { city: string; parent?: string | null; query:
 
   const miss = `typed:${params.city}:${parent}:${home.toLowerCase()}`;
   if (isRecentMiss(miss)) return null;
-  const nodes: AddressRecord[] = await Address.find!({ city: params.city });
+  // the streets of the city and the houses of those of the chosen one's words - the namesakes are told apart by them
+  const nodes = await catalogFor(params.city, { line: street, also: parent });
   const cityName = (await City.findOne!({ id: params.city }))?.name ?? "";
   const asked = await askGeocoders(
     (geocoder) => geocoder.houses({ city: cityName, street, home }),
