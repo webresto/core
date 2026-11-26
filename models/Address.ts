@@ -68,6 +68,21 @@ let attributes = {
   } as unknown as AddressPoint | null,
 
   /**
+   * The coordinate of `point` as numbers, written from it on every create and update (`withLatLon`) and by nobody
+   * else: what "the nodes near a point" is asked by, with an index (`nodesNear` of the default geo adapter). `point`
+   * is the one the catalog keeps. Null without a point.
+   */
+  lat: {
+    type: "number",
+    allowNull: true,
+  } as unknown as number | null,
+
+  lon: {
+    type: "number",
+    allowNull: true,
+  } as unknown as number | null,
+
+  /**
    * The house numbers a `range` node stands for, and nobody else's business.
    *
    * A street of five hundred houses is not worth five hundred rows when the
@@ -163,11 +178,20 @@ async function assertNode(values: Partial<AddressRecord>): Promise<void> {
   }
 }
 
+/** `lat` and `lon` follow `point` when it is written; an update without `point` leaves them as they are. */
+function withLatLon(values: Partial<AddressRecord>): void {
+  if (values.point === undefined) return;
+  const point = isValidCoordinate(values.point) ? values.point : null;
+  values.lat = point ? point.lat : null;
+  values.lon = point ? point.lon : null;
+}
+
 let Model = {
   async beforeCreate(init: AddressRecord, cb: (err?: string) => void) {
     try {
       if (!init.id) init.id = uuid();
       await assertNode(init);
+      withLatLon(init);
       cb();
     } catch (error) {
       cb(error instanceof Error ? error.message : String(error));
@@ -177,6 +201,7 @@ let Model = {
   async beforeUpdate(values: Partial<AddressRecord>, cb: (err?: string) => void) {
     try {
       await assertNode(values);
+      withLatLon(values);
       cb();
     } catch (error) {
       cb(error instanceof Error ? error.message : String(error));
