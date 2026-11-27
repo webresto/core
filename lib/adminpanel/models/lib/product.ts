@@ -138,7 +138,7 @@ export class ProductConfig {
                 group: "products",
                 accept: [
                     'image/jpeg', 
-                    // 'image/webp',
+                    'image/webp',
                     'image/png'
                 ],
                 convert: 'image/jpeg',
