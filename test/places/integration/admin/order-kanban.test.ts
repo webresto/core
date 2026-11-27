@@ -5,8 +5,8 @@ import { resetDatabase } from "../../support/reset";
 
 /**
  * The orders board of the admin panel ("Move to…"): moving an order to DONE or REJECT finishes it the way
- * Order.doFinalize does — a delivered address becomes a saved one, a guest order is matched to an account by its
- * phone — for an administrator and an operator alike; the other states are a plain move.
+ * Order.doFinalize does — a guest order is matched to an account by its phone and its delivered address becomes a
+ * saved one of it — for an administrator and an operator alike; the other states are a plain move.
  */
 describe("Order kanban", function () {
   const STREET_1_12 = { node: null, formatted: "Street 1, 12", city: "City 1", coordinate: { lat: 56.8429, lon: 60.6408 } };
@@ -41,18 +41,21 @@ describe("Order kanban", function () {
     });
   }
 
-  it("saves the address of a delivery moved to DONE", async function () {
-    const id = await placed({ user: user1, serviceType: "delivery", address: STREET_1_12 });
+  const GUEST_1 = { user: null, customer: { name: "Customer 1", phone: { code: "1", number: "5550000001", additionalNumber: "" } } };
+
+  it("saves the address of a guest's delivery moved to DONE for the account of its phone", async function () {
+    const id = await placed({ ...GUEST_1, serviceType: "delivery", address: STREET_1_12 });
 
     for (const state of ["COOKING", "ON_THE_WAY", "DONE"]) expect((await move(id, state)).status).to.equal(200);
 
-    expect((await Order.findOne!({ id })).state).to.equal("DONE");
+    const order = await Order.findOne!({ id });
+    expect(order).to.include({ state: "DONE", user: user1 });
     const [location] = await UserLocation.find!({ user: user1 });
     expect(location?.formatted).to.equal("Street 1, 12");
   });
 
   it("finishes an order an operator moves to DONE the same way", async function () {
-    const id = await placed({ user: user1, serviceType: "delivery", address: STREET_1_12 });
+    const id = await placed({ ...GUEST_1, serviceType: "delivery", address: STREET_1_12 });
 
     expect((await move(id, "DONE", OPERATOR)).status).to.equal(200);
 
@@ -60,18 +63,8 @@ describe("Order kanban", function () {
     expect(await UserLocation.find!({ user: user1 })).to.have.length(1);
   });
 
-  it("matches a guest order moved to DONE to the account of its phone", async function () {
-    const id = await placed({ user: null, serviceType: "delivery", address: STREET_1_12, customer: { name: "Customer 1", phone: { code: "1", number: "5550000001", additionalNumber: "" } } });
-
-    await move(id, "DONE");
-
-    const order = await Order.findOne!({ id });
-    expect(order.user).to.equal(user1);
-    expect(await UserLocation.find!({ user: user1 })).to.have.length(1);
-  });
-
   it("rejects without saving anything", async function () {
-    const id = await placed({ user: user1, serviceType: "delivery", address: STREET_1_12 });
+    const id = await placed({ ...GUEST_1, serviceType: "delivery", address: STREET_1_12 });
 
     expect((await move(id, "REJECT")).status).to.equal(200);
 

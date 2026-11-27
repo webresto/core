@@ -1240,6 +1240,12 @@ let Model = {
             void emitOrderNotificationEvent(order.id, "order_accepted");
             if (order.user) {
                 UserOrderHistory.save(order.id);
+                // The address of a placed delivery is one of the customer's saved ones from now: an order that is
+                // never finished (no RMS or board moves it to DONE) still keeps it. A guest's is kept by doFinalize,
+                // which finds or makes their account.
+                if (order.serviceType === "delivery" && order.address) {
+                    await UserLocation.remember(typeof order.user === "string" ? order.user : order.user.id, order.address);
+                }
             }
         }
         /**
@@ -2210,11 +2216,11 @@ let Model = {
             await Order.update({ id: order.id }, { user: user.id }).fetch();
         }
         await Order.next(criteriaOne, state);
-        // A delivered address becomes one of the customer's saved ones: theirs is the
-        // user the order already had, or the one the block above found or made.
-        const owner = user?.id ?? (typeof order.user === "string" ? order.user : order.user?.id);
-        if (state === "DONE" && order.serviceType === "delivery" && order.address && owner) {
-            await UserLocation.remember(owner, order.address);
+        // A guest's delivered address becomes one of the saved ones of the account the block above found or
+        // made. A customer's own order kept its address when it was placed (Order.order): one they deleted since
+        // stays deleted.
+        if (user && order.serviceType === "delivery" && order.address) {
+            await UserLocation.remember(user.id, order.address);
         }
         Order.emitAndLogDetached({ id: order.id }, "core:order-after-done", order, user, { isNewUser });
     },

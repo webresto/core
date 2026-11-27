@@ -6,8 +6,8 @@ import { wholeLine } from "../lib/user-location";
 import { UserRecord } from "./User";
 
 /**
- * An address the customer has been delivered to: `Order.address` without the
- * catalog node.
+ * An address of the customer — of a placed delivery or added by them:
+ * `Order.address` without the catalog node.
  *
  * No node on purpose. A saved address is where the courier went, and a catalog
  * edit — a street renamed, a house moved or deleted — must not move it. The line
@@ -126,22 +126,22 @@ let Model = {
   },
 
   /**
-   * Keeps the address of a delivered order, once per line.
-   *
-   * The only way a location is written: the customer's own deliveries are the
-   * list, there is no separate "save this address". A line the user already
-   * has is left as it is — with its name and whether it is the default.
+   * Keeps an address of the customer, once per line: the address of a placed
+   * delivery, or one they add in their profile (`locationCreate`). A line the
+   * user already has is left as it is — with its name and whether it is the
+   * default. True when the address is new to them.
    */
-  async remember(user: string, address: OrderAddress): Promise<void> {
-    if (!address.formatted) return;
+  async remember(user: string, address: OrderAddress): Promise<boolean> {
+    if (!address.formatted) return false;
     const formatted = wholeLine(address.formatted, address.home);
-    if (await UserLocation.findOne!({ user, formatted })) return;
+    if (await UserLocation.findOne!({ user, formatted })) return false;
 
     const given = address as Record<string, unknown>;
     const tail = Object.keys(addressAttributes)
       .filter((key) => given[key] !== undefined && given[key] !== null)
       .map((key) => [key, given[key]]);
     await UserLocation.create!({ ...Object.fromEntries(tail), formatted, user }).fetch();
+    return true;
   },
 };
 
