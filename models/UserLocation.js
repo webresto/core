@@ -95,23 +95,23 @@ let Model = {
         return location;
     },
     /**
-     * Keeps the address of a delivered order, once per line.
-     *
-     * The only way a location is written: the customer's own deliveries are the
-     * list, there is no separate "save this address". A line the user already
-     * has is left as it is — with its name and whether it is the default.
+     * Keeps an address of the customer, once per line: the address of a placed
+     * delivery, or one they add in their profile (`locationCreate`). A line the
+     * user already has is left as it is — with its name and whether it is the
+     * default. True when the address is new to them.
      */
     async remember(user, address) {
         if (!address.formatted)
-            return;
+            return false;
         const formatted = (0, user_location_1.wholeLine)(address.formatted, address.home);
         if (await UserLocation.findOne({ user, formatted }))
-            return;
+            return false;
         const given = address;
         const tail = Object.keys(addressAttributes)
             .filter((key) => given[key] !== undefined && given[key] !== null)
             .map((key) => [key, given[key]]);
         await UserLocation.create({ ...Object.fromEntries(tail), formatted, user }).fetch();
+        return true;
     },
 };
 module.exports = {

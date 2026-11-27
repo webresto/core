@@ -39,13 +39,12 @@ declare let Model: {
      */
     setDefault(user: string, id: string): Promise<UserLocationRecord>;
     /**
-     * Keeps the address of a delivered order, once per line.
-     *
-     * The only way a location is written: the customer's own deliveries are the
-     * list, there is no separate "save this address". A line the user already
-     * has is left as it is — with its name and whether it is the default.
+     * Keeps an address of the customer, once per line: the address of a placed
+     * delivery, or one they add in their profile (`locationCreate`). A line the
+     * user already has is left as it is — with its name and whether it is the
+     * default. True when the address is new to them.
      */
-    remember(user: string, address: OrderAddress): Promise<void>;
+    remember(user: string, address: OrderAddress): Promise<boolean>;
 };
 declare global {
     const UserLocation: typeof Model & ORMModel<UserLocationRecord, never>;

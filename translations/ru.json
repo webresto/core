@@ -8,6 +8,8 @@
     "External Id": "Внешний идентификатор",
     "SKU (code)": "SKU (код)",
     "Ingredients": "Ингредиенты",
+    "Additional Info": "Дополнительная информация",
+    "Shown in the dish card under the ingredients, for example the allergens": "Видна в карточке блюда под составом, например аллергены",
     "Carbohydrate Amount (per unit volume)": "Количество углеводов (на единицу объема)",
     "The amount of carbohydrates per unit volume of the product.": "Количество углеводов на единицу объема продукта.",
     "Total Carbohydrate Amount": "Общее количество углеводов",

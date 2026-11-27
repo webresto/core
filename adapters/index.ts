@@ -22,7 +22,7 @@ export type { SalesChannelStatusResult, SalesChannelReadiness, InitSalesChannelA
 // Code outside `adapters/` reaches an adapter only through this file: the base
 // classes a module extends or types against, and the types they carry.
 export { GeoAdapter, DeliveryAdapter, MenuAdapter, RMSAdapter, PaymentAdapter, BonusProgramAdapter, AuthAdapter, AbstractPromotionAdapter, AbstractPromotionHandler };
-export type { RMSOutOfStockEventItem } from "./rms/RMSAdapter";
+export type { RMSOrderCheck, RMSOutOfStockEventItem } from "./rms/RMSAdapter";
 export type { BonusTransaction } from "./bonusprogram/BonusProgramAdapter";
 export type {
   AuthFlowKind, PhoneProofMode, SecretOrigin, StepType, Offer, InitAuthAdapter, NormalizedProfile,

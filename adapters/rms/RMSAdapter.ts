@@ -39,6 +39,12 @@ export interface RMSPlaceOutOfStockSnapshot {
   items: RMSOutOfStockItem[];
 }
 
+/**
+ * What the RMS says of an order before it is placed (`checkOrder`): it takes it, or it does not and says why in
+ * words for the customer - its stop list, its least sum, its zones and times.
+ */
+export type RMSOrderCheck = { allowed: true } | { allowed: false; message: string };
+
 /** What `rms-sync:out-of-stocks-before-each-product-item` carries. */
 export interface RMSOutOfStockEventItem extends RMSOutOfStockItem {
   /** The point the value was applied to; absent for a snapshot without terminals. */
@@ -542,11 +548,11 @@ export default abstract class RMSAdapter {
   public abstract createOrder(orderData: OrderRecord): Promise<OrderRecord>;
 
   /**
-   * Order check before order
-   * @param orderData - webresto order
-   * @return Order response
+   * The order as it is about to be placed, asked at the checkout (`Order.check`, after its kitchen is chosen). A
+   * refusal stops the checkout with the message; a throw is no answer, and the order goes on - `createOrder` is asked
+   * when it is placed anyway.
    */
-  public abstract checkOrder(orderData: OrderRecord): Promise<OrderRecord>;
+  public abstract checkOrder(order: OrderRecord): Promise<RMSOrderCheck>;
 
   // /**
   //  * Getting system information

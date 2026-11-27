@@ -9,7 +9,7 @@ import { OptionalAll } from "../interfaces/toolsTS";
 import { SpendBonus } from "../interfaces/SpendBonus";
 import Decimal from "decimal.js";
 import { Delivery } from "../interfaces/Delivery";
-import type { AbstractPromotionAdapter, BonusTransaction } from "../adapters";
+import type { AbstractPromotionAdapter, BonusTransaction, RMSAdapter, RMSOrderCheck } from "../adapters";
 import { phoneValidByMask } from "../lib/phoneValidByMask";
 import { OrderHelper } from "../lib/order/OrderHelper";
 import AuthService from "../lib/AuthService";
@@ -1272,6 +1272,9 @@ let Model = {
       delete (order.dishes);
       await Order.update({ id: order.id }, { ...order }).fetch();
 
+      // the RMS that cooks it has the last word, on the order as it is counted now
+      await checkWithRMS(order);
+
 
       /** The check can pass without listeners, because the check itself is minimal
       * has basic checks. And is self-sufficient, but
@@ -1435,61 +1438,62 @@ let Model = {
       // still sells what its kitchens have and no more.
       await decrementLimitedStockByOrder(order.id);
 
-      /** Here core just makes emit,
-       * instead call directly in RMSadapter.
-       * But I think we need to select default adapter and make order here */
-
+      // The RMS cooks what it is sent: an installation without one places the order here alone (the board of the
+      // operator). An RMS that does not take it leaves it placed anyway - the customer has it - and a problem: the
+      // operator is told to pass it to the kitchen by hand.
+      let rms: RMSAdapter | null = null;
       try {
-        let orderWithRMS = await (await Adapter.getRMSAdapter()).createOrder(order);
-        await Order.update({ id: order.id }, {
-          rmsId: orderWithRMS.rmsId,
-          rmsOrderNumber: orderWithRMS.rmsOrderNumber,
-          rmsOrderData: orderWithRMS.rmsOrderData
-        })
-        sails.log.info(`RestoCore > new order with id [${orderWithRMS.shortId}] for [${orderWithRMS.customer.phone.code + orderWithRMS.customer.phone.number}] total: ${orderWithRMS.total} has rmsOrderNumber: ${orderWithRMS.rmsOrderNumber}`)
-        await Order.log({id: order.id}, "info", "core", "order: RMS order created", {rmsOrderNumber: orderWithRMS.rmsOrderNumber, rmsId: orderWithRMS.rmsId});
-      } catch (error) {
-        // Extract detailed error information.
-        // RMS adapters (and Adapter.getRMSAdapter itself: `throw "RMS adapter is not installed"`)
-        // may throw primitives, not Error instances. Spreading a string (`...error`) turns it into
-        // a char map {"0":"R","1":"M",...}, so primitives are stringified as-is.
-        let errorMessage: string;
-        if (error === null || typeof error !== "object") {
-          errorMessage = String(error);
-        } else {
-          errorMessage = typeof error.message === "string" ? error.message : '';
+        rms = await Adapter.getRMSAdapter();
+      } catch {}
+      if (rms) {
+        try {
+          let orderWithRMS = await rms.createOrder(order);
+          await Order.update({ id: order.id }, {
+            rmsId: orderWithRMS.rmsId,
+            rmsOrderNumber: orderWithRMS.rmsOrderNumber,
+            rmsOrderData: orderWithRMS.rmsOrderData
+          })
+          sails.log.info(`RestoCore > new order with id [${orderWithRMS.shortId}] for [${orderWithRMS.customer.phone.code + orderWithRMS.customer.phone.number}] total: ${orderWithRMS.total} has rmsOrderNumber: ${orderWithRMS.rmsOrderNumber}`)
+          await Order.log({id: order.id}, "info", "core", "order: RMS order created", {rmsOrderNumber: orderWithRMS.rmsOrderNumber, rmsId: orderWithRMS.rmsId});
+        } catch (error) {
+          // RMS adapters may throw primitives, not Error instances. Spreading a string (`...error`) turns it into
+          // a char map {"0":"R","1":"M",...}, so primitives are stringified as-is.
+          let errorMessage: string;
+          if (error === null || typeof error !== "object") {
+            errorMessage = String(error);
+          } else {
+            errorMessage = typeof error.message === "string" ? error.message : '';
 
-          // If message is empty, try to extract more information
-          if (!errorMessage || errorMessage === '{}') {
-            // Gather all available error properties
-            const errorDetails = {
-              name: error.name,
-              code: error.code,
-              stack: error.stack,
-              ...error
-            };
-            errorMessage = JSON.stringify(errorDetails, null, 2);
+            // If message is empty, try to extract more information
+            if (!errorMessage || errorMessage === '{}') {
+              // Gather all available error properties
+              const errorDetails = {
+                name: error.name,
+                code: error.code,
+                stack: error.stack,
+                ...error
+              };
+              errorMessage = JSON.stringify(errorDetails, null, 2);
+            }
           }
+
+          sails.log.error(`RestoCore > orderIt error:`, {
+            code: error?.code,
+            message: errorMessage,
+            name: error?.name,
+            stack: error?.stack,
+            orderId: order.id,
+            orderShortId: order.shortId,
+            fullError: error
+          })
+
+          await Order.update({ id: order.id }, { rmsErrorCode: error?.code ?? "Error", rmsErrorMessage: errorMessage, problem: true })
+          await Order.log({id: order.id}, "error", "core", "order: RMS error", {code: error?.code, message: errorMessage});
+          await NotificationManager.sendMessageToDeliveryManager(
+            "error",
+            `${await coreI18n("The order did not reach the RMS. Pass it to the kitchen by hand")}: ${order.shortId}, ${errorMessage}`
+          );
         }
-
-        const orderError = {
-          rmsErrorCode: error?.code ?? "Error",
-          rmsErrorMessage: errorMessage
-        }
-
-        // Enhanced logging with stack trace
-        sails.log.error(`RestoCore > orderIt error:`, {
-          code: error?.code,
-          message: errorMessage,
-          name: error?.name,
-          stack: error?.stack,
-          orderId: order.id,
-          orderShortId: order.shortId,
-          fullError: error
-        })
-
-        await Order.update({ id: order.id }, orderError)
-        await Order.log({id: order.id}, "error", "core", "order: RMS error", {code: error?.code, message: errorMessage});
       }
 
       sails.log.debug("CORE > about to emit core:order-after-order, orderId:", order?.id, "emitter events count:", emitter?.events?.length, "subscribers:", emitter?.events?.map(e => `${e.name}[${e.subscribers?.length}]`).join(", "));
@@ -1498,6 +1502,12 @@ let Model = {
       void emitOrderNotificationEvent(order.id, "order_accepted");
       if (order.user) {
         UserOrderHistory.save(order.id);
+        // The address of a placed delivery is one of the customer's saved ones from now: an order that is
+        // never finished (no RMS or board moves it to DONE) still keeps it. A guest's is kept by doFinalize,
+        // which finds or makes their account.
+        if (order.serviceType === "delivery" && order.address) {
+          await UserLocation.remember(typeof order.user === "string" ? order.user : order.user.id, order.address);
+        }
       }
     }
 
@@ -2586,11 +2596,11 @@ let Model = {
 
     await Order.next(criteriaOne, state);
 
-    // A delivered address becomes one of the customer's saved ones: theirs is the
-    // user the order already had, or the one the block above found or made.
-    const owner = user?.id ?? (typeof order.user === "string" ? order.user : order.user?.id);
-    if (state === "DONE" && order.serviceType === "delivery" && order.address && owner) {
-      await UserLocation.remember(owner, order.address);
+    // A guest's delivered address becomes one of the saved ones of the account the block above found or
+    // made. A customer's own order kept its address when it was placed (Order.order): one they deleted since
+    // stays deleted.
+    if (user && order.serviceType === "delivery" && order.address) {
+      await UserLocation.remember(user.id, order.address);
     }
 
     Order.emitAndLogDetached({id: order.id}, "core:order-after-done", order, user, { isNewUser });
@@ -3072,6 +3082,30 @@ async function checkAddress(address: OrderAddress, selfAddressed: boolean, softD
       throw error[0]
     }
   }
+}
+
+/**
+ * The RMS that cooks the order has the last word before it is placed: its stop list, its least sum, its zones and its
+ * times (`RMSAdapter.checkOrder`). Its "no" is the customer's - code 30, in its own words. No answer is not a refusal:
+ * the order goes on, and `Order.order` marks it a problem if the RMS does not take it either. No RMS - nothing to ask.
+ */
+async function checkWithRMS(order: OrderRecord): Promise<void> {
+  let adapter: RMSAdapter;
+  try {
+    adapter = await Adapter.getRMSAdapter();
+  } catch {
+    return;
+  }
+  let answer: RMSOrderCheck;
+  try {
+    answer = await adapter.checkOrder(order);
+  } catch (error) {
+    await Order.log({ id: order.id }, "warn", "core", "check: the RMS did not answer", { error: error instanceof Error ? error.message : String(error) });
+    return;
+  }
+  if (answer.allowed) return;
+  await Order.log({ id: order.id }, "warn", "core", "check: the RMS refused the order", { message: answer.message });
+  throw { code: 30, error: answer.message };
 }
 
 /**

@@ -22,6 +22,11 @@ export class ProductConfig {
         ingredients: {
             title: "Ingredients"
         },
+        additionalInfo: {
+            title: "Additional Info",
+            type: "text",
+            tooltip: "Shown in the dish card under the ingredients, for example the allergens"
+        },
         carbohydrateAmount: {
             title: "Carbohydrate Amount (per unit volume)",
             tooltip: "The amount of carbohydrates per unit volume of the product."
@@ -138,7 +143,7 @@ export class ProductConfig {
                 group: "products",
                 accept: [
                     'image/jpeg', 
-                    // 'image/webp',
+                    'image/webp',
                     'image/png'
                 ],
                 convert: 'image/jpeg',
